@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import '../../../core/constants.dart';
 import '../../../core/utils.dart';
+import '../../../data/local_storage.dart';
 import '../../../data/roulette_repository.dart';
 import '../../../data/settings_repository.dart';
 import '../../../domain/history.dart';
@@ -20,12 +22,33 @@ class PlayNotifier extends ChangeNotifier {
   List<History> _history = [];
   Settings _settings = const Settings();
 
+  // ── 중복 제외 모드 ────────────────────────────────────
+  bool _noRepeat = false;
+  bool _autoReset = false;
+  Set<String> _excludedIds = {};
+
   Roulette? get roulette => _roulette;
   SpinState get spinState => _spinState;
   Item? get result => _result;
   List<History> get history => List.unmodifiable(_history);
   bool get isSpinning => _spinState == SpinState.spinning;
   Settings get settings => _settings;
+  bool get noRepeat => _noRepeat;
+  bool get autoReset => _autoReset;
+
+  /// noRepeat ON이면 뽑힌 항목 제외, OFF면 전체 반환
+  List<Item> get availableItems {
+    if (!_noRepeat || _roulette == null) return _roulette?.items ?? [];
+    return _roulette!.items
+        .where((i) => !_excludedIds.contains(i.id))
+        .toList();
+  }
+
+  /// noRepeat ON이고 모든 항목이 뽑혔으면 true
+  bool get allPicked =>
+      _noRepeat &&
+      _roulette != null &&
+      _excludedIds.length >= _roulette!.items.length;
 
   Future<void> load(String rouletteId) async {
     _roulette = await _repo.getById(rouletteId);
@@ -33,7 +56,52 @@ class PlayNotifier extends ChangeNotifier {
     _spinState = SpinState.idle;
     _result = null;
     _history = await _repo.getHistory(rouletteId);
+
+    // 스핀 모드 로드 (재시작 후에도 유지)
+    final modeData = await LocalStorage.instance
+        .getJsonMap(StorageKeys.spinModeKey(rouletteId));
+    if (modeData != null) {
+      _noRepeat = modeData['noRepeat'] as bool? ?? false;
+      _autoReset = modeData['autoReset'] as bool? ?? false;
+      final ids = (modeData['excludedIds'] as List?)?.cast<String>() ?? [];
+      _excludedIds = Set.from(ids);
+    } else {
+      _noRepeat = false;
+      _autoReset = false;
+      _excludedIds = {};
+    }
+
     notifyListeners();
+  }
+
+  void setNoRepeat(bool v) {
+    _noRepeat = v;
+    _saveSpinMode();
+    notifyListeners();
+  }
+
+  void setAutoReset(bool v) {
+    _autoReset = v;
+    _saveSpinMode();
+    notifyListeners();
+  }
+
+  Future<void> resetExcluded() async {
+    _excludedIds.clear();
+    await _saveSpinMode();
+    notifyListeners();
+  }
+
+  Future<void> _saveSpinMode() async {
+    if (_roulette == null) return;
+    await LocalStorage.instance.setJsonMap(
+      StorageKeys.spinModeKey(_roulette!.id),
+      {
+        'noRepeat': _noRepeat,
+        'autoReset': _autoReset,
+        'excludedIds': _excludedIds.toList(),
+      },
+    );
   }
 
   void startSpin() {
@@ -46,9 +114,21 @@ class PlayNotifier extends ChangeNotifier {
   Future<void> finishSpin(Item winner) async {
     _result = winner;
     _spinState = SpinState.done;
+
+    // 중복 제외: 당첨 항목 추가
+    if (_noRepeat) {
+      _excludedIds.add(winner.id);
+      // 자동 리셋: 모두 뽑혔으면 즉시 초기화
+      if (_autoReset &&
+          _excludedIds.length >= (_roulette?.items.length ?? 0)) {
+        _excludedIds.clear();
+      }
+      await _saveSpinMode();
+    }
+
     notifyListeners();
 
-    // 햅틱 피드백 (Settings 연동)
+    // 햅틱 피드백
     if (_settings.hapticEnabled) {
       HapticFeedback.mediumImpact();
     }
@@ -65,7 +145,6 @@ class PlayNotifier extends ChangeNotifier {
       await _repo.addHistory(entry);
       await _repo.updateLastPlayed(_roulette!.id);
 
-      // lastUsedRouletteId 갱신
       final updated =
           _settings.copyWith(lastUsedRouletteId: _roulette!.id);
       await _settingsRepo.save(updated);

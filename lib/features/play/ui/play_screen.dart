@@ -1,11 +1,13 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import '../../../core/constants.dart';
 import '../../../core/utils.dart';
 import '../../../domain/item.dart';
 import '../../../domain/settings.dart';
 import '../state/play_notifier.dart';
 import '../widgets/roulette_wheel.dart';
+import '../widgets/stats_sheet.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -59,21 +61,23 @@ class _PlayScreenState extends State<PlayScreen>
   // debugSeed: 동일 결과 재현용 (null이면 Random() 사용)
   void _spin({int? debugSeed}) {
     if (_notifier.isSpinning) return;
-    final items = _notifier.roulette?.items;
-    if (items == null || items.length < AppLimits.minItemCount) return;
+    final allItems = _notifier.roulette?.items;
+    if (allItems == null || allItems.length < AppLimits.minItemCount) return;
+
+    // 중복 제외 모드: 뽑을 수 있는 항목 중에서 선택
+    final candidates = _notifier.availableItems;
+    if (candidates.isEmpty) return;
 
     _notifier.startSpin();
 
     final random = debugSeed != null ? Random(debugSeed) : Random();
 
-    // 1. 결과 index 먼저 결정 (균등 확률)
-    final winnerIndex = random.nextInt(items.length);
+    // 1. candidates 중 당첨자 결정, 전체 휠 기준 인덱스 계산
+    final winnerItem = candidates[random.nextInt(candidates.length)];
+    final winnerIndex = allItems.indexOf(winnerItem);
 
     // 2. 당첨 섹터 중앙에 포인터(12시)가 오는 각도 역산
-    //    페인터: 섹터 i 시작 = i * sectorAngle - π/2 (+ rotationAngle)
-    //    섹터 i 중앙 normalizedAngle = (i + 0.5) * sectorAngle
-    //    normalizedAngle = (2π - rotationAngle % 2π) % 2π 의 역관계
-    final sectorAngle = 2 * pi / items.length;
+    final sectorAngle = 2 * pi / allItems.length;
     final targetNormalized = (winnerIndex + 0.5) * sectorAngle;
     final finalCycleAngle = (2 * pi - targetNormalized) % (2 * pi);
 
@@ -105,9 +109,8 @@ class _PlayScreenState extends State<PlayScreen>
       ..forward().then((_) {
         if (!mounted) return;
         _currentAngle = targetAngle % (2 * pi);
-        final winner = items[winnerIndex];
-        _notifier.finishSpin(winner).then((_) {
-          if (mounted) _showResultSheet(winner);
+        _notifier.finishSpin(winnerItem).then((_) {
+          if (mounted) _showResultSheet(winnerItem);
         });
       });
   }
@@ -164,16 +167,17 @@ class _PlayScreenState extends State<PlayScreen>
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.copy),
                     label: const Text('결과 복사'),
-                    onPressed: () {
-                      // TODO(Phase2): Clipboard.setData 연동
-                      Navigator.of(ctx).pop();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(AppUtils.buildShareText(
-                            _notifier.roulette?.name ?? '',
-                            winner.label,
-                          )),
-                        ),
+                    onPressed: () async {
+                      final text = AppUtils.buildShareText(
+                        _notifier.roulette?.name ?? '',
+                        winner.label,
+                      );
+                      final navigator = Navigator.of(ctx);
+                      final messenger = ScaffoldMessenger.of(context);
+                      await Clipboard.setData(ClipboardData(text: text));
+                      navigator.pop();
+                      messenger.showSnackBar(
+                        const SnackBar(content: Text('결과를 클립보드에 복사했습니다.')),
                       );
                     },
                   ),
@@ -201,6 +205,23 @@ class _PlayScreenState extends State<PlayScreen>
         ),
       ),
     ).then((_) => _notifier.resetSpin());
+  }
+
+  void _showStats() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (_) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.72,
+        child: StatsSheet(
+          roulette: _notifier.roulette!,
+          history: _notifier.history,
+        ),
+      ),
+    );
   }
 
   void _showHistory() {
@@ -255,6 +276,13 @@ class _PlayScreenState extends State<PlayScreen>
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.bar_chart_outlined),
+            tooltip: '통계',
+            onPressed: () {
+              if (_notifier.roulette != null) _showStats();
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.history),
             tooltip: '히스토리',
             onPressed: _showHistory,
@@ -296,6 +324,63 @@ class _PlayScreenState extends State<PlayScreen>
                   ),
                 ),
               ),
+              // ── 모드 토글 ──────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: FilterChip(
+                        label: const Text('중복 제외'),
+                        selected: _notifier.noRepeat,
+                        onSelected: _notifier.isSpinning
+                            ? null
+                            : _notifier.setNoRepeat,
+                        avatar: const Icon(Icons.block_outlined, size: 16),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: FilterChip(
+                        label: const Text('자동 리셋'),
+                        selected: _notifier.autoReset,
+                        onSelected:
+                            (_notifier.noRepeat && !_notifier.isSpinning)
+                                ? _notifier.setAutoReset
+                                : null,
+                        avatar: const Icon(Icons.refresh, size: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // ── 모두 뽑힘 배너 ─────────────────────────────
+              if (_notifier.allPicked)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 4, 16, 0),
+                  child: Row(
+                    children: [
+                      Icon(Icons.check_circle_outline,
+                          color:
+                              Theme.of(context).colorScheme.primary,
+                          size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '모든 항목을 뽑았습니다!',
+                          style: TextStyle(
+                              color:
+                                  Theme.of(context).colorScheme.primary),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: _notifier.resetExcluded,
+                        child: const Text('리셋'),
+                      ),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 8),
               // SPIN 버튼
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
@@ -303,9 +388,15 @@ class _PlayScreenState extends State<PlayScreen>
                   width: double.infinity,
                   height: 60,
                   child: FilledButton(
-                    onPressed: _notifier.isSpinning ? null : _spin,
+                    onPressed: (_notifier.isSpinning || _notifier.allPicked)
+                        ? null
+                        : _spin,
                     child: Text(
-                      _notifier.isSpinning ? '돌아가는 중...' : 'SPIN',
+                      _notifier.isSpinning
+                          ? '돌아가는 중...'
+                          : _notifier.allPicked
+                              ? '모두 뽑힘'
+                              : 'SPIN',
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,

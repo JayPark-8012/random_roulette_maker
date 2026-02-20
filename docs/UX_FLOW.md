@@ -10,6 +10,7 @@
 | S04 | Play | `/play` | 룰렛 스핀 화면 |
 | S05 | Templates | `/templates` | 템플릿 목록 |
 | S06 | Settings | `/settings` | 앱 설정 |
+| S07 | Stats | BottomSheet (Play 내) | 룰렛별 히스토리 빈도 통계 |
 
 ---
 
@@ -102,6 +103,7 @@
 | 결과 모달 - 복사 | 결과 텍스트 클립보드 복사 + 스낵바 |
 | 결과 모달 - 닫기 | 모달 닫기, 휠 결과 위치 유지 |
 | 히스토리 아이콘 탭 | BottomSheet로 최근 20개 결과 표시 |
+| 통계 아이콘 탭 | BottomSheet로 항목별 빈도 바 + 최근 5회 결과 표시 |
 | 뒤로가기 | Home으로 복귀 |
 
 **예외 처리**:

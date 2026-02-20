@@ -171,11 +171,32 @@ class Settings {
 
 ### 3.2 SharedPreferences 키 구조
 ```
-app_data_version       → int    (현재: 1 — 스키마 버전)
-roulette_list          → String (JSON Array of Roulette)
-history_{rouletteId}   → String (JSON Array of History, 최대 20개)
-settings               → String (JSON Settings)
+app_data_version         → int    (현재: 1 — 스키마 버전)
+roulette_list            → String (JSON Array of Roulette)
+history_{rouletteId}     → String (JSON Array of History, 최대 20개)
+settings                 → String (JSON Settings)
+spin_mode_{rouletteId}   → String (JSON SpinMode — 중복 제외 상태, 재시작 후에도 유지)
 ```
+
+#### SpinMode JSON 포맷
+```json
+{
+  "noRepeat": true,
+  "autoReset": false,
+  "excludedIds": [
+    "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    "6ba7b811-9dad-11d1-80b4-00c04fd430c8"
+  ]
+}
+```
+
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| noRepeat | bool | 중복 제외 ON/OFF (기본: false) |
+| autoReset | bool | 모두 뽑히면 자동 리셋 ON/OFF (기본: false) |
+| excludedIds | List\<String\> | 이미 뽑힌 Item.id 목록. noRepeat OFF 시 무시됨 |
+
+> **삭제 정책**: 룰렛 삭제 시 해당 `spin_mode_{rouletteId}` 키 함께 삭제 필요 (RouletteRepository.delete()에서 처리)
 
 ### 3.3 히스토리 보존 정책
 - 룰렛당 최대 **20개** 히스토리 유지

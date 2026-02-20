@@ -29,6 +29,7 @@ class StorageKeys {
   static const settings = 'settings';
   static const appDataVersion = 'app_data_version';
   static String historyKey(String rouletteId) => 'history_$rouletteId';
+  static String spinModeKey(String rouletteId) => 'spin_mode_$rouletteId';
 }
 
 // ── 기본 색상 팔레트 ─────────────────────────────────────
