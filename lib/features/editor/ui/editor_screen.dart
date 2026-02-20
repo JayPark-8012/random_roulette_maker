@@ -134,22 +134,9 @@ class _EditorScreenState extends State<EditorScreen> {
                 // 항목 목록 헤더
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                  child: Row(
-                    children: [
-                      Text(
-                        '항목 (${_notifier.items.length}개)',
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      const Spacer(),
-                      FilterChip(
-                        label: const Text('가중치'),
-                        selected: _notifier.weightMode,
-                        onSelected: (_) => _notifier.toggleWeightMode(),
-                        avatar: const Icon(Icons.bar_chart_outlined, size: 16),
-                        visualDensity: VisualDensity.compact,
-                        padding: EdgeInsets.zero,
-                      ),
-                    ],
+                  child: Text(
+                    '항목 (${_notifier.items.length}개)',
+                    style: Theme.of(context).textTheme.titleSmall,
                   ),
                 ),
                 // 항목 재정렬 리스트
@@ -170,7 +157,7 @@ class _EditorScreenState extends State<EditorScreen> {
                         onLabelChanged: (v) =>
                             _notifier.updateItemLabel(item.id, v),
                         onDelete: () => _notifier.removeItem(item.id),
-                        showWeight: _notifier.weightMode,
+                        showWeight: true,
                         onWeightChanged: (w) =>
                             _notifier.updateItemWeight(item.id, w),
                       );

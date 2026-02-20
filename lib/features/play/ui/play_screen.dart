@@ -89,9 +89,14 @@ class _PlayScreenState extends State<PlayScreen>
     }
     final winnerIndex = candidates.indexOf(winnerItem);
 
-    // 2. 당첨 섹터 중앙에 포인터(12시)가 오는 각도 역산
-    final sectorAngle = 2 * pi / candidates.length;
-    final targetNormalized = (winnerIndex + 0.5) * sectorAngle;
+    // 2. 가중치 비례 섹터 중앙에 포인터(12시)가 오는 각도 역산
+    double winnerStartFraction = 0;
+    for (int i = 0; i < winnerIndex; i++) {
+      winnerStartFraction += candidates[i].weight / totalWeight;
+    }
+    final winnerFraction = candidates[winnerIndex].weight / totalWeight;
+    final targetNormalized =
+        (winnerStartFraction + winnerFraction / 2) * 2 * pi;
     final finalCycleAngle = (2 * pi - targetNormalized) % (2 * pi);
 
     final currentCycleAngle = _currentAngle % (2 * pi);

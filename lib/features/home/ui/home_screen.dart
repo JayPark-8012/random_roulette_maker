@@ -23,24 +23,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('내 룰렛'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.dashboard_customize_outlined),
-            onPressed: () => Navigator.of(context)
-                .pushNamed(AppRoutes.templates)
-                .then((_) => _notifier.load()),
-            tooltip: '템플릿',
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () =>
-                Navigator.of(context).pushNamed(AppRoutes.settings),
-            tooltip: '설정',
-          ),
-        ],
-      ),
       body: AnimatedBuilder(
         animation: _notifier,
         builder: (context, _) {
@@ -54,38 +36,48 @@ class _HomeScreenState extends State<HomeScreen> {
             });
           }
 
-          if (_notifier.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (_notifier.roulettes.isEmpty) {
-            return _EmptyState(
-              onCreateTap: () => _navigateToEditor(context),
-            );
-          }
-
-          return Column(
-            children: [
-              _UsageBanner(count: _notifier.count),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.only(top: 8, bottom: 96),
-                  itemCount: _notifier.roulettes.length,
-                  itemBuilder: (ctx, i) {
-                    final roulette = _notifier.roulettes[i];
-                    return RouletteCard(
-                      roulette: roulette,
-                      onTap: () => _navigateToPlay(context, roulette),
-                      onEdit: () =>
-                          _navigateToEditor(context, roulette: roulette),
-                      onDuplicate: () => _duplicateRoulette(context, roulette),
-                      onRename: (newName) =>
-                          _notifier.rename(roulette.id, newName),
-                      onDelete: () => _notifier.delete(roulette.id),
-                    );
-                  },
+          return CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              _buildAppBar(context),
+              if (_notifier.isLoading)
+                const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (_notifier.roulettes.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _EmptyState(
+                    onCreateTap: () => _navigateToEditor(context),
+                  ),
+                )
+              else ...[
+                SliverToBoxAdapter(
+                  child: _UsageBanner(count: _notifier.count),
                 ),
-              ),
+                SliverPadding(
+                  padding: const EdgeInsets.only(top: 8, bottom: 100),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (ctx, i) {
+                        final roulette = _notifier.roulettes[i];
+                        return RouletteCard(
+                          roulette: roulette,
+                          onTap: () => _navigateToPlay(context, roulette),
+                          onEdit: () =>
+                              _navigateToEditor(context, roulette: roulette),
+                          onDuplicate: () =>
+                              _duplicateRoulette(context, roulette),
+                          onRename: (newName) =>
+                              _notifier.rename(roulette.id, newName),
+                          onDelete: () => _notifier.delete(roulette.id),
+                        );
+                      },
+                      childCount: _notifier.roulettes.length,
+                    ),
+                  ),
+                ),
+              ],
             ],
           );
         },
@@ -98,9 +90,31 @@ class _HomeScreenState extends State<HomeScreen> {
             _showLimitDialog(context);
           }
         },
-        icon: const Icon(Icons.add),
-        label: const Text('룰렛 만들기'),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('새 룰렛 만들기'),
+        elevation: 4,
       ),
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context) {
+    return SliverAppBar.large(
+      title: const Text('내 룰렛'),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.dashboard_customize_rounded),
+          onPressed: () => Navigator.of(context)
+              .pushNamed(AppRoutes.templates)
+              .then((_) => _notifier.load()),
+          tooltip: '템플릿',
+        ),
+        IconButton(
+          icon: const Icon(Icons.settings_rounded),
+          onPressed: () => Navigator.of(context).pushNamed(AppRoutes.settings),
+          tooltip: '설정',
+        ),
+        const SizedBox(width: 8),
+      ],
     );
   }
 
@@ -178,22 +192,41 @@ class _UsageBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isFull = count >= AppLimits.maxRouletteCount;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: isFull
-          ? Theme.of(context).colorScheme.errorContainer
-          : Theme.of(context).colorScheme.surfaceContainerHighest,
-      child: Text(
-        isFull
-            ? '룰렛 $count / ${AppLimits.maxRouletteCount}개 (최대 도달)'
-            : '룰렛 $count / ${AppLimits.maxRouletteCount}개 사용 중',
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: isFull
-                  ? Theme.of(context).colorScheme.onErrorContainer
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-        textAlign: TextAlign.end,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: isFull
+            ? colorScheme.errorContainer.withOpacity(0.5)
+            : colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isFull
+              ? colorScheme.error.withOpacity(0.2)
+              : colorScheme.outlineVariant.withOpacity(0.2),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Icon(
+            isFull ? Icons.warning_amber_rounded : Icons.info_outline_rounded,
+            size: 16,
+            color: isFull ? colorScheme.error : colorScheme.onSurfaceVariant,
+          ),
+          Text(
+            isFull
+                ? '룰렛 $count / ${AppLimits.maxRouletteCount}개 (최대 도달)'
+                : '저장된 룰렛 $count / ${AppLimits.maxRouletteCount}개',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: isFull ? colorScheme.error : colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ],
       ),
     );
   }
@@ -205,31 +238,49 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.casino_outlined,
-                size: 80,
-                color: Theme.of(context).colorScheme.outlineVariant),
-            const SizedBox(height: 24),
-            Text('아직 룰렛이 없어요',
-                style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer.withOpacity(0.3),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.casino_rounded,
+                size: 64,
+                color: colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 32),
             Text(
-              '+ 버튼을 눌러 첫 룰렛을 만들어 보세요',
+              '아직 생성된 룰렛이 없어요',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              '결정하기 힘든 고민이 있다면\n지금 바로 첫 번째 룰렛을 만들어 보세요!',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: colorScheme.onSurfaceVariant,
                   ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 40),
             FilledButton.icon(
               onPressed: onCreateTap,
-              icon: const Icon(Icons.add),
-              label: const Text('룰렛 만들기'),
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('첫 룰렛 만들기'),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              ),
             ),
           ],
         ),

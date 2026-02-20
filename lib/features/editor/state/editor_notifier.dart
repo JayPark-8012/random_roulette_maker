@@ -104,6 +104,11 @@ class EditorNotifier extends ChangeNotifier {
   void setName(String value) {
     _name = value;
     _isDirty = true;
+    // 사용자가 다시 입력하면 에러 상태 해제
+    if (_showErrors) {
+      _showErrors = false;
+      _error = null;
+    }
     notifyListeners();
   }
 

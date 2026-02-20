@@ -19,15 +19,18 @@ class RouletteWheelPainter extends CustomPainter {
 
     final center = Offset(size.width / 2, size.height / 2);
     final radius = min(size.width, size.height) / 2 - 8;
-    final sweepAngle = 2 * pi / items.length;
+    final totalWeight = items.fold<int>(0, (s, i) => s + i.weight);
 
     // 중심 이동 + 회전 적용
     canvas.save();
     canvas.translate(center.dx, center.dy);
     canvas.rotate(rotationAngle);
 
+    double currentAngle = -pi / 2; // 12시 방향에서 시작
     for (int i = 0; i < items.length; i++) {
-      final startAngle = i * sweepAngle - pi / 2; // 12시 방향이 시작
+      final sweepAngle = 2 * pi * items[i].weight / totalWeight;
+      final startAngle = currentAngle;
+
       final paint = Paint()
         ..color = items[i].color
         ..style = PaintingStyle.fill;
@@ -56,6 +59,8 @@ class RouletteWheelPainter extends CustomPainter {
 
       // 텍스트 그리기
       _drawSectorText(canvas, items[i].label, startAngle, sweepAngle, radius);
+
+      currentAngle += sweepAngle;
     }
 
     // 중앙 원

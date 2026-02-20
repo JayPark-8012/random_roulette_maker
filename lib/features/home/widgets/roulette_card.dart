@@ -37,67 +37,118 @@ class RouletteCard extends StatelessWidget {
       ),
       confirmDismiss: (_) async => _showDeleteConfirm(context),
       onDismissed: (_) => onDelete(),
-      child: Card(
+      child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 4, 16),
-            child: Row(
-              children: [
-                _ColorPreview(roulette: roulette),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        roulette.name,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w700),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '항목 ${roulette.items.length}개'
-                        '${roulette.lastPlayedAt != null ? '  ·  ${AppUtils.formatRelativeDate(roulette.lastPlayedAt!)}' : ''}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.shadow.withOpacity(0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: InkWell(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  _ColorPreview(roulette: roulette),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          roulette.name,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: -0.5,
+                              ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer.withOpacity(0.4),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                '항목 ${roulette.items.length}개',
+                                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                      color: colorScheme.onPrimaryContainer,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
                             ),
-                      ),
-                    ],
+                            if (roulette.lastPlayedAt != null) ...[
+                              const SizedBox(width: 8),
+                              Text(
+                                AppUtils.formatRelativeDate(roulette.lastPlayedAt!),
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                    ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                PopupMenuButton<RouletteCardAction>(
-                  icon: const Icon(Icons.more_vert),
-                  onSelected: (action) => _handleAction(context, action),
-                  itemBuilder: (_) => const [
-                    PopupMenuItem(
-                      value: RouletteCardAction.edit,
-                      child: _MenuRow(icon: Icons.edit_outlined, label: '편집'),
-                    ),
-                    PopupMenuItem(
-                      value: RouletteCardAction.duplicate,
-                      child: _MenuRow(icon: Icons.copy_outlined, label: '복제'),
-                    ),
-                    PopupMenuItem(
-                      value: RouletteCardAction.rename,
-                      child: _MenuRow(
-                          icon: Icons.drive_file_rename_outline,
-                          label: '이름 변경'),
-                    ),
-                    PopupMenuItem(
-                      value: RouletteCardAction.delete,
-                      child:
-                          _MenuRow(icon: Icons.delete_outline, label: '삭제'),
-                    ),
-                  ],
-                ),
-              ],
+                  IconButton(
+                    icon: const Icon(Icons.more_horiz_rounded),
+                    color: colorScheme.onSurfaceVariant,
+                    onPressed: () {
+                      final RenderBox button = context.findRenderObject() as RenderBox;
+                      final RenderBox overlay = Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
+                      final RelativeRect position = RelativeRect.fromRect(
+                        Rect.fromPoints(
+                          button.localToGlobal(Offset(button.size.width, 0), ancestor: overlay),
+                          button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+                        ),
+                        Offset.zero & overlay.size,
+                      );
+                      showMenu<RouletteCardAction>(
+                        context: context,
+                        position: position,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        items: const [
+                          PopupMenuItem(
+                            value: RouletteCardAction.edit,
+                            child: _MenuRow(icon: Icons.edit_rounded, label: '편집'),
+                          ),
+                          PopupMenuItem(
+                            value: RouletteCardAction.duplicate,
+                            child: _MenuRow(icon: Icons.copy_rounded, label: '복제'),
+                          ),
+                          PopupMenuItem(
+                            value: RouletteCardAction.rename,
+                            child: _MenuRow(icon: Icons.drive_file_rename_outline_rounded, label: '이름 변경'),
+                          ),
+                          PopupMenuItem(
+                            value: RouletteCardAction.delete,
+                            child: _MenuRow(icon: Icons.delete_outline_rounded, label: '삭제', isDestructive: true),
+                          ),
+                        ],
+                      ).then((action) {
+                        if (action != null) _handleAction(context, action);
+                      });
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -177,15 +228,29 @@ class RouletteCard extends StatelessWidget {
 class _MenuRow extends StatelessWidget {
   final IconData icon;
   final String label;
-  const _MenuRow({required this.icon, required this.label});
+  final bool isDestructive;
+  const _MenuRow({
+    required this.icon,
+    required this.label,
+    this.isDestructive = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final color = isDestructive ? colorScheme.error : colorScheme.onSurface;
+
     return Row(
       children: [
-        Icon(icon, size: 20),
+        Icon(icon, size: 20, color: color),
         const SizedBox(width: 12),
-        Text(label),
+        Text(
+          label,
+          style: TextStyle(
+            color: color,
+            fontWeight: isDestructive ? FontWeight.w500 : FontWeight.normal,
+          ),
+        ),
       ],
     );
   }
@@ -197,30 +262,41 @@ class _ColorPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = roulette.items.take(4).map((e) => e.color).toList();
-    return SizedBox(
-      width: 48,
-      height: 48,
-      child: Stack(
-        children: [
-          for (int i = 0; i < colors.length && i < 4; i++)
-            Positioned(
-              left: i * 8.0,
-              top: i * 8.0,
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: colors[i],
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.surface,
-                    width: 1.5,
-                  ),
-                ),
-              ),
-            ),
+    final colors = roulette.items.map((e) => e.color).toList();
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: SweepGradient(
+          colors: colors.length >= 2 ? colors : [...colors, colors.first],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
         ],
+      ),
+      child: Center(
+        child: Container(
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.shadow.withOpacity(0.1),
+                blurRadius: 4,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
