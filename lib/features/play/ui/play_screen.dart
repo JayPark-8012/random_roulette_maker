@@ -1,6 +1,9 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
+import 'package:share_plus/share_plus.dart';
 import '../../../core/constants.dart';
 import '../../../core/utils.dart';
 import '../../../domain/item.dart';
@@ -22,6 +25,7 @@ class _PlayScreenState extends State<PlayScreen>
   late AnimationController _animController;
   late Animation<double> _rotationAnim;
   double _currentAngle = 0;
+  final GlobalKey _wheelKey = GlobalKey();
 
   @override
   void initState() {
@@ -72,12 +76,21 @@ class _PlayScreenState extends State<PlayScreen>
 
     final random = debugSeed != null ? Random(debugSeed) : Random();
 
-    // 1. candidates 중 당첨자 결정, 전체 휠 기준 인덱스 계산
-    final winnerItem = candidates[random.nextInt(candidates.length)];
-    final winnerIndex = allItems.indexOf(winnerItem);
+    // 1. 가중치 기반 추첨 (weight=1이면 균등 확률과 동일)
+    final totalWeight = candidates.fold<int>(0, (s, i) => s + i.weight);
+    int pick = random.nextInt(totalWeight);
+    Item winnerItem = candidates.last;
+    for (final item in candidates) {
+      pick -= item.weight;
+      if (pick < 0) {
+        winnerItem = item;
+        break;
+      }
+    }
+    final winnerIndex = candidates.indexOf(winnerItem);
 
     // 2. 당첨 섹터 중앙에 포인터(12시)가 오는 각도 역산
-    final sectorAngle = 2 * pi / allItems.length;
+    final sectorAngle = 2 * pi / candidates.length;
     final targetNormalized = (winnerIndex + 0.5) * sectorAngle;
     final finalCycleAngle = (2 * pi - targetNormalized) % (2 * pi);
 
@@ -110,9 +123,77 @@ class _PlayScreenState extends State<PlayScreen>
         if (!mounted) return;
         _currentAngle = targetAngle % (2 * pi);
         _notifier.finishSpin(winnerItem).then((_) {
-          if (mounted) _showResultSheet(winnerItem);
+          if (!mounted) return;
+          if (_notifier.noRepeat) {
+            setState(() {
+              _currentAngle = 0;
+              _rotationAnim = const AlwaysStoppedAnimation(0);
+            });
+          }
+          _showResultSheet(winnerItem);
         });
       });
+  }
+
+  Future<void> _shareText(Item winner) async {
+    await Share.share(
+      AppUtils.buildShareText(_notifier.roulette?.name ?? '', winner.label),
+    );
+  }
+
+  Future<void> _shareImage(Item winner) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final boundary =
+          _wheelKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary == null) throw Exception('캡처 불가');
+      final image = await boundary.toImage(pixelRatio: 3.0);
+      final byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) throw Exception('변환 실패');
+      final bytes = byteData.buffer.asUint8List();
+      await Share.shareXFiles(
+        [XFile.fromData(bytes, mimeType: 'image/png', name: 'roulette_result.png')],
+        text: AppUtils.buildShareText(_notifier.roulette?.name ?? '', winner.label),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('이미지 공유에 실패했습니다.')),
+      );
+    }
+  }
+
+  void _showShareOptions(BuildContext sheetCtx, Item winner) {
+    showDialog<void>(
+      context: context,
+      builder: (dCtx) => SimpleDialog(
+        title: const Text('공유'),
+        children: [
+          SimpleDialogOption(
+            onPressed: () {
+              Navigator.of(dCtx).pop();
+              _shareText(winner);
+            },
+            child: const ListTile(
+              leading: Icon(Icons.text_fields_outlined),
+              title: Text('텍스트 공유'),
+              subtitle: Text('룰렛명과 결과를 텍스트로'),
+            ),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              Navigator.of(dCtx).pop();
+              _shareImage(winner);
+            },
+            child: const ListTile(
+              leading: Icon(Icons.image_outlined),
+              title: Text('이미지 공유'),
+              subtitle: Text('룰렛 화면을 이미지로'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showResultSheet(Item winner) {
@@ -197,9 +278,21 @@ class _PlayScreenState extends State<PlayScreen>
               ],
             ),
             const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('닫기'),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.share_outlined),
+                    label: const Text('공유'),
+                    onPressed: () => _showShareOptions(ctx, winner),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('닫기'),
+                ),
+              ],
             ),
           ],
         ),
@@ -299,12 +392,14 @@ class _PlayScreenState extends State<PlayScreen>
 
           return Column(
             children: [
-              // 룰렛 휠 영역 — 포인터와 휠을 하나의 Column으로 묶어 간격 고정
+              // 룰렛 휠 영역 — RepaintBoundary로 이미지 캡처 대상 지정
               Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
+                child: RepaintBoundary(
+                  key: _wheelKey,
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                       // 포인터 (12시, 휠 상단에 밀착)
                       const RoulettePointer(),
                       // 휠
@@ -312,7 +407,7 @@ class _PlayScreenState extends State<PlayScreen>
                         animation: _animController,
                         builder: (_, _) => CustomPaint(
                           painter: RouletteWheelPainter(
-                            items: roulette.items,
+                            items: _notifier.availableItems,
                             rotationAngle: _rotationAnim.value,
                           ),
                           size: Size.square(
@@ -324,6 +419,7 @@ class _PlayScreenState extends State<PlayScreen>
                   ),
                 ),
               ),
+            ),
               // ── 모드 토글 ──────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),

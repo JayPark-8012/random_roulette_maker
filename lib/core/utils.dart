@@ -5,6 +5,9 @@ import 'constants.dart';
 class AppUtils {
   AppUtils._();
 
+  // 현재 테마의 룰렛 색 팔레트 (테마 변경 시 SettingsNotifier에서 갱신)
+  static List<Color> activePalette = kDefaultPalette;
+
   // UUID v4 생성 (dart:math 기반 간단 구현 – Phase 2에서 uuid 패키지로 교체 가능)
   static String generateId() {
     final random = Random.secure();
@@ -16,14 +19,14 @@ class AppUtils {
         '${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
   }
 
-  // 항목 인덱스에 따라 기본 팔레트 색상 반환 (순환)
+  // 항목 인덱스에 따라 팔레트 색상 반환 (순환, 현재 테마 팔레트 사용)
   static Color colorForIndex(int index) {
-    return kDefaultPalette[index % kDefaultPalette.length];
+    return activePalette[index % activePalette.length];
   }
 
   // Color.value(deprecated) 대신 toARGB32()를 사용한 int 반환 버전
   static int colorValueForIndex(int index) {
-    return kDefaultPalette[index % kDefaultPalette.length].toARGB32();
+    return activePalette[index % activePalette.length].toARGB32();
   }
 
   // 날짜를 "오늘", "어제", "n일 전" 등 상대적 표현으로 변환

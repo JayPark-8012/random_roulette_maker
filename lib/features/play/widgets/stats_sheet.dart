@@ -27,6 +27,10 @@ class StatsSheet extends StatelessWidget {
     final maxCount = sorted.isEmpty ? 1 : sorted.first.count;
     final recent5 = history.reversed.take(5).toList();
 
+    // 가중치 기반 기대확률
+    final weightMap = {for (final i in roulette.items) i.label: i.weight};
+    final totalWeight = roulette.items.fold<int>(0, (s, i) => s + i.weight);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,53 +117,70 @@ class StatsSheet extends StatelessWidget {
                     ),
                   ),
                 ),
-                ...sorted.map((item) => Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 4, 24, 4),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 72,
-                            child: Text(
-                              item.label,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.bodySmall,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
-                              child: Stack(
-                                children: [
-                                  Container(
-                                    height: 22,
-                                    color: theme.colorScheme
-                                        .surfaceContainerHighest,
-                                  ),
-                                  FractionallySizedBox(
-                                    widthFactor: item.count / maxCount,
-                                    child: Container(
-                                      height: 22,
-                                      color: item.color.withValues(alpha: 0.85),
-                                    ),
-                                  ),
-                                ],
+                ...sorted.map((item) {
+                      final pct = totalWeight > 0
+                          ? (weightMap[item.label] ?? 1) * 100.0 / totalWeight
+                          : 0.0;
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 4, 24, 4),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 64,
+                              child: Text(
+                                item.label,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall,
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          SizedBox(
-                            width: 36,
-                            child: Text(
-                              '${item.count}회',
-                              textAlign: TextAlign.end,
-                              style: theme.textTheme.bodySmall,
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: Stack(
+                                  children: [
+                                    Container(
+                                      height: 22,
+                                      color: theme.colorScheme
+                                          .surfaceContainerHighest,
+                                    ),
+                                    FractionallySizedBox(
+                                      widthFactor: item.count / maxCount,
+                                      child: Container(
+                                        height: 22,
+                                        color:
+                                            item.color.withValues(alpha: 0.85),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    )),
+                            const SizedBox(width: 8),
+                            SizedBox(
+                              width: 30,
+                              child: Text(
+                                '${item.count}회',
+                                textAlign: TextAlign.end,
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            SizedBox(
+                              width: 52,
+                              child: Text(
+                                '기대${pct.toStringAsFixed(1)}%',
+                                textAlign: TextAlign.end,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
               ],
             ),
           ),

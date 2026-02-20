@@ -34,6 +34,7 @@ class Item {
   final String label;   // 표시 텍스트 (최대 20자)
   final int colorValue; // Color.value (ARGB int)
   final int order;      // 표시 순서 (0-based)
+  final int weight;     // 가중치 1~10 (기본값 1)
 }
 ```
 
@@ -43,6 +44,7 @@ class Item {
 | label | String | 1~20자, 필수 | 룰렛 섹터에 표시될 텍스트 |
 | colorValue | int | ARGB int | 섹터 배경색 |
 | order | int | 0 이상 | 표시 순서 |
+| weight | int | 1~10, 기본값 1 | 당첨 가중치. weight=1이면 균등 확률과 동일. 기존 데이터 `fromJson`에서 null → 1로 마이그레이션 |
 
 **기본 색상 팔레트** (순환 할당):
 ```dart
@@ -120,13 +122,15 @@ class Settings {
       "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
       "label": "짜장면",
       "colorValue": -1717452299,
-      "order": 0
+      "order": 0,
+      "weight": 2
     },
     {
       "id": "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
       "label": "짬뽕",
       "colorValue": -10148534,
-      "order": 1
+      "order": 1,
+      "weight": 1
     }
   ],
   "createdAt": "2025-01-15T09:00:00.000Z",
@@ -217,6 +221,7 @@ spin_mode_{rouletteId}   → String (JSON SpinMode — 중복 제외 상태, 재
 | 룰렛 이름 최대 길이 | 30자 | TextField maxLength |
 | 항목 텍스트 최대 길이 | 20자 | TextField maxLength |
 | 항목 최소 개수 | 2개 | `EditorNotifier.save()` 차단 + 빨간 테두리 하이라이트 |
+| 항목 가중치 범위 | 1~10 | Editor 가중치 모드에서 +/- 버튼으로 조절. `clamp(1, 10)` 적용 |
 
 ### 3.6 데이터 용량 추정
 | 항목 | 용량 추정 |

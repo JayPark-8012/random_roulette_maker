@@ -6,8 +6,10 @@ class ItemListTile extends StatefulWidget {
   final Item item;
   final bool canDelete;
   final bool hasError; // 빈 라벨인데 저장 시도 → 빨간 테두리
+  final bool showWeight; // 가중치 편집 모드
   final ValueChanged<String> onLabelChanged;
   final VoidCallback onDelete;
+  final ValueChanged<int>? onWeightChanged;
 
   const ItemListTile({
     super.key,
@@ -16,6 +18,8 @@ class ItemListTile extends StatefulWidget {
     required this.onLabelChanged,
     required this.onDelete,
     this.hasError = false,
+    this.showWeight = false,
+    this.onWeightChanged,
   });
 
   @override
@@ -95,6 +99,14 @@ class _ItemListTileState extends State<ItemListTile> {
               onChanged: widget.onLabelChanged,
             ),
           ),
+          // 가중치 조절 (+/-)
+          if (widget.showWeight) ...[
+            const SizedBox(width: 4),
+            _WeightControl(
+              weight: widget.item.weight,
+              onChanged: widget.onWeightChanged,
+            ),
+          ],
           const SizedBox(width: 4),
           // 삭제 버튼
           IconButton(
@@ -108,6 +120,69 @@ class _ItemListTileState extends State<ItemListTile> {
             tooltip: '항목 삭제',
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _WeightControl extends StatelessWidget {
+  final int weight;
+  final ValueChanged<int>? onChanged;
+
+  const _WeightControl({required this.weight, this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _SmallIconButton(
+          icon: Icons.remove,
+          onTap: weight > 1 ? () => onChanged?.call(weight - 1) : null,
+          color: colorScheme.primary,
+        ),
+        SizedBox(
+          width: 22,
+          child: Text(
+            '$weight',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                ),
+          ),
+        ),
+        _SmallIconButton(
+          icon: Icons.add,
+          onTap: weight < 10 ? () => onChanged?.call(weight + 1) : null,
+          color: colorScheme.primary,
+        ),
+      ],
+    );
+  }
+}
+
+class _SmallIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+  final Color color;
+
+  const _SmallIconButton(
+      {required this.icon, required this.onTap, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.all(6),
+        child: Icon(
+          icon,
+          size: 16,
+          color: onTap != null ? color : color.withValues(alpha: 0.3),
+        ),
       ),
     );
   }

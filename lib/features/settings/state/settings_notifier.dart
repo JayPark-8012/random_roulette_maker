@@ -1,8 +1,13 @@
 import 'package:flutter/foundation.dart';
+import '../../../core/app_themes.dart';
+import '../../../core/utils.dart';
 import '../../../data/settings_repository.dart';
 import '../../../domain/settings.dart';
 
 class SettingsNotifier extends ChangeNotifier {
+  static final SettingsNotifier instance = SettingsNotifier._();
+  SettingsNotifier._();
+
   final SettingsRepository _repo = SettingsRepository.instance;
 
   Settings _settings = const Settings();
@@ -12,9 +17,11 @@ class SettingsNotifier extends ChangeNotifier {
   bool get hapticEnabled => _settings.hapticEnabled;
   SpinSpeed get spinSpeed => _settings.spinSpeed;
   String? get lastUsedRouletteId => _settings.lastUsedRouletteId;
+  String get themeId => _settings.themeId;
 
   Future<void> load() async {
     _settings = await _repo.load();
+    _applyPalette();
     notifyListeners();
   }
 
@@ -36,9 +43,20 @@ class SettingsNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setThemeId(String id) async {
+    _settings = _settings.copyWith(themeId: id);
+    _applyPalette();
+    await _repo.save(_settings);
+    notifyListeners();
+  }
+
   /// UI 알림 없이 조용히 저장 (Play 화면에서 lastUsed 갱신용)
   Future<void> setLastUsedRouletteId(String id) async {
     _settings = _settings.copyWith(lastUsedRouletteId: id);
     await _repo.save(_settings);
+  }
+
+  void _applyPalette() {
+    AppUtils.activePalette = AppThemes.findById(_settings.themeId).palette;
   }
 }

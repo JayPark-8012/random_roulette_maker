@@ -14,6 +14,7 @@ class EditorNotifier extends ChangeNotifier {
   bool _isSaving = false;
   bool _isDirty = false;
   String? _error;
+  bool _weightMode = false;
 
   /// 저장 시도 후 유효성 실패 시 true → 빈 항목에 에러 하이라이트 표시
   bool _showErrors = false;
@@ -25,6 +26,7 @@ class EditorNotifier extends ChangeNotifier {
   String? get error => _error;
   bool get isEditMode => _editingId != null;
   bool get showErrors => _showErrors;
+  bool get weightMode => _weightMode;
 
   /// 빈 라벨을 가진 항목 ID 집합 (하이라이트용)
   Set<String> get invalidItemIds => _items
@@ -44,6 +46,7 @@ class EditorNotifier extends ChangeNotifier {
     _isDirty = false;
     _showErrors = false;
     _error = null;
+    _weightMode = false;
     _items = [];
 
     if (prefilledLabels != null && prefilledLabels.isNotEmpty) {
@@ -79,10 +82,24 @@ class EditorNotifier extends ChangeNotifier {
     _isDirty = false;
     _showErrors = false;
     _error = null;
+    _weightMode = false;
     notifyListeners();
   }
 
   // ── 편집 액션 ─────────────────────────────────────────
+
+  void toggleWeightMode() {
+    _weightMode = !_weightMode;
+    notifyListeners();
+  }
+
+  void updateItemWeight(String itemId, int weight) {
+    final idx = _items.indexWhere((e) => e.id == itemId);
+    if (idx < 0) return;
+    _items[idx] = _items[idx].copyWith(weight: weight.clamp(1, 10));
+    _isDirty = true;
+    notifyListeners();
+  }
 
   void setName(String value) {
     _name = value;

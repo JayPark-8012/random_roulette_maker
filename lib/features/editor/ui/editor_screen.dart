@@ -141,13 +141,13 @@ class _EditorScreenState extends State<EditorScreen> {
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
                       const Spacer(),
-                      Text(
-                        '드래그로 순서 변경',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
+                      FilterChip(
+                        label: const Text('가중치'),
+                        selected: _notifier.weightMode,
+                        onSelected: (_) => _notifier.toggleWeightMode(),
+                        avatar: const Icon(Icons.bar_chart_outlined, size: 16),
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
                       ),
                     ],
                   ),
@@ -170,6 +170,9 @@ class _EditorScreenState extends State<EditorScreen> {
                         onLabelChanged: (v) =>
                             _notifier.updateItemLabel(item.id, v),
                         onDelete: () => _notifier.removeItem(item.id),
+                        showWeight: _notifier.weightMode,
+                        onWeightChanged: (w) =>
+                            _notifier.updateItemWeight(item.id, w),
                       );
                     },
                   ),

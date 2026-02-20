@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'core/app_themes.dart';
 import 'core/constants.dart';
+import 'features/settings/state/settings_notifier.dart';
 import 'features/splash/ui/splash_screen.dart';
 import 'features/home/ui/home_screen.dart';
 import 'features/editor/ui/editor_screen.dart';
@@ -7,16 +9,39 @@ import 'features/play/ui/play_screen.dart';
 import 'features/templates/ui/templates_screen.dart';
 import 'features/settings/ui/settings_screen.dart';
 
-class App extends StatelessWidget {
+class App extends StatefulWidget {
   const App({super.key});
 
   @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  final _settings = SettingsNotifier.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _settings.addListener(_onThemeChanged);
+    _settings.load();
+  }
+
+  @override
+  void dispose() {
+    _settings.removeListener(_onThemeChanged);
+    super.dispose();
+  }
+
+  void _onThemeChanged() => setState(() {});
+
+  @override
   Widget build(BuildContext context) {
+    final themeData = AppThemes.findById(_settings.themeId);
     return MaterialApp(
       title: '랜덤 룰렛 메이커',
       debugShowCheckedModeBanner: false,
-      theme: _buildTheme(Brightness.light),
-      darkTheme: _buildTheme(Brightness.dark),
+      theme: themeData.buildTheme(Brightness.light),
+      darkTheme: themeData.buildTheme(Brightness.dark),
       themeMode: ThemeMode.system,
       initialRoute: AppRoutes.splash,
       routes: {
@@ -27,74 +52,6 @@ class App extends StatelessWidget {
         AppRoutes.templates: (_) => const TemplatesScreen(),
         AppRoutes.settings: (_) => const SettingsScreen(),
       },
-    );
-  }
-
-  ThemeData _buildTheme(Brightness brightness) {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF5B5BD6), // Indigo — 차분한 유틸 톤
-      brightness: brightness,
-    );
-
-    return ThemeData(
-      colorScheme: colorScheme,
-      useMaterial3: true,
-      appBarTheme: AppBarTheme(
-        centerTitle: false,
-        elevation: 0,
-        scrolledUnderElevation: 2,
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
-        titleTextStyle: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: colorScheme.onSurface,
-        ),
-      ),
-      cardTheme: CardThemeData(
-        elevation: 1,
-        color: colorScheme.surfaceContainerLow,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-      ),
-      filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
-        ),
-      ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
-        ),
-      ),
-      floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        filled: true,
-        fillColor: colorScheme.surfaceContainerLowest,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      ),
-      listTileTheme: const ListTileThemeData(
-        contentPadding: EdgeInsets.symmetric(horizontal: 20),
-        minVerticalPadding: 12,
-      ),
-      dividerTheme: const DividerThemeData(space: 1),
-      snackBarTheme: SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
     );
   }
 }

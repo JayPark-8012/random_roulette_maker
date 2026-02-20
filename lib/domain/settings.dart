@@ -5,12 +5,14 @@ class Settings {
   final bool hapticEnabled;
   final SpinSpeed spinSpeed;
   final String? lastUsedRouletteId;
+  final String themeId;
 
   const Settings({
     this.soundEnabled = true,
     this.hapticEnabled = true,
     this.spinSpeed = SpinSpeed.normal,
     this.lastUsedRouletteId,
+    this.themeId = 'indigo',
   });
 
   Settings copyWith({
@@ -18,6 +20,7 @@ class Settings {
     bool? hapticEnabled,
     SpinSpeed? spinSpeed,
     String? lastUsedRouletteId,
+    String? themeId,
     bool clearLastUsed = false,
   }) {
     return Settings(
@@ -26,6 +29,7 @@ class Settings {
       spinSpeed: spinSpeed ?? this.spinSpeed,
       lastUsedRouletteId:
           clearLastUsed ? null : (lastUsedRouletteId ?? this.lastUsedRouletteId),
+      themeId: themeId ?? this.themeId,
     );
   }
 
@@ -35,6 +39,7 @@ class Settings {
       'hapticEnabled': hapticEnabled,
       'spinSpeed': spinSpeed.name,           // 'normal' | 'fast'
       'lastUsedRouletteId': lastUsedRouletteId,
+      'themeId': themeId,
       'schemaVersion': 1,
     };
   }
@@ -47,6 +52,7 @@ class Settings {
           ?? true,
       spinSpeed: _parseSpinSpeed(json['spinSpeed'] as String?),
       lastUsedRouletteId: json['lastUsedRouletteId'] as String?,
+      themeId: json['themeId'] as String? ?? 'indigo',
     );
   }
 
