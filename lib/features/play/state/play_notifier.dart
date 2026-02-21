@@ -12,6 +12,9 @@ import '../../../domain/settings.dart';
 
 enum SpinState { idle, spinning, done }
 
+/// 스핀 모드: 추첨/탈락전/라운드/Custom
+enum SpinMode { lottery, elimination, round, custom }
+
 class PlayNotifier extends ChangeNotifier {
   final RouletteRepository _repo = RouletteRepository.instance;
   final SettingsRepository _settingsRepo = SettingsRepository.instance;
@@ -26,6 +29,8 @@ class PlayNotifier extends ChangeNotifier {
   bool _noRepeat = false;
   bool _autoReset = false;
   Set<String> _excludedIds = {};
+  SpinMode _spinMode = SpinMode.lottery;
+  int _roundNum = 1;
 
   Roulette? get roulette => _roulette;
   SpinState get spinState => _spinState;
@@ -35,6 +40,10 @@ class PlayNotifier extends ChangeNotifier {
   Settings get settings => _settings;
   bool get noRepeat => _noRepeat;
   bool get autoReset => _autoReset;
+  SpinMode get spinMode => _spinMode;
+  int get roundNum => _roundNum;
+  int get remainingCount =>
+      (_roulette?.items.length ?? 0) - _excludedIds.length;
 
   /// noRepeat ON이면 뽑힌 항목 제외, OFF면 전체 반환
   List<Item> get availableItems {
@@ -49,6 +58,12 @@ class PlayNotifier extends ChangeNotifier {
       _noRepeat &&
       _roulette != null &&
       _excludedIds.length >= _roulette!.items.length;
+
+  SpinMode _modeFromToggles() {
+    if (!_noRepeat && !_autoReset) return SpinMode.lottery;
+    if (_noRepeat && _autoReset) return SpinMode.round;
+    return SpinMode.custom; // noRepeat=true,autoReset=false 포함
+  }
 
   Future<void> load(String rouletteId) async {
     _roulette = await _repo.getById(rouletteId);
@@ -65,29 +80,61 @@ class PlayNotifier extends ChangeNotifier {
       _autoReset = modeData['autoReset'] as bool? ?? false;
       final ids = (modeData['excludedIds'] as List?)?.cast<String>() ?? [];
       _excludedIds = Set.from(ids);
+      _roundNum = modeData['roundNum'] as int? ?? 1;
     } else {
       _noRepeat = false;
       _autoReset = false;
       _excludedIds = {};
+      _roundNum = 1;
     }
+    _spinMode = _modeFromToggles();
 
+    notifyListeners();
+  }
+
+  /// 모드 선택: lottery/round는 토글 동기화 + 초기화, custom은 토글 유지
+  void setSpinMode(SpinMode mode) {
+    if (mode == SpinMode.custom) {
+      _spinMode = SpinMode.custom;
+      _saveSpinMode();
+      notifyListeners();
+      return;
+    }
+    _spinMode = mode;
+    if (mode == SpinMode.lottery) {
+      _noRepeat = false;
+      _autoReset = false;
+    } else if (mode == SpinMode.elimination) {
+      _noRepeat = true;
+      _autoReset = false;
+    } else if (mode == SpinMode.round) {
+      _noRepeat = true;
+      _autoReset = true;
+    }
+    _excludedIds.clear();
+    _roundNum = 1;
+    _saveSpinMode();
     notifyListeners();
   }
 
   void setNoRepeat(bool v) {
     _noRepeat = v;
+    if (!v) _autoReset = false;
+    _spinMode = _modeFromToggles();
     _saveSpinMode();
     notifyListeners();
   }
 
   void setAutoReset(bool v) {
     _autoReset = v;
+    _spinMode = _modeFromToggles();
     _saveSpinMode();
     notifyListeners();
   }
 
   Future<void> resetExcluded() async {
     _excludedIds.clear();
+    _roundNum = 1;
     await _saveSpinMode();
     notifyListeners();
   }
@@ -100,6 +147,7 @@ class PlayNotifier extends ChangeNotifier {
         'noRepeat': _noRepeat,
         'autoReset': _autoReset,
         'excludedIds': _excludedIds.toList(),
+        'roundNum': _roundNum,
       },
     );
   }
@@ -118,19 +166,23 @@ class PlayNotifier extends ChangeNotifier {
     // 중복 제외: 당첨 항목 추가
     if (_noRepeat) {
       _excludedIds.add(winner.id);
-      // 자동 리셋: 모두 뽑혔으면 즉시 초기화
+      // 자동 리셋: 모두 뽑혔으면 즉시 초기화 + 라운드 카운트 증가
       if (_autoReset &&
           _excludedIds.length >= (_roulette?.items.length ?? 0)) {
         _excludedIds.clear();
+        _roundNum++;
       }
       await _saveSpinMode();
     }
 
     notifyListeners();
 
+    // TODO(Phase2): audioplayers 패키지 추가 후 _settings.soundPack 기반 효과음 재생
     // 햅틱 피드백
-    if (_settings.hapticEnabled) {
-      HapticFeedback.mediumImpact();
+    if (_settings.hapticStrength == HapticStrength.light) {
+      HapticFeedback.lightImpact();
+    } else if (_settings.hapticStrength == HapticStrength.strong) {
+      HapticFeedback.heavyImpact();
     }
 
     // 히스토리 저장 + lastPlayedAt 갱신

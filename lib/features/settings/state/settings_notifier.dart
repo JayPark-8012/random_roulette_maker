@@ -14,8 +14,9 @@ class SettingsNotifier extends ChangeNotifier {
 
   Settings get settings => _settings;
   bool get soundEnabled => _settings.soundEnabled;
-  bool get hapticEnabled => _settings.hapticEnabled;
-  SpinSpeed get spinSpeed => _settings.spinSpeed;
+  SoundPack get soundPack => _settings.soundPack;
+  HapticStrength get hapticStrength => _settings.hapticStrength;
+  SpinDuration get spinDuration => _settings.spinDuration;
   String? get lastUsedRouletteId => _settings.lastUsedRouletteId;
   String get themeId => _settings.themeId;
 
@@ -31,14 +32,20 @@ class SettingsNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setHapticEnabled(bool value) async {
-    _settings = _settings.copyWith(hapticEnabled: value);
+  Future<void> setSoundPack(SoundPack value) async {
+    _settings = _settings.copyWith(soundPack: value);
     await _repo.save(_settings);
     notifyListeners();
   }
 
-  Future<void> setSpinSpeed(SpinSpeed value) async {
-    _settings = _settings.copyWith(spinSpeed: value);
+  Future<void> setHapticStrength(HapticStrength value) async {
+    _settings = _settings.copyWith(hapticStrength: value);
+    await _repo.save(_settings);
+    notifyListeners();
+  }
+
+  Future<void> setSpinDuration(SpinDuration value) async {
+    _settings = _settings.copyWith(spinDuration: value);
     await _repo.save(_settings);
     notifyListeners();
   }

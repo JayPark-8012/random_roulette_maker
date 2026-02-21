@@ -127,16 +127,17 @@ class RouletteWheelPainter extends CustomPainter {
       old.rotationAngle != rotationAngle || old.items != items;
 }
 
-/// 포인터 삼각형 (고정, 12시 방향)
+/// 포인터 (12시, 휘 상단에 고정)
 class RoulettePointer extends StatelessWidget {
   const RoulettePointer({super.key});
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      size: const Size(30, 40),
+      size: const Size(22, 36),
       painter: _PointerPainter(
         color: Theme.of(context).colorScheme.error,
+        shadowColor: Theme.of(context).colorScheme.shadow,
       ),
     );
   }
@@ -144,25 +145,50 @@ class RoulettePointer extends StatelessWidget {
 
 class _PointerPainter extends CustomPainter {
   final Color color;
-  const _PointerPainter({required this.color});
+  final Color shadowColor;
+  const _PointerPainter({required this.color, required this.shadowColor});
 
   @override
   void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+
+    // 주사바니 모양 패스 (둥근 너 → 날카로운 아래)
     final path = Path()
-      ..moveTo(size.width / 2, size.height)
-      ..lineTo(0, 0)
-      ..lineTo(size.width, 0)
+      ..moveTo(w / 2, h)                   // 아래 첨점
+      ..cubicTo(0, h * 0.55, 0, 0, w / 2, 0)   // 왼쪽 곡선
+      ..cubicTo(w, 0, w, h * 0.55, w / 2, h)   // 오른쪽 곡선
       ..close();
+
+    // 그림자
+    final shadowPaint = Paint()
+      ..color = shadowColor.withOpacity(0.25)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    canvas.drawPath(path.shift(const Offset(0, 2)), shadowPaint);
+
+    // 본체
     canvas.drawPath(path, Paint()..color = color);
+
+    // 하이라이트 (광택 느낙)
+    final highlightPath = Path()
+      ..moveTo(w * 0.3, h * 0.1)
+      ..cubicTo(w * 0.1, h * 0.25, w * 0.1, h * 0.4, w * 0.3, h * 0.45)
+      ..cubicTo(w * 0.15, h * 0.35, w * 0.15, h * 0.15, w * 0.3, h * 0.1)
+      ..close();
     canvas.drawPath(
-      path,
-      Paint()
-        ..color = Colors.white
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
+      highlightPath,
+      Paint()..color = Colors.white.withOpacity(0.35),
+    );
+
+    // 중앙 점
+    canvas.drawCircle(
+      Offset(w / 2, h * 0.22),
+      w * 0.18,
+      Paint()..color = Colors.white.withOpacity(0.5),
     );
   }
 
   @override
-  bool shouldRepaint(_PointerPainter old) => old.color != color;
+  bool shouldRepaint(_PointerPainter old) =>
+      old.color != color || old.shadowColor != shadowColor;
 }

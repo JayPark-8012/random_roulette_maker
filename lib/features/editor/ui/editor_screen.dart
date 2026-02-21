@@ -3,6 +3,7 @@ import '../../../core/constants.dart';
 import '../../../domain/roulette.dart';
 import '../state/editor_notifier.dart';
 import '../widgets/item_list_tile.dart';
+import '../../play/widgets/roulette_wheel.dart';
 
 class EditorScreen extends StatefulWidget {
   const EditorScreen({super.key});
@@ -63,18 +64,20 @@ class _EditorScreenState extends State<EditorScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
+          centerTitle: false,
           title: AnimatedBuilder(
             animation: _notifier,
-            builder: (_, _) =>
-                Text(_notifier.isEditMode ? '룰렛 편집' : '룰렛 만들기'),
+            builder: (_, _) => Text(
+              _notifier.isEditMode ? '룰렛 편집' : '룰렛 만들기',
+              style: const TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.8),
+            ),
           ),
           actions: [
-            // 편집 모드에서만 삭제 버튼 표시
             AnimatedBuilder(
               animation: _notifier,
               builder: (_, _) => _notifier.isEditMode
                   ? IconButton(
-                      icon: const Icon(Icons.delete_outline),
+                      icon: const Icon(Icons.delete_outline_rounded),
                       tooltip: '룰렛 삭제',
                       onPressed: () => _confirmDelete(context),
                     )
@@ -88,12 +91,16 @@ class _EditorScreenState extends State<EditorScreen> {
                       child: SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator.adaptive(strokeWidth: 2),
                       ),
                     )
-                  : FilledButton.tonal(
-                      onPressed: () => _save(context),
-                      child: const Text('저장'),
+                  : Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilledButton(
+                        onPressed: () => _save(context),
+                        child: const Text('저장',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
                     ),
             ),
           ],
@@ -103,7 +110,6 @@ class _EditorScreenState extends State<EditorScreen> {
           builder: (context, _) {
             return Column(
               children: [
-                // 오류 메시지
                 if (_notifier.error != null)
                   MaterialBanner(
                     content: Text(_notifier.error!),
@@ -131,12 +137,30 @@ class _EditorScreenState extends State<EditorScreen> {
                     onChanged: _notifier.setName,
                   ),
                 ),
+                // 리얼타임 미니 휠 프리뷰
+                _MiniWheelPreview(items: _notifier.items),
                 // 항목 목록 헤더
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                  child: Text(
-                    '항목 (${_notifier.items.length}개)',
-                    style: Theme.of(context).textTheme.titleSmall,
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                  child: Row(
+                    children: [
+                      Text(
+                        '항목 (${_notifier.items.length}개)',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '드래그하여 순서 변경',
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant
+                                  .withOpacity(0.5),
+                            ),
+                      ),
+                    ],
                   ),
                 ),
                 // 항목 재정렬 리스트
@@ -238,4 +262,138 @@ class _EditorScreenState extends State<EditorScreen> {
       if (mounted) navigator.pop();
     }
   }
+}
+
+// ─── 미니 휠 프리뷰 ───────────────────────────────────────────────
+class _MiniWheelPreview extends StatelessWidget {
+  final List<dynamic> items;
+  const _MiniWheelPreview({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withOpacity(0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          // 미니 휠
+          SizedBox(
+            width: 100,
+            height: 100,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CustomPaint(
+                  painter: RouletteWheelPainter(
+                    items: items.cast(),
+                    rotationAngle: 0,
+                  ),
+                  size: const Size(100, 100),
+                ),
+                Positioned(
+                  top: 0,
+                  child: CustomPaint(
+                    size: const Size(12, 18),
+                    painter: _MiniPointerPainter(color: colorScheme.error),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          // 아이템 요약 리스트
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '실시간 프리뷰',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                    color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                ...items.take(5).map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: item.color,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                item.label.isEmpty ? '(빈 항목)' : item.label,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: item.label.isEmpty
+                                      ? colorScheme.onSurfaceVariant
+                                          .withOpacity(0.4)
+                                      : colorScheme.onSurface,
+                                  fontStyle: item.label.isEmpty
+                                      ? FontStyle.italic
+                                      : FontStyle.normal,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                if (items.length > 5)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2, left: 16),
+                    child: Text(
+                      '+ ${items.length - 5}개 더',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MiniPointerPainter extends CustomPainter {
+  final Color color;
+  const _MiniPointerPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(size.width / 2, size.height)
+      ..lineTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(path, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(_MiniPointerPainter old) => old.color != color;
 }

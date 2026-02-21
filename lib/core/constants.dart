@@ -30,6 +30,7 @@ class StorageKeys {
   static const appDataVersion = 'app_data_version';
   static String historyKey(String rouletteId) => 'history_$rouletteId';
   static String spinModeKey(String rouletteId) => 'spin_mode_$rouletteId';
+  static const toolsHistory = 'tools_history';
 }
 
 // ── 기본 색상 팔레트 ─────────────────────────────────────
@@ -49,8 +50,9 @@ const List<Color> kDefaultPalette = [
 // ── 애니메이션 상수 ──────────────────────────────────────
 class SpinConfig {
   SpinConfig._();
+  static const Duration shortDuration = Duration(seconds: 2);
   static const Duration normalDuration = Duration(milliseconds: 4500);
-  static const Duration fastDuration = Duration(milliseconds: 2800);
+  static const Duration longDuration = Duration(seconds: 7);
   // 추가 회전 수 범위 (섹터 중앙 도달 전 전체 회전 수)
   static const int minExtraRotations = 3;
   static const int maxExtraRotations = 5;

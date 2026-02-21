@@ -25,6 +25,13 @@ class RouletteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    // 룰렛 첫 번째 아이템 컨러 기반 Tint
+    final tintColor = roulette.items.isNotEmpty
+        ? roulette.items.first.color
+        : colorScheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final tintOpacity = isDark ? 0.10 : 0.07;
+    final borderOpacity = isDark ? 0.25 : 0.20;
 
     return Dismissible(
       key: Key(roulette.id),
@@ -32,34 +39,56 @@ class RouletteCard extends StatelessWidget {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 24),
-        color: colorScheme.error,
-        child: Icon(Icons.delete_outline, color: colorScheme.onError),
+        decoration: BoxDecoration(
+          color: colorScheme.error,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Icon(Icons.delete_rounded, color: colorScheme.onError),
       ),
       confirmDismiss: (_) async => _showDeleteConfirm(context),
       onDismissed: (_) => onDelete(),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
+          color: Color.lerp(
+            colorScheme.surface,
+            tintColor,
+            tintOpacity,
+          ),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: tintColor.withOpacity(borderOpacity),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.shadow.withOpacity(0.04),
+              color: tintColor.withOpacity(0.06),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(18),
           child: InkWell(
             onTap: onTap,
+            splashColor: tintColor.withOpacity(0.1),
+            highlightColor: tintColor.withOpacity(0.05),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
+                  // 좌측 컴러 엕센트 바
+                  Container(
+                    width: 4,
+                    height: 52,
+                    margin: const EdgeInsets.only(right: 14),
+                    decoration: BoxDecoration(
+                      color: tintColor,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
                   _ColorPreview(roulette: roulette),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,38 +96,37 @@ class RouletteCard extends StatelessWidget {
                         Text(
                           roulette.name,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: -0.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.8,
+                                color: colorScheme.onSurface,
                               ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Row(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: colorScheme.primaryContainer.withOpacity(0.4),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                '항목 ${roulette.items.length}개',
-                                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                      color: colorScheme.onPrimaryContainer,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
+                            Text(
+                              '항목 ${roulette.items.length}개',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                    fontWeight: FontWeight.w500,
+                                  ),
                             ),
                             if (roulette.lastPlayedAt != null) ...[
-                              const SizedBox(width: 8),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                child: Text(
+                                  '·',
+                                  style: TextStyle(
+                                    color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+                                  ),
+                                ),
+                              ),
                               Text(
                                 AppUtils.formatRelativeDate(roulette.lastPlayedAt!),
                                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                      color: colorScheme.onSurfaceVariant.withOpacity(0.5),
                                     ),
                               ),
                             ],
@@ -107,45 +135,58 @@ class RouletteCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.more_horiz_rounded),
-                    color: colorScheme.onSurfaceVariant,
-                    onPressed: () {
-                      final RenderBox button = context.findRenderObject() as RenderBox;
-                      final RenderBox overlay = Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
-                      final RelativeRect position = RelativeRect.fromRect(
-                        Rect.fromPoints(
-                          button.localToGlobal(Offset(button.size.width, 0), ancestor: overlay),
-                          button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
-                        ),
-                        Offset.zero & overlay.size,
-                      );
-                      showMenu<RouletteCardAction>(
-                        context: context,
-                        position: position,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        items: const [
-                          PopupMenuItem(
-                            value: RouletteCardAction.edit,
-                            child: _MenuRow(icon: Icons.edit_rounded, label: '편집'),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: colorScheme.outline.withOpacity(0.5),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 4),
+                  Material(
+                    color: Colors.transparent,
+                    child: IconButton(
+                      icon: const Icon(Icons.more_horiz_rounded),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      splashRadius: 20,
+                      color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+                      onPressed: () {
+                        final RenderBox button = context.findRenderObject() as RenderBox;
+                        final RenderBox overlay = Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
+                        final RelativeRect position = RelativeRect.fromRect(
+                          Rect.fromPoints(
+                            button.localToGlobal(Offset(button.size.width, 0), ancestor: overlay),
+                            button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
                           ),
-                          PopupMenuItem(
-                            value: RouletteCardAction.duplicate,
-                            child: _MenuRow(icon: Icons.copy_rounded, label: '복제'),
-                          ),
-                          PopupMenuItem(
-                            value: RouletteCardAction.rename,
-                            child: _MenuRow(icon: Icons.drive_file_rename_outline_rounded, label: '이름 변경'),
-                          ),
-                          PopupMenuItem(
-                            value: RouletteCardAction.delete,
-                            child: _MenuRow(icon: Icons.delete_outline_rounded, label: '삭제', isDestructive: true),
-                          ),
-                        ],
-                      ).then((action) {
-                        if (action != null) _handleAction(context, action);
-                      });
-                    },
+                          Offset.zero & overlay.size,
+                        );
+                        showMenu<RouletteCardAction>(
+                          context: context,
+                          position: position,
+                          elevation: 8,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          items: const [
+                            PopupMenuItem(
+                              value: RouletteCardAction.edit,
+                              child: _MenuRow(icon: Icons.edit_note_rounded, label: '편집'),
+                            ),
+                            PopupMenuItem(
+                              value: RouletteCardAction.duplicate,
+                              child: _MenuRow(icon: Icons.copy_rounded, label: '복제'),
+                            ),
+                            PopupMenuItem(
+                              value: RouletteCardAction.rename,
+                              child: _MenuRow(icon: Icons.drive_file_rename_outline_rounded, label: '이름 변경'),
+                            ),
+                            PopupMenuItem(
+                              value: RouletteCardAction.delete,
+                              child: _MenuRow(icon: Icons.delete_outline_rounded, label: '삭제', isDestructive: true),
+                            ),
+                          ],
+                        ).then((action) {
+                          if (action != null) _handleAction(context, action);
+                        });
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -266,35 +307,43 @@ class _ColorPreview extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      width: 56,
-      height: 56,
+      width: 52,
+      height: 52,
       decoration: BoxDecoration(
+        color: colorScheme.surface,
         shape: BoxShape.circle,
-        gradient: SweepGradient(
-          colors: colors.length >= 2 ? colors : [...colors, colors.first],
-        ),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withOpacity(0.08),
-            blurRadius: 8,
+            color: colorScheme.shadow.withOpacity(0.06),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Center(
+      child: Padding(
+        padding: const EdgeInsets.all(2),
         child: Container(
-          width: 20,
-          height: 20,
           decoration: BoxDecoration(
-            color: colorScheme.surface,
             shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: colorScheme.shadow.withOpacity(0.1),
-                blurRadius: 4,
-                spreadRadius: 1,
+            gradient: SweepGradient(
+              colors: colors.length >= 2 ? colors : [...colors, colors.first],
+            ),
+          ),
+          child: Center(
+            child: Container(
+              width: 14,
+              height: 14,
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 2,
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

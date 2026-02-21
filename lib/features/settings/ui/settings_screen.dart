@@ -98,39 +98,105 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _notifier.soundEnabled,
                   onChanged: _notifier.setSoundEnabled,
                 ),
+                if (_notifier.soundEnabled) ...[
+                  const Divider(indent: 20, endIndent: 20),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '사운드 팩',
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        SegmentedButton<SoundPack>(
+                          expandedInsets: EdgeInsets.zero,
+                          segments: const [
+                            ButtonSegment(
+                              value: SoundPack.basic,
+                              label: Text('기본'),
+                            ),
+                            ButtonSegment(
+                              value: SoundPack.clicky,
+                              label: Text('클리키'),
+                            ),
+                            ButtonSegment(
+                              value: SoundPack.party,
+                              label: Text('파티'),
+                            ),
+                          ],
+                          selected: {_notifier.soundPack},
+                          onSelectionChanged: (set) =>
+                              _notifier.setSoundPack(set.first),
+                          showSelectedIcon: false,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const Divider(indent: 20, endIndent: 20),
-                SwitchListTile(
-                  title: const Text('진동(햅틱)'),
-                  subtitle: const Text('결과 발표 시 진동'),
-                  secondary: const Icon(Icons.vibration),
-                  value: _notifier.hapticEnabled,
-                  onChanged: _notifier.setHapticEnabled,
+                const ListTile(
+                  leading: Icon(Icons.vibration),
+                  title: Text('진동(햅틱)'),
+                  subtitle: Text('결과 발표 시 진동'),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: SegmentedButton<HapticStrength>(
+                    expandedInsets: EdgeInsets.zero,
+                    segments: const [
+                      ButtonSegment(
+                        value: HapticStrength.off,
+                        label: Text('없음'),
+                      ),
+                      ButtonSegment(
+                        value: HapticStrength.light,
+                        label: Text('약하게'),
+                      ),
+                      ButtonSegment(
+                        value: HapticStrength.strong,
+                        label: Text('강하게'),
+                      ),
+                    ],
+                    selected: {_notifier.hapticStrength},
+                    onSelectionChanged: (set) =>
+                        _notifier.setHapticStrength(set.first),
+                    showSelectedIcon: false,
+                  ),
                 ),
               ],
             ),
           ),
-          // ── 스핀 속도 ────────────────────────────────
-          _SectionHeader(title: '스핀 속도'),
+          // ── 스핀 시간 ────────────────────────────────
+          _SectionHeader(title: '스핀 시간'),
           Card(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: SegmentedButton<SpinSpeed>(
+              child: SegmentedButton<SpinDuration>(
                 expandedInsets: EdgeInsets.zero,
                 segments: const [
                   ButtonSegment(
-                    value: SpinSpeed.normal,
-                    label: Text('기본 (3~5초)'),
+                    value: SpinDuration.short,
+                    label: Text('짧게 (2초)'),
+                    icon: Icon(Icons.flash_on_outlined),
+                  ),
+                  ButtonSegment(
+                    value: SpinDuration.normal,
+                    label: Text('기본 (4.5초)'),
                     icon: Icon(Icons.speed),
                   ),
                   ButtonSegment(
-                    value: SpinSpeed.fast,
-                    label: Text('빠름 (1~2초)'),
-                    icon: Icon(Icons.flash_on_outlined),
+                    value: SpinDuration.long,
+                    label: Text('길게 (7초)'),
+                    icon: Icon(Icons.hourglass_empty_rounded),
                   ),
                 ],
-                selected: {_notifier.spinSpeed},
-                onSelectionChanged: (set) => _notifier.setSpinSpeed(set.first),
+                selected: {_notifier.spinDuration},
+                onSelectionChanged: (set) => _notifier.setSpinDuration(set.first),
                 showSelectedIcon: false,
               ),
             ),
