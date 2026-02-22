@@ -60,24 +60,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  childAspectRatio: 1.0,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                ),
-                itemCount: AppThemes.all.length,
-                itemBuilder: (ctx, i) {
-                  final theme = AppThemes.all[i];
-                  return _ThemePreviewCard(
-                    themeData: theme,
-                    isSelected: theme.id == _notifier.themeId,
-                    onTap: () => _selectTheme(theme),
-                  );
-                },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── 화면 모드 (다크/라이트/시스템) ──────────
+                  Text(
+                    '화면 모드',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  SegmentedButton<AppThemeMode>(
+                    expandedInsets: EdgeInsets.zero,
+                    segments: const [
+                      ButtonSegment(
+                        value: AppThemeMode.system,
+                        label: Text('시스템'),
+                        icon: Icon(Icons.brightness_auto_rounded),
+                      ),
+                      ButtonSegment(
+                        value: AppThemeMode.light,
+                        label: Text('라이트'),
+                        icon: Icon(Icons.light_mode_outlined),
+                      ),
+                      ButtonSegment(
+                        value: AppThemeMode.dark,
+                        label: Text('다크'),
+                        icon: Icon(Icons.dark_mode_outlined),
+                      ),
+                    ],
+                    selected: {_notifier.appThemeMode},
+                    onSelectionChanged: (set) =>
+                        _notifier.setAppThemeMode(set.first),
+                    showSelectedIcon: false,
+                  ),
+                  const SizedBox(height: 16),
+                  const Divider(height: 1),
+                  const SizedBox(height: 16),
+                  // ── 색상 팔레트 ──────────────────────────────
+                  Text(
+                    '색상 팔레트',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: 1.0,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
+                    itemCount: AppThemes.all.length,
+                    itemBuilder: (ctx, i) {
+                      final theme = AppThemes.all[i];
+                      return _ThemePreviewCard(
+                        themeData: theme,
+                        isSelected: theme.id == _notifier.themeId,
+                        onTap: () => _selectTheme(theme),
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
           ),

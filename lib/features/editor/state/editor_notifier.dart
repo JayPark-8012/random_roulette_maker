@@ -132,6 +132,14 @@ class EditorNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateItemColor(String itemId, int colorValue) {
+    final idx = _items.indexWhere((e) => e.id == itemId);
+    if (idx < 0) return;
+    _items[idx] = _items[idx].copyWith(colorValue: colorValue);
+    _isDirty = true;
+    notifyListeners();
+  }
+
   void removeItem(String itemId) {
     if (_items.length <= AppLimits.minItemCount) {
       _error = '최소 ${AppLimits.minItemCount}개 항목이 필요합니다.';

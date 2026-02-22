@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants.dart';
 import '../../../data/local_storage.dart';
+import '../state/splash_notifier.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -22,6 +23,11 @@ class _SplashScreenState extends State<SplashScreen> {
       LocalStorage.instance.init(),
       Future.delayed(const Duration(seconds: 1)),
     ]);
+
+    if (!mounted) return;
+    
+    // SettingsNotifier 로드
+    await SplashNotifier.instance.initializeApp();
 
     if (!mounted) return;
     Navigator.of(context).pushReplacementNamed(AppRoutes.home);

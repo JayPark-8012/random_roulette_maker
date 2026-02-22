@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show ThemeMode;
 import '../../../core/app_themes.dart';
 import '../../../core/utils.dart';
 import '../../../data/settings_repository.dart';
@@ -19,6 +20,14 @@ class SettingsNotifier extends ChangeNotifier {
   SpinDuration get spinDuration => _settings.spinDuration;
   String? get lastUsedRouletteId => _settings.lastUsedRouletteId;
   String get themeId => _settings.themeId;
+  AppThemeMode get appThemeMode => _settings.appThemeMode;
+
+  /// AppThemeMode → Flutter ThemeMode 변환 (MaterialApp에서 사용)
+  ThemeMode get flutterThemeMode => switch (_settings.appThemeMode) {
+        AppThemeMode.light => ThemeMode.light,
+        AppThemeMode.dark => ThemeMode.dark,
+        AppThemeMode.system => ThemeMode.system,
+      };
 
   Future<void> load() async {
     _settings = await _repo.load();
@@ -46,6 +55,12 @@ class SettingsNotifier extends ChangeNotifier {
 
   Future<void> setSpinDuration(SpinDuration value) async {
     _settings = _settings.copyWith(spinDuration: value);
+    await _repo.save(_settings);
+    notifyListeners();
+  }
+
+  Future<void> setAppThemeMode(AppThemeMode value) async {
+    _settings = _settings.copyWith(appThemeMode: value);
     await _repo.save(_settings);
     notifyListeners();
   }

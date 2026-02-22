@@ -40,39 +40,48 @@ class _ToolsTabState extends State<ToolsTab>
   }
 
   Future<void> _load() async {
-    final data =
-        await LocalStorage.instance.getJsonMap(StorageKeys.toolsHistory);
-    if (data == null || !mounted) return;
-    setState(() {
-      final coin = data['coin'] as List<dynamic>? ?? [];
-      _coinHistory.addAll(coin.cast<bool>());
-      if (_coinHistory.isNotEmpty) _coin = _coinHistory.first;
+    try {
+      final data =
+          await LocalStorage.instance.getJsonMap(StorageKeys.toolsHistory);
+      if (data == null || !mounted) return;
+      setState(() {
+        final coin = data['coin'] as List<dynamic>? ?? [];
+        _coinHistory.addAll(coin.cast<bool>());
+        if (_coinHistory.isNotEmpty) _coin = _coinHistory.first;
 
-      final dice = data['dice'] as List<dynamic>? ?? [];
-      for (final e in dice.cast<Map<String, dynamic>>()) {
-        _diceHistory
-            .add({'type': e['type'] as int, 'result': e['result'] as int});
-      }
-      if (_diceHistory.isNotEmpty) _diceResult = _diceHistory.first['result'];
+        final dice = data['dice'] as List<dynamic>? ?? [];
+        for (final e in dice.cast<Map<String, dynamic>>()) {
+          _diceHistory
+              .add({'type': e['type'] as int, 'result': e['result'] as int});
+        }
+        if (_diceHistory.isNotEmpty) _diceResult = _diceHistory.first['result'];
 
-      final nums = data['number'] as List<dynamic>? ?? [];
-      for (final e in nums.cast<Map<String, dynamic>>()) {
-        _numHistory.add({
-          'min': e['min'] as int,
-          'max': e['max'] as int,
-          'result': e['result'] as int,
-        });
-      }
-      if (_numHistory.isNotEmpty) _numResult = _numHistory.first['result'];
-    });
+        final nums = data['number'] as List<dynamic>? ?? [];
+        for (final e in nums.cast<Map<String, dynamic>>()) {
+          _numHistory.add({
+            'min': e['min'] as int,
+            'max': e['max'] as int,
+            'result': e['result'] as int,
+          });
+        }
+        if (_numHistory.isNotEmpty) _numResult = _numHistory.first['result'];
+      });
+    } catch (e) {
+      // LocalStorage 초기화 전이거나 web 환경에서는 무시
+      debugPrint('ToolsTab._load() error: $e');
+    }
   }
 
   Future<void> _save() async {
-    await LocalStorage.instance.setJsonMap(StorageKeys.toolsHistory, {
-      'coin': _coinHistory,
-      'dice': _diceHistory,
-      'number': _numHistory,
-    });
+    try {
+      await LocalStorage.instance.setJsonMap(StorageKeys.toolsHistory, {
+        'coin': _coinHistory,
+        'dice': _diceHistory,
+        'number': _numHistory,
+      });
+    } catch (e) {
+      debugPrint('ToolsTab._save() error: $e');
+    }
   }
 
   void _flipCoin() {

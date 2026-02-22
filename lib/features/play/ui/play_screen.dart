@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:share_plus/share_plus.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants.dart';
 import '../../../core/utils.dart';
 import '../../../domain/item.dart';
@@ -264,7 +265,10 @@ class _PlayScreenState extends State<PlayScreen>
             child: Text(
               '최근 결과',
               style: Theme.of(context).textTheme.titleLarge,
-            ),
+            )
+                .animate()
+                .fadeIn(duration: 300.ms)
+                .slideY(begin: -0.3, end: 0.0, duration: 300.ms, curve: Curves.easeOut),
           ),
           Expanded(
             child: history.isEmpty
@@ -285,7 +289,15 @@ class _PlayScreenState extends State<PlayScreen>
                         subtitle: Text(
                           AppUtils.formatRelativeDate(h.playedAt),
                         ),
-                      );
+                      )
+                          .animate()
+                          .slideY(
+                            begin: 0.2,
+                            end: 0.0,
+                            duration: (200 + i * 30).ms,
+                            curve: Curves.easeOut,
+                          )
+                          .fadeIn(duration: (200 + i * 30).ms);
                     },
                   ),
           ),
@@ -319,12 +331,18 @@ class _PlayScreenState extends State<PlayScreen>
             onPressed: () {
               if (_notifier.roulette != null) _showStats();
             },
-          ),
+          )
+              .animate()
+              .fadeIn(duration: 300.ms)
+              .scaleXY(begin: 0.8, end: 1.0, duration: 300.ms, curve: Curves.elasticOut),
           IconButton(
             icon: const Icon(Icons.history_rounded),
             tooltip: '히스토리',
             onPressed: _showHistory,
-          ),
+          )
+              .animate()
+              .fadeIn(duration: 300.ms, delay: 50.ms)
+              .scaleXY(begin: 0.8, end: 1.0, duration: 300.ms, delay: 50.ms, curve: Curves.elasticOut),
         ],
       ),
       body: AnimatedBuilder(
@@ -369,7 +387,10 @@ class _PlayScreenState extends State<PlayScreen>
                   currentMode: _notifier.spinMode,
                   isDisabled: _notifier.isSpinning,
                   onModeSelected: _notifier.setSpinMode,
-                ),
+                )
+                    .animate()
+                    .fadeIn(duration: 300.ms, delay: 100.ms)
+                    .slideY(begin: 0.2, end: 0.0, duration: 300.ms, delay: 100.ms, curve: Curves.easeOut),
               ),
               // 모드별 상태 표시
               if (_notifier.noRepeat && !_notifier.autoReset && !_notifier.allPicked)
@@ -392,7 +413,10 @@ class _PlayScreenState extends State<PlayScreen>
                       ),
                     ],
                   ),
-                ),
+                )
+                    .animate()
+                    .fadeIn(duration: 200.ms, delay: 150.ms)
+                    .slideX(begin: -0.2, end: 0.0, duration: 200.ms, delay: 150.ms),
               if (_notifier.spinMode == SpinMode.round)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
@@ -497,7 +521,7 @@ class _PlayScreenState extends State<PlayScreen>
 
 // ── 개선된 ResultSheet ──────────────────────────────────────
 
-class _ResultSheet extends StatelessWidget {
+class _ResultSheet extends StatefulWidget {
   final Item winner;
   final String rouletteName;
   final VoidCallback onReSpin;
@@ -515,15 +539,27 @@ class _ResultSheet extends StatelessWidget {
   });
 
   @override
+  State<_ResultSheet> createState() => _ResultSheetState();
+}
+
+class _ResultSheetState extends State<_ResultSheet> {
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final winnerColor = winner.color;
+    final winnerColor = widget.winner.color;
     final isLight = winnerColor.computeLuminance() > 0.4;
     final textColor = isLight ? Colors.black87 : Colors.white;
 
     return Container(
       decoration: BoxDecoration(
-        color: colorScheme.surface,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color.lerp(colorScheme.surface, winnerColor, 0.08) ?? colorScheme.surface,
+            colorScheme.surface,
+          ],
+        ),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
       child: Column(
@@ -540,7 +576,10 @@ class _ResultSheet extends StatelessWidget {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-          ),
+          )
+              .animate()
+              .fadeIn(duration: 300.ms)
+              .scaleXY(begin: 0.8, end: 1.0, duration: 300.ms, curve: Curves.easeOut),
           // ── 색상 헤더 영역 ──
           Container(
             margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -574,7 +613,10 @@ class _ResultSheet extends StatelessWidget {
                     size: 32,
                     color: isLight ? Colors.black54 : Colors.white,
                   ),
-                ),
+                )
+                    .animate()
+                    .scaleXY(begin: 0.5, end: 1.0, duration: 400.ms, curve: Curves.elasticOut)
+                    .fadeIn(duration: 300.ms),
                 const SizedBox(width: 20),
                 Expanded(
                   child: Column(
@@ -588,10 +630,13 @@ class _ResultSheet extends StatelessWidget {
                           color: colorScheme.onSurfaceVariant,
                           letterSpacing: 0.5,
                         ),
-                      ),
+                      )
+                          .animate()
+                          .fadeIn(duration: 300.ms, delay: 100.ms)
+                          .slideX(begin: 0.3, end: 0.0, duration: 300.ms),
                       const SizedBox(height: 6),
                       Text(
-                        winner.label,
+                        widget.winner.label,
                         style: TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w900,
@@ -600,7 +645,10 @@ class _ResultSheet extends StatelessWidget {
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                      ),
+                      )
+                          .animate()
+                          .scaleXY(begin: 0.8, end: 1.0, duration: 400.ms, curve: Curves.elasticOut, delay: 150.ms)
+                          .fadeIn(duration: 300.ms, delay: 100.ms),
                     ],
                   ),
                 ),
@@ -624,8 +672,11 @@ class _ResultSheet extends StatelessWidget {
                             color: colorScheme.outlineVariant,
                           ),
                         ),
-                        onPressed: onReSpin,
-                      ),
+                        onPressed: widget.onReSpin,
+                      )
+                          .animate()
+                          .slideY(begin: 0.2, end: 0.0, duration: 300.ms, delay: 250.ms, curve: Curves.easeOut)
+                          .fadeIn(duration: 300.ms, delay: 250.ms),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -635,12 +686,15 @@ class _ResultSheet extends StatelessWidget {
                           foregroundColor: textColor,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
-                        onPressed: onClose,
+                        onPressed: widget.onClose,
                         child: const Text(
                           '확인',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                      ),
+                      )
+                          .animate()
+                          .slideY(begin: 0.2, end: 0.0, duration: 300.ms, delay: 300.ms, curve: Curves.easeOut)
+                          .fadeIn(duration: 300.ms, delay: 300.ms),
                     ),
                   ],
                 ),
@@ -654,8 +708,11 @@ class _ResultSheet extends StatelessWidget {
                         style: TextButton.styleFrom(
                           foregroundColor: colorScheme.onSurfaceVariant,
                         ),
-                        onPressed: onCopy,
-                      ),
+                        onPressed: widget.onCopy,
+                      )
+                          .animate()
+                          .slideY(begin: 0.1, end: 0.0, duration: 300.ms, delay: 350.ms, curve: Curves.easeOut)
+                          .fadeIn(duration: 300.ms, delay: 350.ms),
                     ),
                     Expanded(
                       child: TextButton.icon(
@@ -664,8 +721,11 @@ class _ResultSheet extends StatelessWidget {
                         style: TextButton.styleFrom(
                           foregroundColor: colorScheme.onSurfaceVariant,
                         ),
-                        onPressed: onShare,
-                      ),
+                        onPressed: widget.onShare,
+                      )
+                          .animate()
+                          .slideY(begin: 0.1, end: 0.0, duration: 300.ms, delay: 400.ms, curve: Curves.easeOut)
+                          .fadeIn(duration: 300.ms, delay: 400.ms),
                     ),
                   ],
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants.dart';
 import '../../../domain/roulette.dart';
 import '../state/home_notifier.dart';
@@ -15,19 +16,24 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with TickerProviderStateMixin {
   _HomeMode _mode = _HomeMode.roulette;
   final HomeNotifier _notifier = HomeNotifier();
+  late AnimationController _modeAnimController;
 
   @override
   void initState() {
     super.initState();
+    _modeAnimController =
+        AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
     _notifier.addListener(_rebuild);
     _notifier.load();
   }
 
   @override
   void dispose() {
+    _modeAnimController.dispose();
     _notifier.removeListener(_rebuild);
     _notifier.dispose();
     super.dispose();
@@ -67,7 +73,10 @@ class _HomeScreenState extends State<HomeScreen> {
             // ── 세그먼트 탭 (분리 위젯) ─────────────────────
             _QuickSegmentBar(
               selected: _mode,
-              onChanged: (m) => setState(() => _mode = m),
+              onChanged: (m) {
+                setState(() => _mode = m);
+                _modeAnimController.forward(from: 0.0);
+              },
             ),
             const SizedBox(height: 12),
             // ── 콘텐츠 영역 (Offstage로 state 유지) ──────────
@@ -76,16 +85,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 fit: StackFit.expand,
                 children: [
                   // [룰렛 모드] 내 룰렛 세트 리스트
-                  Offstage(
-                    offstage: _mode != _HomeMode.roulette,
-                    child: _buildRouletteContent(context),
+                  AnimatedOpacity(
+                    opacity: _mode == _HomeMode.roulette ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 150),
+                    child: Offstage(
+                      offstage: _mode != _HomeMode.roulette,
+                      child: _buildRouletteContent(context),
+                    ),
                   ),
                   // [코인/주사위/숫자 모드] 기존 ToolsTab 재사용
-                  // showOnly 파라미터로 해당 도구 카드만 표시
-                  // Offstage로 항상 tree에 유지 → 히스토리 state 보존
-                  Offstage(
-                    offstage: _mode == _HomeMode.roulette,
-                    child: ToolsTab(showOnly: _toolsShowOnly),
+                  AnimatedOpacity(
+                    opacity: _mode != _HomeMode.roulette ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 150),
+                    child: Offstage(
+                      offstage: _mode == _HomeMode.roulette,
+                      child: ToolsTab(showOnly: _toolsShowOnly),
+                    ),
                   ),
                 ],
               ),
@@ -96,23 +111,29 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       // FAB: 룰렛 모드에서만 표시
       floatingActionButton: _mode == _HomeMode.roulette
-          ? FloatingActionButton.extended(
-              onPressed: () => _onCreateTap(context),
-              backgroundColor: cs.primary,
-              foregroundColor: cs.onPrimary,
-              elevation: 0,
-              highlightElevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(100)),
-              icon: const Icon(Icons.add_rounded, size: 24),
-              label: const Text(
-                '새 룰렛 만들기',
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, letterSpacing: -0.5),
-              ),
-            )
+          ? _buildFAB(context, cs)
           : null,
     );
+  }
+
+  /// 애니메이션이 적용된 FAB
+  Widget _buildFAB(BuildContext context, ColorScheme cs) {
+    return FloatingActionButton.extended(
+      onPressed: () => _onCreateTap(context),
+      backgroundColor: cs.primary,
+      foregroundColor: cs.onPrimary,
+      elevation: 8,
+      highlightElevation: 12,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+      icon: const Icon(Icons.add_rounded, size: 24),
+      label: const Text(
+        '새 룰렛 만들기',
+        style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: -0.5),
+      ),
+    )
+        .animate()
+        .scaleXY(begin: 0.8, end: 1.0, duration: 400.ms, curve: Curves.elasticOut)
+        .fade(begin: 0.0, end: 1.0, duration: 200.ms);
   }
 
   // ── 헤더 ──────────────────────────────────────────────
@@ -130,13 +151,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     letterSpacing: -1.0,
                   ),
             ),
-          ),
+          ).animate().fadeIn(duration: 300.ms),
           IconButton(
             icon: const Icon(Icons.settings_rounded),
             onPressed: () =>
                 Navigator.of(context).pushNamed(AppRoutes.settings),
             tooltip: '설정',
-          ),
+          )
+              .animate()
+              .fadeIn(duration: 300.ms)
+              .scaleXY(begin: 0.8, end: 1.0, duration: 300.ms, curve: Curves.elasticOut),
         ],
       ),
     );
@@ -150,7 +174,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     if (_notifier.roulettes.isEmpty) {
-      return _EmptyState(onCreateTap: () => _onCreateTap(context));
+      return _EmptyState(onCreateTap: () => _onCreateTap(context))
+          .animate()
+          .fadeIn(duration: 300.ms, curve: Curves.easeOut)
+          .scaleXY(begin: 0.95, end: 1.0, duration: 400.ms, curve: Curves.easeOut);
     }
 
     return CustomScrollView(
@@ -174,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _UsageBadge(count: _notifier.count),
               ],
             ),
-          ),
+          ).animate().fadeIn(duration: 300.ms),
         ),
         // 룰렛 카드 리스트
         SliverPadding(
@@ -195,7 +222,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       _notifier.rename(_notifier.roulettes[i].id, n),
                   onDelete: () =>
                       _notifier.delete(_notifier.roulettes[i].id),
-                ),
+                )
+                    .animate()
+                    .slideY(
+                      begin: 0.3,
+                      end: 0.0,
+                      duration: (i * 50 + 300).ms,
+                      curve: Curves.easeOut,
+                    )
+                    .fadeIn(
+                      duration: (i * 50 + 300).ms,
+                      curve: Curves.easeOut,
+                    ),
               ),
               childCount: _notifier.roulettes.length,
             ),

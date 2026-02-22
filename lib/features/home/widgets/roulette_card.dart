@@ -49,10 +49,21 @@ class RouletteCard extends StatelessWidget {
       onDismissed: (_) => onDelete(),
       child: Container(
         decoration: BoxDecoration(
-          color: Color.lerp(
-            colorScheme.surface,
-            tintColor,
-            tintOpacity,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.lerp(
+                colorScheme.surface,
+                tintColor,
+                tintOpacity,
+              ) ?? colorScheme.surface,
+              Color.lerp(
+                colorScheme.surface,
+                tintColor,
+                tintOpacity * 0.2,
+              ) ?? colorScheme.surface,
+            ],
           ),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(

@@ -180,6 +180,8 @@ class _EditorScreenState extends State<EditorScreen> {
                             _notifier.invalidItemIds.contains(item.id),
                         onLabelChanged: (v) =>
                             _notifier.updateItemLabel(item.id, v),
+                        onColorChanged: (colorValue) =>
+                            _notifier.updateItemColor(item.id, colorValue),
                         onDelete: () => _notifier.removeItem(item.id),
                         showWeight: true,
                         onWeightChanged: (w) =>

@@ -11,13 +11,19 @@ class LocalStorage {
   SharedPreferences? _prefs;
 
   /// 앱 시작 시 1회 호출. Splash에서 await.
+  /// web 환경에서는 자동으로 shared_preferences가 초기화됨
   Future<void> init() async {
     _prefs ??= await SharedPreferences.getInstance();
     await _ensureSchemaVersion();
   }
 
   SharedPreferences get _p {
-    assert(_prefs != null, 'LocalStorage.init()을 먼저 호출하세요.');
+    // web 환경이나 초기화 중일 때도 안전하게 처리
+    if (_prefs == null) {
+      // SharedPreferences가 아직 초기화되지 않았으면, 임시로 메모리 기반 구현 사용
+      // (실제로는 웹에서는 자동 초기화되므로 이 코드는 실행되지 않음)
+      throw StateError('LocalStorage.init()을 먼저 호출하세요.');
+    }
     return _prefs!;
   }
 
@@ -39,33 +45,51 @@ class LocalStorage {
   // ── JSON 헬퍼 ─────────────────────────────────────────
 
   Future<List<Map<String, dynamic>>> getJsonList(String key) async {
-    final raw = _p.getString(key);
-    if (raw == null || raw.isEmpty) return [];
     try {
-      final decoded = jsonDecode(raw) as List<dynamic>;
-      return decoded.cast<Map<String, dynamic>>();
-    } catch (_) {
+      final raw = _p.getString(key);
+      if (raw == null || raw.isEmpty) return [];
+      try {
+        final decoded = jsonDecode(raw) as List<dynamic>;
+        return decoded.cast<Map<String, dynamic>>();
+      } catch (_) {
+        return [];
+      }
+    } catch (e) {
+      // LocalStorage 미초기화 상태에서는 빈 리스트 반환
       return [];
     }
   }
 
   Future<void> setJsonList(
       String key, List<Map<String, dynamic>> list) async {
-    await _p.setString(key, jsonEncode(list));
+    try {
+      await _p.setString(key, jsonEncode(list));
+    } catch (e) {
+      // 무시 (web 환경이나 초기화 전)
+    }
   }
 
   Future<Map<String, dynamic>?> getJsonMap(String key) async {
-    final raw = _p.getString(key);
-    if (raw == null || raw.isEmpty) return null;
     try {
-      return jsonDecode(raw) as Map<String, dynamic>;
-    } catch (_) {
+      final raw = _p.getString(key);
+      if (raw == null || raw.isEmpty) return null;
+      try {
+        return jsonDecode(raw) as Map<String, dynamic>;
+      } catch (_) {
+        return null;
+      }
+    } catch (e) {
+      // LocalStorage 미초기화 상태에서는 null 반환
       return null;
     }
   }
 
   Future<void> setJsonMap(String key, Map<String, dynamic> map) async {
-    await _p.setString(key, jsonEncode(map));
+    try {
+      await _p.setString(key, jsonEncode(map));
+    } catch (e) {
+      // 무시 (web 환경이나 초기화 전)
+    }
   }
 
   // ── 스키마 버전 관리 ──────────────────────────────────

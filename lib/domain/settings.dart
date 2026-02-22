@@ -2,6 +2,9 @@ enum SpinDuration { short, normal, long }
 enum SoundPack { basic, clicky, party }
 enum HapticStrength { off, light, strong }
 
+/// 앱 화면 모드 (Flutter ThemeMode에 매핑됨)
+enum AppThemeMode { system, light, dark }
+
 class Settings {
   final bool soundEnabled;
   final SoundPack soundPack;
@@ -9,6 +12,7 @@ class Settings {
   final SpinDuration spinDuration;
   final String? lastUsedRouletteId;
   final String themeId;
+  final AppThemeMode appThemeMode;
 
   const Settings({
     this.soundEnabled = true,
@@ -17,6 +21,7 @@ class Settings {
     this.spinDuration = SpinDuration.normal,
     this.lastUsedRouletteId,
     this.themeId = 'indigo',
+    this.appThemeMode = AppThemeMode.system,
   });
 
   Settings copyWith({
@@ -26,6 +31,7 @@ class Settings {
     SpinDuration? spinDuration,
     String? lastUsedRouletteId,
     String? themeId,
+    AppThemeMode? appThemeMode,
     bool clearLastUsed = false,
   }) {
     return Settings(
@@ -36,6 +42,7 @@ class Settings {
       lastUsedRouletteId:
           clearLastUsed ? null : (lastUsedRouletteId ?? this.lastUsedRouletteId),
       themeId: themeId ?? this.themeId,
+      appThemeMode: appThemeMode ?? this.appThemeMode,
     );
   }
 
@@ -47,6 +54,7 @@ class Settings {
       'spinDuration': spinDuration.name,
       'lastUsedRouletteId': lastUsedRouletteId,
       'themeId': themeId,
+      'appThemeMode': appThemeMode.name,
       'schemaVersion': 2,
     };
   }
@@ -59,6 +67,7 @@ class Settings {
       spinDuration: _parseSpinDuration(json),
       lastUsedRouletteId: json['lastUsedRouletteId'] as String?,
       themeId: json['themeId'] as String? ?? 'indigo',
+      appThemeMode: _parseAppThemeMode(json['appThemeMode'] as String?),
     );
   }
 
@@ -95,5 +104,12 @@ class Settings {
     // 이전 버전 호환: spinSpeed 'fast' → short
     if ((json['spinSpeed'] as String?) == 'fast') return SpinDuration.short;
     return SpinDuration.normal;
+  }
+
+  static AppThemeMode _parseAppThemeMode(String? raw) {
+    return AppThemeMode.values.firstWhere(
+      (e) => e.name == raw,
+      orElse: () => AppThemeMode.system,
+    );
   }
 }
