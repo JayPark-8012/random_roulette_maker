@@ -576,5 +576,85 @@
   "@itemSalad": {},
 
   "itemSushi": "Sushi",
-  "@itemSushi": {}
+  "@itemSushi": {},
+
+  "paywallTitle": "Upgrade to Premium",
+  "@paywallTitle": {},
+
+  "paywallSubtitle": "One-time purchase for unlimited access forever.",
+  "@paywallSubtitle": {},
+
+  "paywallFree": "Free",
+  "@paywallFree": {},
+
+  "paywallPremium": "Premium",
+  "@paywallPremium": {},
+
+  "paywallAds": "Ads",
+  "@paywallAds": {},
+
+  "paywallRouletteSets": "Roulette Sets",
+  "@paywallRouletteSets": {},
+
+  "paywallColorPalettes": "Color Palettes",
+  "@paywallColorPalettes": {},
+
+  "paywallUnlimited": "Unlimited",
+  "@paywallUnlimited": {},
+
+  "paywallOneTimePrice": "One-time purchase",
+  "@paywallOneTimePrice": {},
+
+  "paywallForever": "Forever",
+  "@paywallForever": {},
+
+  "paywallPurchaseButton": "Purchase Premium",
+  "@paywallPurchaseButton": {},
+
+  "paywallRestoreButton": "Restore Purchase",
+  "@paywallRestoreButton": {},
+
+  "paywallPurchaseSuccess": "✅ Premium purchase successful!",
+  "@paywallPurchaseSuccess": {},
+
+  "paywallPurchaseFailed": "❌ Purchase failed",
+  "@paywallPurchaseFailed": {},
+
+  "paywallRestoreSuccess": "✅ Purchase restored successfully.",
+  "@paywallRestoreSuccess": {},
+
+  "paywallNoRestorableItems": "❌ No purchase history found.",
+  "@paywallNoRestorableItems": {},
+
+  "paywallNoPreviousPurchase": "No previous purchases found.",
+  "@paywallNoPreviousPurchase": {},
+
+  "paywallError": "Error occurred",
+  "@paywallError": {},
+
+  "paywallTryAgain": "Please try again.",
+  "@paywallTryAgain": {},
+
+  "paywallMockNotice": "(Mock implementation: Not real purchase)",
+
+  "paywallRouletteLimitTitle": "Create Limit Reached",
+  "@paywallRouletteLimitTitle": {},
+
+  "paywallRouletteLimitContent": "Free users can create up to 3 roulette sets.\nUpgrade to Premium for unlimited sets.",
+  "@paywallRouletteLimitContent": {},
+
+  "paywallPaletteLockTitle": "Palette Locked",
+  "@paywallPaletteLockTitle": {},
+
+  "paywallPaletteLockContent": "The {paletteName} palette is only available in Premium.\nUnlock all color palettes today!",
+  "@paywallPaletteLockContent": {
+    "placeholders": {
+      "paletteName": {
+        "type": "String",
+        "example": "Ocean Blue"
+      }
+    }
+  },
+
+  "paywallUnlockButton": "Unlock Premium"
 }

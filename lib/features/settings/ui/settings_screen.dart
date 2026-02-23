@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../core/app_themes.dart';
+import '../../../core/constants.dart';
+import '../../../data/premium_service.dart';
 import '../../../domain/settings.dart';
 import '../../../l10n/app_localizations.dart';
 import '../state/settings_notifier.dart';
+import '../widgets/premium_demo_widget.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -29,8 +32,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _rebuild() => setState(() {});
 
   void _selectTheme(BuildContext context, AppThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
+    final premiumService = PremiumService.instance;
+
+    // Premium 제한 체크: 팔레트 사용
+    if (!premiumService.canUsePalette(theme.id)) {
+      _showPaletteLockDialog(context, theme, l10n);
+      return;
+    }
+
+    // 기존 isLocked 체크 (호환성용)
     if (theme.isLocked) {
-      final l10n = AppLocalizations.of(context)!;
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -46,7 +58,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
       return;
     }
+
     _notifier.setThemeId(theme.id);
+  }
+
+  /// 팔레트 잠금 다이얼로그
+  void _showPaletteLockDialog(
+    BuildContext context,
+    AppThemeData theme,
+    AppLocalizations l10n,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        icon: Icon(Icons.lock_rounded, size: 40, color: colorScheme.primary),
+        title: Text(l10n.paywallPaletteLockTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              l10n.paywallPaletteLockContent(theme.name),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            // 팔레트 미리보기
+            Container(
+              height: 40,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: theme.palette.take(3).toList(),
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).pushNamed(AppRoutes.paywall);
+            },
+            child: Text(l10n.paywallUnlockButton),
+          ),
+        ],
+      ),
+    );
   }
 
   String _currentLanguageName(AppLocalizations l10n) {
@@ -113,6 +178,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.only(bottom: 24),
         children: [
+          // ── 프리미엄 데모 위젯 ────────────────────────
+          const PremiumDemoWidget(),
+
           // ── 테마 ──────────────────────────────────────
           _SectionHeader(title: l10n.sectionTheme),
           Card(

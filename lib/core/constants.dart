@@ -9,6 +9,7 @@ class AppRoutes {
   static const play = '/play';
   static const templates = '/templates';
   static const settings = '/settings';
+  static const paywall = '/paywall';
 }
 
 // ── 비즈니스 제한 ────────────────────────────────────────

@@ -554,4 +554,82 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get itemSushi => '초밥';
+
+  @override
+  String get paywallTitle => '프리미엄으로 업그레이드';
+
+  @override
+  String get paywallSubtitle => '한 번의 구매로 모든 기능을 영구히 이용하세요.';
+
+  @override
+  String get paywallFree => '무료';
+
+  @override
+  String get paywallPremium => '프리미엄';
+
+  @override
+  String get paywallAds => '광고';
+
+  @override
+  String get paywallRouletteSets => '룰렛 세트';
+
+  @override
+  String get paywallColorPalettes => '컬러 팔레트';
+
+  @override
+  String get paywallUnlimited => '무제한';
+
+  @override
+  String get paywallOneTimePrice => '한 번의 구매';
+
+  @override
+  String get paywallForever => '영구히 사용';
+
+  @override
+  String get paywallPurchaseButton => '프리미엄 구매';
+
+  @override
+  String get paywallRestoreButton => '구매 복원';
+
+  @override
+  String get paywallPurchaseSuccess => '✅ 프리미엄 구매 성공!';
+
+  @override
+  String get paywallPurchaseFailed => '❌ 구매 실패';
+
+  @override
+  String get paywallRestoreSuccess => '✅ 구매가 복구되었습니다.';
+
+  @override
+  String get paywallNoRestorableItems => '❌ 구매 기록이 없습니다.';
+
+  @override
+  String get paywallNoPreviousPurchase => '이전에 구매한 항목이 없습니다.';
+
+  @override
+  String get paywallError => '오류 발생';
+
+  @override
+  String get paywallTryAgain => '다시 시도해주세요.';
+
+  @override
+  String get paywallMockNotice => '(Mock 구현: 실제 결제 아님)';
+
+  @override
+  String get paywallRouletteLimitTitle => '생성 제한 도달';
+
+  @override
+  String get paywallRouletteLimitContent =>
+      '무료 사용자는 최대 3개의 룰렛 세트를 만들 수 있습니다.\n프리미엄으로 업그레이드하면 무제한으로 생성할 수 있습니다.';
+
+  @override
+  String get paywallPaletteLockTitle => '팔레트 잠금';
+
+  @override
+  String paywallPaletteLockContent(String paletteName) {
+    return '$paletteName 팔레트는 프리미엄에서만 사용할 수 있습니다.\n지금 바로 모든 컬러 팔레트를 잠금 해제하세요!';
+  }
+
+  @override
+  String get paywallUnlockButton => '프리미엄 잠금 해제';
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants.dart';
 import '../../../data/local_storage.dart';
+import '../../../data/premium_service.dart';
+import '../../../data/mock_purchase_provider.dart';
 import '../../../l10n/app_localizations.dart';
 import '../state/splash_notifier.dart';
 
@@ -19,9 +21,10 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initialize() async {
-    // 저장소 초기화 + 최소 1초 표시
+    // 저장소 초기화 + 프리미엄 서비스 초기화 + 최소 1초 표시
     await Future.wait([
       LocalStorage.instance.init(),
+      PremiumService.initialize(MockPurchaseProvider()),
       Future.delayed(const Duration(seconds: 1)),
     ]);
 

@@ -1145,6 +1145,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sushi'**
   String get itemSushi;
+
+  /// No description provided for @paywallTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Premium'**
+  String get paywallTitle;
+
+  /// No description provided for @paywallSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One-time purchase for unlimited access forever.'**
+  String get paywallSubtitle;
+
+  /// No description provided for @paywallFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get paywallFree;
+
+  /// No description provided for @paywallPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium'**
+  String get paywallPremium;
+
+  /// No description provided for @paywallAds.
+  ///
+  /// In en, this message translates to:
+  /// **'Ads'**
+  String get paywallAds;
+
+  /// No description provided for @paywallRouletteSets.
+  ///
+  /// In en, this message translates to:
+  /// **'Roulette Sets'**
+  String get paywallRouletteSets;
+
+  /// No description provided for @paywallColorPalettes.
+  ///
+  /// In en, this message translates to:
+  /// **'Color Palettes'**
+  String get paywallColorPalettes;
+
+  /// No description provided for @paywallUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited'**
+  String get paywallUnlimited;
+
+  /// No description provided for @paywallOneTimePrice.
+  ///
+  /// In en, this message translates to:
+  /// **'One-time purchase'**
+  String get paywallOneTimePrice;
+
+  /// No description provided for @paywallForever.
+  ///
+  /// In en, this message translates to:
+  /// **'Forever'**
+  String get paywallForever;
+
+  /// No description provided for @paywallPurchaseButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Premium'**
+  String get paywallPurchaseButton;
+
+  /// No description provided for @paywallRestoreButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Purchase'**
+  String get paywallRestoreButton;
+
+  /// No description provided for @paywallPurchaseSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'✅ Premium purchase successful!'**
+  String get paywallPurchaseSuccess;
+
+  /// No description provided for @paywallPurchaseFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'❌ Purchase failed'**
+  String get paywallPurchaseFailed;
+
+  /// No description provided for @paywallRestoreSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'✅ Purchase restored successfully.'**
+  String get paywallRestoreSuccess;
+
+  /// No description provided for @paywallNoRestorableItems.
+  ///
+  /// In en, this message translates to:
+  /// **'❌ No purchase history found.'**
+  String get paywallNoRestorableItems;
+
+  /// No description provided for @paywallNoPreviousPurchase.
+  ///
+  /// In en, this message translates to:
+  /// **'No previous purchases found.'**
+  String get paywallNoPreviousPurchase;
+
+  /// No description provided for @paywallError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error occurred'**
+  String get paywallError;
+
+  /// No description provided for @paywallTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Please try again.'**
+  String get paywallTryAgain;
+
+  /// No description provided for @paywallMockNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'(Mock implementation: Not real purchase)'**
+  String get paywallMockNotice;
+
+  /// No description provided for @paywallRouletteLimitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Limit Reached'**
+  String get paywallRouletteLimitTitle;
+
+  /// No description provided for @paywallRouletteLimitContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Free users can create up to 3 roulette sets.\nUpgrade to Premium for unlimited sets.'**
+  String get paywallRouletteLimitContent;
+
+  /// No description provided for @paywallPaletteLockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Palette Locked'**
+  String get paywallPaletteLockTitle;
+
+  /// No description provided for @paywallPaletteLockContent.
+  ///
+  /// In en, this message translates to:
+  /// **'The {paletteName} palette is only available in Premium.\nUnlock all color palettes today!'**
+  String paywallPaletteLockContent(String paletteName);
+
+  /// No description provided for @paywallUnlockButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Premium'**
+  String get paywallUnlockButton;
 }
 
 class _AppLocalizationsDelegate

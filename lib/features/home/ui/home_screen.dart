@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemNavigator;
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants.dart';
+import '../../../data/premium_service.dart';
 import '../../../domain/roulette.dart';
 import '../../../l10n/app_localizations.dart';
 import '../state/home_notifier.dart';
@@ -257,6 +258,15 @@ class _HomeScreenState extends State<HomeScreen>
       _showLimitDialog(context);
       return;
     }
+
+    // Premium 제한 체크: 룰렛 생성
+    final premiumService = PremiumService.instance;
+    final canCreate = premiumService.canCreateRoulette(_notifier.roulettes.length);
+    if (!canCreate) {
+      _showPremiumRequiredDialog(context);
+      return;
+    }
+
     _showCreateBottomSheet(context);
   }
 
@@ -350,14 +360,40 @@ class _HomeScreenState extends State<HomeScreen>
             child: Text(l10n.actionClose),
           ),
           FilledButton(
-            // TODO(Phase3): 프리미엄 구매 플로우 연결
             onPressed: () {
               Navigator.of(ctx).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.premiumComingSoon)),
-              );
+              Navigator.of(context).pushNamed(AppRoutes.paywall);
             },
             child: Text(l10n.premiumButton),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Premium 제한 다이얼로그: 룰렛 생성 한도 초과
+  void _showPremiumRequiredDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        icon: const Icon(Icons.card_giftcard, size: 40),
+        title: Text(l10n.paywallRouletteLimitTitle),
+        content: Text(
+          l10n.paywallRouletteLimitContent,
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).pushNamed(AppRoutes.paywall);
+            },
+            child: Text(l10n.paywallPurchaseButton),
           ),
         ],
       ),

@@ -557,4 +557,83 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get itemSushi => 'Sushi';
+
+  @override
+  String get paywallTitle => 'Upgrade to Premium';
+
+  @override
+  String get paywallSubtitle =>
+      'One-time purchase for unlimited access forever.';
+
+  @override
+  String get paywallFree => 'Free';
+
+  @override
+  String get paywallPremium => 'Premium';
+
+  @override
+  String get paywallAds => 'Ads';
+
+  @override
+  String get paywallRouletteSets => 'Roulette Sets';
+
+  @override
+  String get paywallColorPalettes => 'Color Palettes';
+
+  @override
+  String get paywallUnlimited => 'Unlimited';
+
+  @override
+  String get paywallOneTimePrice => 'One-time purchase';
+
+  @override
+  String get paywallForever => 'Forever';
+
+  @override
+  String get paywallPurchaseButton => 'Purchase Premium';
+
+  @override
+  String get paywallRestoreButton => 'Restore Purchase';
+
+  @override
+  String get paywallPurchaseSuccess => '✅ Premium purchase successful!';
+
+  @override
+  String get paywallPurchaseFailed => '❌ Purchase failed';
+
+  @override
+  String get paywallRestoreSuccess => '✅ Purchase restored successfully.';
+
+  @override
+  String get paywallNoRestorableItems => '❌ No purchase history found.';
+
+  @override
+  String get paywallNoPreviousPurchase => 'No previous purchases found.';
+
+  @override
+  String get paywallError => 'Error occurred';
+
+  @override
+  String get paywallTryAgain => 'Please try again.';
+
+  @override
+  String get paywallMockNotice => '(Mock implementation: Not real purchase)';
+
+  @override
+  String get paywallRouletteLimitTitle => 'Create Limit Reached';
+
+  @override
+  String get paywallRouletteLimitContent =>
+      'Free users can create up to 3 roulette sets.\nUpgrade to Premium for unlimited sets.';
+
+  @override
+  String get paywallPaletteLockTitle => 'Palette Locked';
+
+  @override
+  String paywallPaletteLockContent(String paletteName) {
+    return 'The $paletteName palette is only available in Premium.\nUnlock all color palettes today!';
+  }
+
+  @override
+  String get paywallUnlockButton => 'Unlock Premium';
 }

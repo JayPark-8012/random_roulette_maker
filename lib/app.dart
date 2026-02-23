@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'core/app_themes.dart';
 import 'core/constants.dart';
+import 'data/premium_service.dart';
+import 'data/mock_purchase_provider.dart';
 import 'features/settings/state/settings_notifier.dart';
 import 'l10n/app_localizations.dart';
 import 'features/splash/ui/splash_screen.dart';
@@ -9,6 +11,7 @@ import 'features/editor/ui/editor_screen.dart';
 import 'features/play/ui/play_screen.dart';
 import 'features/templates/ui/templates_screen.dart';
 import 'features/settings/ui/settings_screen.dart';
+import 'features/paywall/ui/paywall_screen.dart';
 
 /// 부드러운 페이지 전환 애니메이션
 class SmoothPageRoute<T> extends PageRoute<T> {
@@ -120,6 +123,9 @@ class _AppState extends State<App> {
             break;
           case AppRoutes.settings:
             page = const SettingsScreen();
+            break;
+          case AppRoutes.paywall:
+            page = const PaywallScreen();
             break;
           default:
             page = const HomeScreen();
