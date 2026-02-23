@@ -1,3 +1,5 @@
+import 'package:random_roulette_maker/data/premium_service.dart';
+
 import '../core/constants.dart';
 import '../core/utils.dart';
 import '../domain/roulette.dart';
@@ -9,6 +11,7 @@ import 'local_storage.dart';
 class RouletteRepository {
   RouletteRepository._();
   static final RouletteRepository instance = RouletteRepository._();
+  bool get _isPremium => PremiumService.instance.isPremium;
 
   final LocalStorage _storage = LocalStorage.instance;
 
@@ -32,6 +35,7 @@ class RouletteRepository {
 
   Future<bool> canCreate() async {
     final all = await getAll();
+    if(_isPremium) return true;
     return all.length < AppLimits.maxRouletteCount;
   }
 

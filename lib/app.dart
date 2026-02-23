@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/app_themes.dart';
 import 'core/constants.dart';
-import 'data/premium_service.dart';
-import 'data/mock_purchase_provider.dart';
 import 'features/settings/state/settings_notifier.dart';
 import 'l10n/app_localizations.dart';
 import 'features/splash/ui/splash_screen.dart';

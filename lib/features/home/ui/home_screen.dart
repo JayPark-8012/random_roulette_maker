@@ -3,6 +3,7 @@ import 'package:flutter/services.dart' show SystemNavigator;
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants.dart';
 import '../../../data/premium_service.dart';
+import '../../../domain/premium_state.dart';
 import '../../../domain/roulette.dart';
 import '../../../l10n/app_localizations.dart';
 import '../state/home_notifier.dart';
@@ -206,7 +207,17 @@ class _HomeScreenState extends State<HomeScreen>
                         ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
-                _UsageBadge(count: _notifier.count),
+                ValueListenableBuilder<PremiumState>(
+                  valueListenable:
+                      PremiumService.instance.stateNotifier,
+                  builder: (_, ps, child) => _UsageBadge(
+                    label: PremiumService.instance
+                        .formatSetCountLabel(_notifier.count),
+                    isPremium: ps.isPremium,
+                    isFull: !ps.isPremium &&
+                        _notifier.count >= AppLimits.maxRouletteCount,
+                  ),
+                ),
               ],
             ),
           ).animate().fadeIn(duration: 300.ms),
@@ -254,19 +265,11 @@ class _HomeScreenState extends State<HomeScreen>
   // ── 네비게이션 / 다이얼로그 ─────────────────────────────
 
   void _onCreateTap(BuildContext context) {
+    // canCreate 는 HomeNotifier → PremiumService.canCreateNewSet() 위임
     if (!_notifier.canCreate) {
-      _showLimitDialog(context);
-      return;
-    }
-
-    // Premium 제한 체크: 룰렛 생성
-    final premiumService = PremiumService.instance;
-    final canCreate = premiumService.canCreateRoulette(_notifier.roulettes.length);
-    if (!canCreate) {
       _showPremiumRequiredDialog(context);
       return;
     }
-
     _showCreateBottomSheet(context);
   }
 
@@ -330,7 +333,7 @@ class _HomeScreenState extends State<HomeScreen>
   Future<void> _duplicateRoulette(
       BuildContext context, Roulette roulette) async {
     if (!_notifier.canCreate) {
-      _showLimitDialog(context);
+      _showPremiumRequiredDialog(context);
       return;
     }
     final l10n = AppLocalizations.of(context)!;
@@ -343,35 +346,7 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  void _showLimitDialog(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        icon: const Icon(Icons.lock_outline, size: 40),
-        title: Text(l10n.limitTitle),
-        content: Text(
-          l10n.limitContent(AppLimits.maxRouletteCount),
-          textAlign: TextAlign.center,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(l10n.actionClose),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              Navigator.of(context).pushNamed(AppRoutes.paywall);
-            },
-            child: Text(l10n.premiumButton),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Premium 제한 다이얼로그: 룰렛 생성 한도 초과
+  /// 룰렛 생성 한도 초과 시 Paywall 유도 다이얼로그
   void _showPremiumRequiredDialog(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     showDialog<void>(
@@ -482,30 +457,34 @@ class _QuickSegmentBar extends StatelessWidget {
 // ── 사용량 뱃지 ───────────────────────────────────────────────
 
 class _UsageBadge extends StatelessWidget {
-  final int count;
-  const _UsageBadge({required this.count});
+  /// PremiumService.formatSetCountLabel(current) 결과 ("2/3" 또는 "2/∞")
+  final String label;
+  final bool isPremium;
+  final bool isFull;
+
+  const _UsageBadge({
+    required this.label,
+    required this.isPremium,
+    required this.isFull,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final isFull = count >= AppLimits.maxRouletteCount;
     final cs = Theme.of(context).colorScheme;
+    // 프리미엄이면 에러 색상 없이 뮤트 표시
+    final color = (!isPremium && isFull)
+        ? cs.error
+        : cs.onSurfaceVariant.withValues(alpha: 0.6);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          Icons.storage_rounded,
-          size: 14,
-          color:
-              isFull ? cs.error : cs.onSurfaceVariant.withValues(alpha: 0.6),
-        ),
+        Icon(Icons.storage_rounded, size: 14, color: color),
         const SizedBox(width: 4),
         Text(
-          '$count / ${AppLimits.maxRouletteCount}',
+          label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: isFull
-                    ? cs.error
-                    : cs.onSurfaceVariant.withValues(alpha: 0.6),
+                color: color,
               ),
         ),
       ],

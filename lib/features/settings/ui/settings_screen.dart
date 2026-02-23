@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/app_themes.dart';
 import '../../../core/constants.dart';
 import '../../../data/premium_service.dart';
+import '../../../domain/premium_state.dart';
 import '../../../domain/settings.dart';
 import '../../../l10n/app_localizations.dart';
 import '../state/settings_notifier.dart';
@@ -33,29 +34,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _selectTheme(BuildContext context, AppThemeData theme) {
     final l10n = AppLocalizations.of(context)!;
-    final premiumService = PremiumService.instance;
 
-    // Premium 제한 체크: 팔레트 사용
-    if (!premiumService.canUsePalette(theme.id)) {
+    // 팔레트 사용 가능 여부: PremiumService 단일 판단
+    if (!PremiumService.instance.canUsePalette(theme.id)) {
       _showPaletteLockDialog(context, theme, l10n);
-      return;
-    }
-
-    // 기존 isLocked 체크 (호환성용)
-    if (theme.isLocked) {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(l10n.premiumThemeTitle),
-          content: Text(l10n.premiumThemeContent),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: Text(l10n.actionConfirm),
-            ),
-          ],
-        ),
-      );
       return;
     }
 
@@ -233,25 +215,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                   ),
                   const SizedBox(height: 8),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      childAspectRatio: 2.5,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
+                  // 프리미엄 전환 직후 즉시 갱신을 위해 ValueListenableBuilder 사용
+                  ValueListenableBuilder<PremiumState>(
+                    valueListenable: PremiumService.instance.stateNotifier,
+                    builder: (ctx, ps, child) => GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        childAspectRatio: 2.5,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                      ),
+                      itemCount: AppThemes.all.length,
+                      itemBuilder: (ctx, i) {
+                        final theme = AppThemes.all[i];
+                        return _ThemePreviewCard(
+                          themeData: theme,
+                          isSelected: theme.id == _notifier.themeId,
+                          // 프리미엄이면 잠금 없음, 무료면 정적 플래그로 판단
+                          isLocked: !ps.isPremium && theme.isLocked,
+                          onTap: () => _selectTheme(context, theme),
+                        );
+                      },
                     ),
-                    itemCount: AppThemes.all.length,
-                    itemBuilder: (ctx, i) {
-                      final theme = AppThemes.all[i];
-                      return _ThemePreviewCard(
-                        themeData: theme,
-                        isSelected: theme.id == _notifier.themeId,
-                        onTap: () => _selectTheme(context, theme),
-                      );
-                    },
                   ),
                 ],
               ),
@@ -439,11 +427,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 class _ThemePreviewCard extends StatelessWidget {
   final AppThemeData themeData;
   final bool isSelected;
+  /// 동적 잠금 여부: !isPremium && theme.isLocked 로 caller가 전달
+  final bool isLocked;
   final VoidCallback onTap;
 
   const _ThemePreviewCard({
     required this.themeData,
     required this.isSelected,
+    required this.isLocked,
     required this.onTap,
   });
 
@@ -480,7 +471,7 @@ class _ThemePreviewCard extends StatelessWidget {
               }).toList(),
             ),
             const SizedBox(height: 6),
-            if (themeData.isLocked)
+            if (isLocked)
               Icon(Icons.lock_outline, size: 13, color: cs.onSurfaceVariant)
             else if (isSelected)
               Icon(Icons.check_circle_rounded, size: 13, color: cs.primary)

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../../core/utils.dart';
+import '../../../data/premium_service.dart';
 import '../../../data/roulette_repository.dart';
 import '../../../domain/roulette.dart';
 
@@ -14,7 +15,7 @@ class HomeNotifier extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   int get count => _roulettes.length;
-  bool get canCreate => count < 3;
+  bool get canCreate => PremiumService.instance.canCreateNewSet(count);
 
   // ── 조회 ──────────────────────────────────────────────
 

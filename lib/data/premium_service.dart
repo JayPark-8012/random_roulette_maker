@@ -135,24 +135,40 @@ class PremiumService extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ── 제한 체크 메서드 ─────────────────────────────────────
+  // ── 세트 수 제한 헬퍼 ─────────────────────────────────────
 
-  /// 새 룰렛 생성 가능 여부
-  /// 
-  /// 프리미엄: 무제한
-  /// 무료: 최대 3개
-  bool canCreateRoulette(int currentRouletteCount) {
+  /// 최대 룰렛 세트 수 (null = 무제한/프리미엄)
+  int? get maxSets => isPremium ? null : 3;
+
+  /// 프리미엄 = 무제한 세트
+  bool get isUnlimitedSets => isPremium;
+
+  /// 세트 수 표시 문자열
+  ///
+  /// 무료: "2/3" / 프리미엄: "2/∞"
+  String formatSetCountLabel(int current) =>
+      isPremium ? '$current/∞' : '$current/${maxSets ?? 3}';
+
+  /// 새 룰렛 세트 생성 가능 여부
+  ///
+  /// 프리미엄: 무제한 / 무료: 최대 3개
+  bool canCreateNewSet(int currentCount) {
     if (isPremium) return true;
-    return currentRouletteCount < 3; // 무료 최대 3개
+    return currentCount < 3;
   }
 
+  /// canCreateNewSet 이전 이름 (하위 호환)
+  bool canCreateRoulette(int currentRouletteCount) =>
+      canCreateNewSet(currentRouletteCount);
+
+  // ── 팔레트 제한 헬퍼 ──────────────────────────────────────
+
   /// 팔레트 사용 가능 여부
-  /// 
+  ///
   /// 프리미엄: 모든 팔레트 사용
   /// 무료: 'indigo', 'emerald' 2개만 사용
   bool canUsePalette(String themeId) {
     if (isPremium) return true;
-    // 무료 플랜: 처음 2개 팔레트만 사용 가능
     return themeId == 'indigo' || themeId == 'emerald';
   }
 
