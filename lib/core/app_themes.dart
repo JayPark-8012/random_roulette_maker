@@ -57,10 +57,13 @@ class AppThemeData {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: brightness,
+      contrastLevel: 0.1, // Slight contrast boost
     );
+    final isDark = brightness == Brightness.dark;
     return ThemeData(
       colorScheme: colorScheme,
       useMaterial3: true,
+      scaffoldBackgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFFAFAFA),
       appBarTheme: AppBarTheme(
         centerTitle: false,
         elevation: 0,
@@ -69,30 +72,30 @@ class AppThemeData {
         foregroundColor: colorScheme.onSurface,
         titleTextStyle: TextStyle(
           fontSize: 20,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w900, // Thicker for casual feel
           color: colorScheme.onSurface,
         ),
       ),
       cardTheme: CardThemeData(
-        elevation: 1,
+        elevation: 3,
         color: colorScheme.surfaceContainerLow,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(22),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size(64, 40),
+          minimumSize: const Size(64, 44),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(22),
           ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size(64, 40),
+          minimumSize: const Size(64, 44),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(22),
           ),
         ),
       ),
@@ -100,12 +103,12 @@ class AppThemeData {
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(22),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(16),
         ),
         filled: true,
         fillColor: colorScheme.surfaceContainerLowest,

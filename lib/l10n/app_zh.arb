@@ -1,8 +1,8 @@
 {
   "@@locale": "zh",
 
-  "appTitle": "随机转盘",
-  "homeTitle": "随机工具",
+  "appTitle": "Picksy – Random Picker",
+  "homeTitle": "Picksy – Random Picker",
   "settingsTooltip": "设置",
   "tabRoulette": "转盘",
   "tabCoin": "硬币",
@@ -126,7 +126,7 @@
   "actionGenerate": "生成",
   "recent20": "最近20次",
   "minMaxError": "最小值必须小于最大值。",
-  "splashTitle": "随机转盘",
+  "splashTitle": "Picksy – Random Picker",
   "splashSubtitle": "创建你自己的转盘",
   "templatesTitle": "入门套装",
   "templateItemsInfo": "{category} · {count} 个选项",
@@ -173,5 +173,21 @@
   "itemBurger": "汉堡",
   "itemPasta": "意面",
   "itemSalad": "沙拉",
-  "itemSushi": "寿司"
+  "itemSushi": "寿司",
+  "paywallUnlockButton": "解锁高级版",
+  "premiumStatusFree": "免费版",
+  "premiumStatusActive": "高级版激活",
+  "premiumFeatureAds": "移除广告",
+  "premiumFeatureSets": "无限转盘",
+  "premiumFeaturePalettes": "全色板解锁",
+  "premiumPurchaseDate": "购买于: {date}",
+  "premiumMockNotice": "(模拟实现：非真实购买)",
+  "premiumPurchaseButtonActive": "已购买",
+  "premiumPurchaseButtonInactive": "升级高级版",
+  "premiumRestoreButton": "恢复",
+  "premiumRestoreSuccess": "✅ 恢复成功！",
+  "premiumRestoreEmpty": "❌ 无购买记录",
+  "createManualTitle": "空白开始",
+  "createManualSubtitle": "手动输入选项",
+  "createTemplateSubtitleNew": "从模板开始"
 }

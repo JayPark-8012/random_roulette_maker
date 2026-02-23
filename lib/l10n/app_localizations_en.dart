@@ -9,10 +9,10 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Random Roulette Maker';
+  String get appTitle => 'Picksy – Random Picker';
 
   @override
-  String get homeTitle => 'Random Tools';
+  String get homeTitle => 'Picksy – Random Picker';
 
   @override
   String get settingsTooltip => 'Settings';
@@ -403,7 +403,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get minMaxError => 'Min must be less than max.';
 
   @override
-  String get splashTitle => 'Random Roulette Maker';
+  String get splashTitle => 'Picksy – Random Picker';
 
   @override
   String get splashSubtitle => 'Create your own roulette';
@@ -636,4 +636,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paywallUnlockButton => 'Unlock Premium';
+
+  @override
+  String get premiumStatusFree => 'Free Version';
+
+  @override
+  String get premiumStatusActive => 'Premium Active';
+
+  @override
+  String get premiumFeatureAds => 'No Ads';
+
+  @override
+  String get premiumFeatureSets => 'Unlimited Sets';
+
+  @override
+  String get premiumFeaturePalettes => 'All Palettes';
+
+  @override
+  String premiumPurchaseDate(String date) {
+    return 'Purchased: $date';
+  }
+
+  @override
+  String get premiumMockNotice => '(Mock implementation: Not real purchase)';
+
+  @override
+  String get premiumPurchaseButtonActive => 'Purchased';
+
+  @override
+  String get premiumPurchaseButtonInactive => 'Get Premium';
+
+  @override
+  String get premiumRestoreButton => 'Restore';
+
+  @override
+  String get premiumRestoreSuccess => '✅ Restore Success!';
+
+  @override
+  String get premiumRestoreEmpty => '❌ No History';
+
+  @override
+  String get createManualTitle => 'Start Blank';
+
+  @override
+  String get createManualSubtitle => 'Enter items manually';
+
+  @override
+  String get createTemplateSubtitleNew => 'Start with a template';
 }

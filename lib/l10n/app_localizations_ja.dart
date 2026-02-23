@@ -9,10 +9,10 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
-  String get appTitle => 'ランダムルーレット';
+  String get appTitle => 'Picksy – Random Picker';
 
   @override
-  String get homeTitle => 'ランダムツール';
+  String get homeTitle => 'Picksy – Random Picker';
 
   @override
   String get settingsTooltip => '設定';
@@ -400,7 +400,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get minMaxError => '最小値は最大値より小さくしてください。';
 
   @override
-  String get splashTitle => 'ランダムルーレット';
+  String get splashTitle => 'Picksy – Random Picker';
 
   @override
   String get splashSubtitle => 'あなただけのルーレットを作ろう';
@@ -553,7 +553,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get itemSalad => 'サラダ';
 
   @override
-  String get itemSushi => '寿司';
+  String get itemSushi => 'Sushi';
 
   @override
   String get paywallTitle => 'Upgrade to Premium';
@@ -632,5 +632,52 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get paywallUnlockButton => 'Unlock Premium';
+  String get paywallUnlockButton => 'プレミアムを解除';
+
+  @override
+  String get premiumStatusFree => '無料版';
+
+  @override
+  String get premiumStatusActive => 'プレミアム利用中';
+
+  @override
+  String get premiumFeatureAds => '広告非表示';
+
+  @override
+  String get premiumFeatureSets => 'ルーレット無制限';
+
+  @override
+  String get premiumFeaturePalettes => '全パレット解放';
+
+  @override
+  String premiumPurchaseDate(String date) {
+    return '購入日: $date';
+  }
+
+  @override
+  String get premiumMockNotice => '(注意: モック決済です)';
+
+  @override
+  String get premiumPurchaseButtonActive => '購入済み';
+
+  @override
+  String get premiumPurchaseButtonInactive => 'プレミアムを購入';
+
+  @override
+  String get premiumRestoreButton => '復元';
+
+  @override
+  String get premiumRestoreSuccess => '✅ 復元成功！';
+
+  @override
+  String get premiumRestoreEmpty => '❌ 履歴なし';
+
+  @override
+  String get createManualTitle => '新しく作る';
+
+  @override
+  String get createManualSubtitle => '項目を直接入力します';
+
+  @override
+  String get createTemplateSubtitleNew => 'テンプレートから開始します';
 }

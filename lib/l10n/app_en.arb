@@ -1,10 +1,9 @@
 {
   "@@locale": "en",
 
-  "appTitle": "Random Roulette Maker",
+  "appTitle": "Picksy – Random Picker",
   "@appTitle": {},
-
-  "homeTitle": "Random Tools",
+  "homeTitle": "Picksy – Random Picker",
   "@homeTitle": {},
 
   "settingsTooltip": "Settings",
@@ -409,7 +408,7 @@
   "minMaxError": "Min must be less than max.",
   "@minMaxError": {},
 
-  "splashTitle": "Random Roulette Maker",
+  "splashTitle": "Picksy – Random Picker",
   "@splashTitle": {},
 
   "splashSubtitle": "Create your own roulette",
@@ -656,5 +655,40 @@
     }
   },
 
-  "paywallUnlockButton": "Unlock Premium"
+  "paywallUnlockButton": "Unlock Premium",
+  "@paywallUnlockButton": {},
+  "premiumStatusFree": "Free Version",
+  "@premiumStatusFree": {},
+  "premiumStatusActive": "Premium Active",
+  "@premiumStatusActive": {},
+  "premiumFeatureAds": "No Ads",
+  "@premiumFeatureAds": {},
+  "premiumFeatureSets": "Unlimited Sets",
+  "@premiumFeatureSets": {},
+  "premiumFeaturePalettes": "All Palettes",
+  "@premiumFeaturePalettes": {},
+  "premiumPurchaseDate": "Purchased: {date}",
+  "@premiumPurchaseDate": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "premiumMockNotice": "(Mock implementation: Not real purchase)",
+  "@premiumMockNotice": {},
+  "premiumPurchaseButtonActive": "Purchased",
+  "@premiumPurchaseButtonActive": {},
+  "premiumPurchaseButtonInactive": "Get Premium",
+  "@premiumPurchaseButtonInactive": {},
+  "premiumRestoreButton": "Restore",
+  "@premiumRestoreButton": {},
+  "premiumRestoreSuccess": "✅ Restore Success!",
+  "@premiumRestoreSuccess": {},
+  "premiumRestoreEmpty": "❌ No History",
+  "@premiumRestoreEmpty": {},
+  "createManualTitle": "Start Blank",
+  "@createManualTitle": {},
+  "createManualSubtitle": "Enter items manually",
+  "@createManualSubtitle": {},
+  "createTemplateSubtitleNew": "Start with a template",
+  "@createTemplateSubtitleNew": {}
 }

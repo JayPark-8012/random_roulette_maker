@@ -9,10 +9,10 @@ class AppLocalizationsPt extends AppLocalizations {
   AppLocalizationsPt([String locale = 'pt']) : super(locale);
 
   @override
-  String get appTitle => 'Roleta Aleatória';
+  String get appTitle => 'Picksy – Random Picker';
 
   @override
-  String get homeTitle => 'Ferramentas';
+  String get homeTitle => 'Picksy – Random Picker';
 
   @override
   String get settingsTooltip => 'Configurações';
@@ -403,7 +403,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get minMaxError => 'O mínimo deve ser menor que o máximo.';
 
   @override
-  String get splashTitle => 'Roleta Aleatória';
+  String get splashTitle => 'Picksy – Random Picker';
 
   @override
   String get splashSubtitle => 'Crie sua própria roleta';
@@ -635,7 +635,54 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get paywallUnlockButton => 'Unlock Premium';
+  String get paywallUnlockButton => 'Desbloquear Premium';
+
+  @override
+  String get premiumStatusFree => 'Versão Gratuita';
+
+  @override
+  String get premiumStatusActive => 'Premium Ativo';
+
+  @override
+  String get premiumFeatureAds => 'Sem Anúncios';
+
+  @override
+  String get premiumFeatureSets => 'Roletas Ilimitadas';
+
+  @override
+  String get premiumFeaturePalettes => 'Todas as Paletas';
+
+  @override
+  String premiumPurchaseDate(String date) {
+    return 'Comprado em: $date';
+  }
+
+  @override
+  String get premiumMockNotice => '(Implementación Mock: No é uma compra real)';
+
+  @override
+  String get premiumPurchaseButtonActive => 'Comprado';
+
+  @override
+  String get premiumPurchaseButtonInactive => 'Obter Premium';
+
+  @override
+  String get premiumRestoreButton => 'Restaurar';
+
+  @override
+  String get premiumRestoreSuccess => '✅ Restauração com Sucesso!';
+
+  @override
+  String get premiumRestoreEmpty => '❌ Sem Histórico';
+
+  @override
+  String get createManualTitle => 'Em Branco';
+
+  @override
+  String get createManualSubtitle => 'Insira os itens você mesmo';
+
+  @override
+  String get createTemplateSubtitleNew => 'Começar com um modelo';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).

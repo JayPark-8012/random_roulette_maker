@@ -111,13 +111,13 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Random Roulette Maker'**
+  /// **'Picksy – Random Picker'**
   String get appTitle;
 
   /// No description provided for @homeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Random Tools'**
+  /// **'Picksy – Random Picker'**
   String get homeTitle;
 
   /// No description provided for @settingsTooltip.
@@ -861,7 +861,7 @@ abstract class AppLocalizations {
   /// No description provided for @splashTitle.
   ///
   /// In en, this message translates to:
-  /// **'Random Roulette Maker'**
+  /// **'Picksy – Random Picker'**
   String get splashTitle;
 
   /// No description provided for @splashSubtitle.
@@ -1295,6 +1295,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unlock Premium'**
   String get paywallUnlockButton;
+
+  /// No description provided for @premiumStatusFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Free Version'**
+  String get premiumStatusFree;
+
+  /// No description provided for @premiumStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium Active'**
+  String get premiumStatusActive;
+
+  /// No description provided for @premiumFeatureAds.
+  ///
+  /// In en, this message translates to:
+  /// **'No Ads'**
+  String get premiumFeatureAds;
+
+  /// No description provided for @premiumFeatureSets.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited Sets'**
+  String get premiumFeatureSets;
+
+  /// No description provided for @premiumFeaturePalettes.
+  ///
+  /// In en, this message translates to:
+  /// **'All Palettes'**
+  String get premiumFeaturePalettes;
+
+  /// No description provided for @premiumPurchaseDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchased: {date}'**
+  String premiumPurchaseDate(String date);
+
+  /// No description provided for @premiumMockNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'(Mock implementation: Not real purchase)'**
+  String get premiumMockNotice;
+
+  /// No description provided for @premiumPurchaseButtonActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchased'**
+  String get premiumPurchaseButtonActive;
+
+  /// No description provided for @premiumPurchaseButtonInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Premium'**
+  String get premiumPurchaseButtonInactive;
+
+  /// No description provided for @premiumRestoreButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get premiumRestoreButton;
+
+  /// No description provided for @premiumRestoreSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'✅ Restore Success!'**
+  String get premiumRestoreSuccess;
+
+  /// No description provided for @premiumRestoreEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'❌ No History'**
+  String get premiumRestoreEmpty;
+
+  /// No description provided for @createManualTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Blank'**
+  String get createManualTitle;
+
+  /// No description provided for @createManualSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter items manually'**
+  String get createManualSubtitle;
+
+  /// No description provided for @createTemplateSubtitleNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with a template'**
+  String get createTemplateSubtitleNew;
 }
 
 class _AppLocalizationsDelegate

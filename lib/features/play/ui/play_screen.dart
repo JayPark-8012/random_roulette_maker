@@ -13,6 +13,7 @@ import '../../../l10n/app_localizations.dart';
 import '../state/play_notifier.dart';
 import '../widgets/roulette_wheel.dart';
 import '../widgets/stats_sheet.dart';
+import '../../../core/widgets/app_background.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -317,215 +318,239 @@ class _PlayScreenState extends State<PlayScreen>
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        centerTitle: false,
+    return AppBackground(
+      child: Scaffold(
         backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: AnimatedBuilder(
-          animation: _notifier,
-          builder: (_, _) => Text(
-            _notifier.roulette?.name ?? l10n.playFallbackTitle,
-            style: const TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.8),
+        appBar: AppBar(
+          centerTitle: false,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: AnimatedBuilder(
+            animation: _notifier,
+            builder: (_, _) => Text(
+              _notifier.roulette?.name ?? l10n.playFallbackTitle,
+              style: const TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.8),
+            ),
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.bar_chart_rounded),
+              tooltip: l10n.statsTooltip,
+              onPressed: () {
+                if (_notifier.roulette != null) _showStats();
+              },
+            )
+                .animate()
+                .fadeIn(duration: 300.ms)
+                .scaleXY(begin: 0.8, end: 1.0, duration: 300.ms, curve: Curves.elasticOut),
+            IconButton(
+              icon: const Icon(Icons.history_rounded),
+              tooltip: l10n.historyTooltip,
+              onPressed: _showHistory,
+            )
+                .animate()
+                .fadeIn(duration: 300.ms, delay: 50.ms)
+                .scaleXY(begin: 0.8, end: 1.0, duration: 300.ms, delay: 50.ms, curve: Curves.elasticOut),
+          ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.bar_chart_rounded),
-            tooltip: l10n.statsTooltip,
-            onPressed: () {
-              if (_notifier.roulette != null) _showStats();
-            },
-          )
-              .animate()
-              .fadeIn(duration: 300.ms)
-              .scaleXY(begin: 0.8, end: 1.0, duration: 300.ms, curve: Curves.elasticOut),
-          IconButton(
-            icon: const Icon(Icons.history_rounded),
-            tooltip: l10n.historyTooltip,
-            onPressed: _showHistory,
-          )
-              .animate()
-              .fadeIn(duration: 300.ms, delay: 50.ms)
-              .scaleXY(begin: 0.8, end: 1.0, duration: 300.ms, delay: 50.ms, curve: Curves.elasticOut),
-        ],
-      ),
-      body: AnimatedBuilder(
-        animation: _notifier,
-        builder: (context, _) {
-          final roulette = _notifier.roulette;
-          if (roulette == null) {
-            return const Center(child: CircularProgressIndicator.adaptive());
-          }
+        body: AnimatedBuilder(
+          animation: _notifier,
+          builder: (context, _) {
+            final roulette = _notifier.roulette;
+            if (roulette == null) {
+              return const Center(child: CircularProgressIndicator.adaptive());
+            }
 
-          return Column(
-            children: [
-              Expanded(
-                child: RepaintBoundary(
-                  key: _wheelKey,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const RoulettePointer(),
-                        AnimatedBuilder(
-                          animation: _animController,
-                          builder: (_, _) => CustomPaint(
-                            painter: RouletteWheelPainter(
-                              items: _notifier.availableItems,
-                              rotationAngle: _rotationAnim.value,
-                            ),
-                            size: Size.square(
-                              MediaQuery.of(context).size.width * 0.85,
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: RepaintBoundary(
+                              key: _wheelKey,
+                              child: Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const RoulettePointer(),
+                                    AnimatedBuilder(
+                                      animation: _animController,
+                                      builder: (_, _) => CustomPaint(
+                                        painter: RouletteWheelPainter(
+                                          items: _notifier.availableItems,
+                                          rotationAngle: _rotationAnim.value,
+                                        ),
+                                        size: Size.square(
+                                          MediaQuery.of(context).size.width * 0.82,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                          // 모드 세그먼트
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
+                            child: _SpinModeSegment(
+                              currentMode: _notifier.spinMode,
+                              isDisabled: _notifier.isSpinning,
+                              onModeSelected: _notifier.setSpinMode,
+                            )
+                                .animate()
+                                .fadeIn(duration: 300.ms, delay: 100.ms)
+                                .slideY(begin: 0.2, end: 0.0, duration: 300.ms, delay: 100.ms, curve: Curves.easeOut),
+                          ),
+                          // 커스텀 모드 설정 버튼 (복구)
+                          Visibility(
+                            visible: _notifier.spinMode == SpinMode.custom,
+                            maintainSize: false,
+                            maintainAnimation: true,
+                            maintainState: true,
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: ChoiceChip(
+                                      label: Text(l10n.noRepeat),
+                                      selected: _notifier.noRepeat,
+                                      onSelected: _notifier.isSpinning
+                                          ? null
+                                          : (val) => _notifier.setNoRepeat(val),
+                                      avatar: Icon(
+                                        _notifier.noRepeat ? Icons.check_circle_rounded : Icons.block_rounded,
+                                        size: 16,
+                                      ),
+                                      showCheckmark: false,
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: ChoiceChip(
+                                      label: Text(l10n.autoReset),
+                                      selected: _notifier.autoReset,
+                                      onSelected: (!_notifier.noRepeat || _notifier.isSpinning)
+                                          ? null
+                                          : (val) => _notifier.setAutoReset(val),
+                                      avatar: Icon(
+                                        _notifier.autoReset ? Icons.check_circle_rounded : Icons.refresh_rounded,
+                                        size: 16,
+                                      ),
+                                      showCheckmark: false,
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          // 모드별 상태 표시
+                          Visibility(
+                            visible: (_notifier.noRepeat &&
+                                    !_notifier.autoReset &&
+                                    !_notifier.allPicked) ||
+                                _notifier.spinMode == SpinMode.round,
+                            maintainSize: true,
+                            maintainAnimation: true,
+                            maintainState: true,
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
+                              child: _notifier.spinMode == SpinMode.round
+                                  ? Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.repeat_rounded,
+                                            size: 13,
+                                            color: colorScheme.onSurfaceVariant
+                                                .withValues(alpha: 0.7)),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          l10n.roundStatus(
+                                              (_notifier.roulette?.items.length ?? 0) -
+                                                  _notifier.remainingCount,
+                                              _notifier.roulette?.items.length ?? 0),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: colorScheme.onSurfaceVariant
+                                                .withValues(alpha: 0.7),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.person_remove_outlined,
+                                            size: 13,
+                                            color: colorScheme.onSurfaceVariant
+                                                .withValues(alpha: 0.7)),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          l10n.remainingItems(_notifier.remainingCount),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: colorScheme.onSurfaceVariant
+                                                .withValues(alpha: 0.7),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
+                          // 중복 제외 모두 뽑음 안내
+                          if (_notifier.allPicked && !_notifier.isSpinning)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.check_circle_rounded,
+                                      color: colorScheme.primary, size: 18),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    l10n.allPicked,
+                                    style: TextStyle(
+                                        color: colorScheme.primary,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  TextButton(
+                                    onPressed: _notifier.resetExcluded,
+                                    style: TextButton.styleFrom(
+                                        visualDensity: VisualDensity.compact),
+                                    child: Text(l10n.actionReset),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          // SPIN 버튼
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+                            child: _SpinButton(
+                              isSpinning: _notifier.isSpinning,
+                              allPicked: _notifier.allPicked,
+                              onSpin: _spin,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ),
-              // 모드 세그먼트
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 6),
-                child: _SpinModeSegment(
-                  currentMode: _notifier.spinMode,
-                  isDisabled: _notifier.isSpinning,
-                  onModeSelected: _notifier.setSpinMode,
-                )
-                    .animate()
-                    .fadeIn(duration: 300.ms, delay: 100.ms)
-                    .slideY(begin: 0.2, end: 0.0, duration: 300.ms, delay: 100.ms, curve: Curves.easeOut),
-              ),
-              // 모드별 상태 표시 (고정 높이 - 레이아웃 점프 방지)
-              Visibility(
-                visible: (_notifier.noRepeat &&
-                        !_notifier.autoReset &&
-                        !_notifier.allPicked) ||
-                    _notifier.spinMode == SpinMode.round,
-                maintainSize: true,
-                maintainAnimation: true,
-                maintainState: true,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
-                  child: _notifier.spinMode == SpinMode.round
-                      ? Row(
-                          children: [
-                            Icon(Icons.repeat_rounded,
-                                size: 13,
-                                color: colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.7)),
-                            const SizedBox(width: 5),
-                            Text(
-                              l10n.roundStatus(
-                                  (_notifier.roulette?.items.length ?? 0) -
-                                      _notifier.remainingCount,
-                                  _notifier.roulette?.items.length ?? 0),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.7),
-                              ),
-                            ),
-                          ],
-                        )
-                      : Row(
-                          children: [
-                            Icon(Icons.person_remove_outlined,
-                                size: 13,
-                                color: colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.7)),
-                            const SizedBox(width: 5),
-                            Text(
-                              l10n.remainingItems(_notifier.remainingCount),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: colorScheme.onSurfaceVariant
-                                    .withValues(alpha: 0.7),
-                              ),
-                            ),
-                          ],
-                        ),
-                ),
-              ),
-              Visibility(
-                visible: _notifier.spinMode == SpinMode.custom,
-                maintainSize: true,
-                maintainAnimation: true,
-                maintainState: true,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 2, 20, 6),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: FilterChip(
-                          label: Text(l10n.noRepeat),
-                          selected: _notifier.noRepeat,
-                          onSelected: _notifier.isSpinning
-                              ? null
-                              : _notifier.setNoRepeat,
-                          avatar:
-                              const Icon(Icons.block_rounded, size: 16),
-                          showCheckmark: false,
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: FilterChip(
-                          label: Text(l10n.autoReset),
-                          selected: _notifier.autoReset,
-                          onSelected:
-                              (_notifier.noRepeat && !_notifier.isSpinning)
-                                  ? _notifier.setAutoReset
-                                  : null,
-                          avatar:
-                              const Icon(Icons.refresh_rounded, size: 16),
-                          showCheckmark: false,
-                          visualDensity: VisualDensity.compact,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (_notifier.allPicked)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 16, 8),
-                  child: Row(
-                    children: [
-                      Icon(Icons.check_circle_rounded,
-                          color: colorScheme.primary, size: 18),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          l10n.allPicked,
-                          style: TextStyle(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: _notifier.resetExcluded,
-                        child: Text(l10n.actionReset),
-                      ),
-                    ],
-                  ),
-                ),
-              // SPIN 버튼
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
-                child: _SpinButton(
-                  isSpinning: _notifier.isSpinning,
-                  allPicked: _notifier.allPicked,
-                  onSpin: _spin,
-                ),
-              ),
-            ],
-          );
-        },
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -593,17 +618,20 @@ class _ResultSheetState extends State<_ResultSheet> {
               .animate()
               .fadeIn(duration: 300.ms)
               .scaleXY(begin: 0.8, end: 1.0, duration: 300.ms, curve: Curves.easeOut),
-          // ── 색상 헤더 영역 ──
+          // ── 결과 요약 헤더 ──
           Container(
             margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
             padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
             decoration: BoxDecoration(
-              color: winnerColor.withOpacity(0.12),
+              color: winnerColor,
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: winnerColor.withOpacity(0.3),
-                width: 1.5,
-              ),
+              boxShadow: [
+                BoxShadow(
+                  color: winnerColor.withOpacity(0.35),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                ),
+              ],
             ),
             child: Row(
               children: [
@@ -611,25 +639,15 @@ class _ResultSheetState extends State<_ResultSheet> {
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: winnerColor,
+                    color: Colors.white.withOpacity(0.2),
                     shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: winnerColor.withOpacity(0.4),
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
                   ),
                   child: Icon(
                     Icons.emoji_events_rounded,
                     size: 32,
-                    color: isLight ? Colors.black54 : Colors.white,
+                    color: textColor,
                   ),
-                )
-                    .animate()
-                    .scaleXY(begin: 0.5, end: 1.0, duration: 400.ms, curve: Curves.elasticOut)
-                    .fadeIn(duration: 300.ms),
+                ),
                 const SizedBox(width: 20),
                 Expanded(
                   child: Column(
@@ -640,13 +658,10 @@ class _ResultSheetState extends State<_ResultSheet> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: colorScheme.onSurfaceVariant,
+                          color: textColor.withOpacity(0.7),
                           letterSpacing: 0.5,
                         ),
-                      )
-                          .animate()
-                          .fadeIn(duration: 300.ms, delay: 100.ms)
-                          .slideX(begin: 0.3, end: 0.0, duration: 300.ms),
+                      ),
                       const SizedBox(height: 6),
                       Text(
                         widget.winner.label,
@@ -654,20 +669,31 @@ class _ResultSheetState extends State<_ResultSheet> {
                           fontSize: 26,
                           fontWeight: FontWeight.w900,
                           letterSpacing: -1.0,
-                          color: colorScheme.onSurface,
+                          color: textColor,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                      )
-                          .animate()
-                          .scaleXY(begin: 0.8, end: 1.0, duration: 400.ms, curve: Curves.elasticOut, delay: 150.ms)
-                          .fadeIn(duration: 300.ms, delay: 100.ms),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
-          ),
+          )
+              .animate()
+              .scaleXY(
+                begin: 0.85,
+                end: 1.05,
+                duration: 200.ms,
+                curve: Curves.easeInOut,
+              )
+              .then()
+              .scaleXY(
+                begin: 1.05,
+                end: 1.0,
+                duration: 100.ms,
+                curve: Curves.easeInOut,
+              ),
           // ── 버튼 영역 ──
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
@@ -848,63 +874,111 @@ class _SpinButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
     final isDisabled = isSpinning || allPicked;
 
     return SizedBox(
       width: double.infinity,
       height: 64,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: isDisabled
-              ? []
-              : [
-                  BoxShadow(
-                    color: colorScheme.primary.withOpacity(0.35),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-        ),
-        child: FilledButton(
-          onPressed: isDisabled ? null : onSpin,
-          style: FilledButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: _PremiumSpinButton(
+        onPressed: isDisabled ? null : onSpin,
+        isSpinning: isSpinning,
+        label: allPicked ? l10n.allPicked : l10n.spinLabel,
+        color: cs.primary,
+      ),
+    );
+  }
+}
+
+class _PremiumSpinButton extends StatefulWidget {
+  final VoidCallback? onPressed;
+  final bool isSpinning;
+  final String label;
+  final Color color;
+
+  const _PremiumSpinButton({
+    required this.onPressed,
+    required this.isSpinning,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  State<_PremiumSpinButton> createState() => _PremiumSpinButtonState();
+}
+
+class _PremiumSpinButtonState extends State<_PremiumSpinButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDisabled = widget.onPressed == null;
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: widget.onPressed,
+      child: AnimatedScale(
+        scale: _isPressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: LinearGradient(
+              colors: [
+                widget.color,
+                Color.lerp(widget.color, Colors.black, 0.1) ?? widget.color,
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: widget.color.withOpacity(isDisabled ? 0 : 0.4),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: isSpinning
-                ? Row(
-                    key: const ValueKey('spinning'),
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: colorScheme.onPrimary.withOpacity(0.6),
+          child: Center(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: widget.isSpinning
+                  ? Row(
+                      key: const ValueKey('spinning'),
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
                         ),
+                        const SizedBox(width: 14),
+                        Text(
+                          AppLocalizations.of(context)!.spinningLabel,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Text(
+                      widget.label,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2,
                       ),
-                      const SizedBox(width: 14),
-                      Text(
-                        l10n.spinningLabel,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1),
-                      ),
-                    ],
-                  )
-                : Text(
-                    allPicked ? l10n.allPicked : l10n.spinLabel,
-                    key: const ValueKey('spin'),
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 4,
                     ),
-                  ),
+            ),
           ),
         ),
       ),

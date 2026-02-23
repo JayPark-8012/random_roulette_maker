@@ -1,8 +1,8 @@
 {
   "@@locale": "ja",
 
-  "appTitle": "ランダムルーレット",
-  "homeTitle": "ランダムツール",
+  "appTitle": "Picksy – Random Picker",
+  "homeTitle": "Picksy – Random Picker",
   "settingsTooltip": "設定",
   "tabRoulette": "ルーレット",
   "tabCoin": "コイン",
@@ -126,7 +126,7 @@
   "actionGenerate": "生成",
   "recent20": "直近20回",
   "minMaxError": "最小値は最大値より小さくしてください。",
-  "splashTitle": "ランダムルーレット",
+  "splashTitle": "Picksy – Random Picker",
   "splashSubtitle": "あなただけのルーレットを作ろう",
   "templatesTitle": "スターターセット",
   "templateItemsInfo": "{category} · {count}個の項目",
@@ -173,5 +173,20 @@
   "itemBurger": "バーガー",
   "itemPasta": "パスタ",
   "itemSalad": "サラダ",
-  "itemSushi": "寿司"
+  "paywallUnlockButton": "プレミアムを解除",
+  "premiumStatusFree": "無料版",
+  "premiumStatusActive": "プレミアム利用中",
+  "premiumFeatureAds": "広告非表示",
+  "premiumFeatureSets": "ルーレット無制限",
+  "premiumFeaturePalettes": "全パレット解放",
+  "premiumPurchaseDate": "購入日: {date}",
+  "premiumMockNotice": "(注意: モック決済です)",
+  "premiumPurchaseButtonActive": "購入済み",
+  "premiumPurchaseButtonInactive": "プレミアムを購入",
+  "premiumRestoreButton": "復元",
+  "premiumRestoreSuccess": "✅ 復元成功！",
+  "premiumRestoreEmpty": "❌ 履歴なし",
+  "createManualTitle": "新しく作る",
+  "createManualSubtitle": "項目を直接入力します",
+  "createTemplateSubtitleNew": "テンプレートから開始します"
 }

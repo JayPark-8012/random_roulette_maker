@@ -1,8 +1,8 @@
 {
   "@@locale": "pt",
 
-  "appTitle": "Roleta Aleatória",
-  "homeTitle": "Ferramentas",
+  "appTitle": "Picksy – Random Picker",
+  "homeTitle": "Picksy – Random Picker",
   "settingsTooltip": "Configurações",
   "tabRoulette": "Roleta",
   "tabCoin": "Moeda",
@@ -126,7 +126,7 @@
   "actionGenerate": "Gerar",
   "recent20": "Últimas 20",
   "minMaxError": "O mínimo deve ser menor que o máximo.",
-  "splashTitle": "Roleta Aleatória",
+  "splashTitle": "Picksy – Random Picker",
   "splashSubtitle": "Crie sua própria roleta",
   "templatesTitle": "Kits de Início",
   "templateItemsInfo": "{category} · {count} itens",
@@ -173,5 +173,21 @@
   "itemBurger": "Hambúrguer",
   "itemPasta": "Massa",
   "itemSalad": "Salada",
-  "itemSushi": "Sushi"
+  "itemSushi": "Sushi",
+  "paywallUnlockButton": "Desbloquear Premium",
+  "premiumStatusFree": "Versão Gratuita",
+  "premiumStatusActive": "Premium Ativo",
+  "premiumFeatureAds": "Sem Anúncios",
+  "premiumFeatureSets": "Roletas Ilimitadas",
+  "premiumFeaturePalettes": "Todas as Paletas",
+  "premiumPurchaseDate": "Comprado em: {date}",
+  "premiumMockNotice": "(Implementación Mock: No é uma compra real)",
+  "premiumPurchaseButtonActive": "Comprado",
+  "premiumPurchaseButtonInactive": "Obter Premium",
+  "premiumRestoreButton": "Restaurar",
+  "premiumRestoreSuccess": "✅ Restauração com Sucesso!",
+  "premiumRestoreEmpty": "❌ Sem Histórico",
+  "createManualTitle": "Em Branco",
+  "createManualSubtitle": "Insira os itens você mesmo",
+  "createTemplateSubtitleNew": "Começar com um modelo"
 }

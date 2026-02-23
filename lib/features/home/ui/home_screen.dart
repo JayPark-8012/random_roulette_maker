@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/services.dart' show SystemNavigator;
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants.dart';
 import '../../../data/premium_service.dart';
 import '../../../domain/premium_state.dart';
 import '../../../domain/roulette.dart';
-import '../../../l10n/app_localizations.dart';
 import '../state/home_notifier.dart';
 import '../widgets/roulette_card.dart';
 import '../../tools/tools_tab.dart';
+import '../../../core/widgets/app_background.dart';
+import '../../../l10n/app_localizations.dart';
 
 // ── 홈 모드 ──────────────────────────────────────────────────
 enum _HomeMode { roulette, coin, dice, number }
@@ -56,7 +58,6 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context)!;
 
     if (_notifier.error != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -71,105 +72,94 @@ class _HomeScreenState extends State<HomeScreen>
       canPop: false,
       onPopInvokedWithResult: (_, _) => SystemNavigator.pop(),
       child: Scaffold(
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // ── 헤더: 브랜드명 + 설정 버튼 ─────────────────
-              _buildHeader(context, l10n),
-              const SizedBox(height: 12),
-              // ── 세그먼트 탭 (분리 위젯) ─────────────────────
-              _QuickSegmentBar(
-                selected: _mode,
-                onChanged: (m) {
-                  setState(() => _mode = m);
-                  _modeAnimController.forward(from: 0.0);
-                },
-              ),
-              const SizedBox(height: 12),
-              // ── 콘텐츠 영역 (Offstage로 state 유지) ──────────
-              Expanded(
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // [룰렛 모드] 내 룰렛 세트 리스트
-                    AnimatedOpacity(
-                      opacity: _mode == _HomeMode.roulette ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 150),
-                      child: Offstage(
+        backgroundColor: Colors.transparent, // Let AppBackground show
+        body: AppBackground(
+          child: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // ── 헤더: 브랜드명 + 설정 버튼 ─────────────────
+                _buildHeader(context),
+                const SizedBox(height: 16),
+                // ── 세그먼트 탭 (분리 위젯) ─────────────────────
+                _QuickSegmentBar(
+                  selected: _mode,
+                  onChanged: (m) {
+                    HapticFeedback.selectionClick();
+                    setState(() => _mode = m);
+                  },
+                ),
+                const SizedBox(height: 16),
+                // ── 콘텐츠 영역 (Offstage로 state 유지) ──────────
+                Expanded(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // [룰렛 모드] 내 룰렛 세트 리스트
+                      Offstage(
                         offstage: _mode != _HomeMode.roulette,
-                        child: _buildRouletteContent(context, l10n),
+                        child: _buildRouletteContent(context),
                       ),
-                    ),
-                    // [코인/주사위/숫자 모드] 기존 ToolsTab 재사용
-                    AnimatedOpacity(
-                      opacity: _mode != _HomeMode.roulette ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 150),
-                      child: Offstage(
+                      // [코인/주사위/숫자 모드] 기존 ToolsTab 재사용
+                      // showOnly 파라미터로 해당 도구 카드만 표시
+                      // Offstage로 항상 tree에 유지 → 히스토리 state 보존
+                      Offstage(
                         offstage: _mode == _HomeMode.roulette,
                         child: ToolsTab(showOnly: _toolsShowOnly),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        // FAB: 룰렛 모드에서만 표시
-        floatingActionButton: _mode == _HomeMode.roulette
-            ? _buildFAB(context, cs, l10n)
-            : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      // FAB: 룰렛 모드에서만 표시
+      floatingActionButton: _mode == _HomeMode.roulette
+          ? FloatingActionButton.extended(
+              onPressed: () => _onCreateTap(context),
+              backgroundColor: cs.primary,
+              foregroundColor: cs.onPrimary,
+              elevation: 2,
+              highlightElevation: 4,
+              shape: const StadiumBorder(),
+              icon: const Icon(Icons.add_rounded, size: 22),
+              label: Text(
+                AppLocalizations.of(context)!.fabCreateNew,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: cs.onPrimary,
+                    ),
+              ),
+            )
+          : null,
       ),
     );
   }
 
-  /// 애니메이션이 적용된 FAB
-  Widget _buildFAB(BuildContext context, ColorScheme cs, AppLocalizations l10n) {
-    return FloatingActionButton.extended(
-      onPressed: () => _onCreateTap(context),
-      backgroundColor: cs.primary,
-      foregroundColor: cs.onPrimary,
-      elevation: 8,
-      highlightElevation: 12,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
-      icon: const Icon(Icons.add_rounded, size: 24),
-      label: Text(
-        l10n.fabCreateNew,
-        style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: -0.5),
-      ),
-    )
-        .animate()
-        .scaleXY(begin: 0.8, end: 1.0, duration: 400.ms, curve: Curves.elasticOut)
-        .fade(begin: 0.0, end: 1.0, duration: 200.ms);
-  }
-
   // ── 헤더 ──────────────────────────────────────────────
 
-  Widget _buildHeader(BuildContext context, AppLocalizations l10n) {
+  Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 8, 0),
+      padding: const EdgeInsets.fromLTRB(20, 12, 8, 0),
       child: Row(
         children: [
           Expanded(
+            // TextTheme에서 headlineMedium이 이미 w800, -0.8 spacing 제공
             child: Text(
-              l10n.homeTitle,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -1.0,
-                  ),
+              AppLocalizations.of(context)!.homeTitle,
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
-          ).animate().fadeIn(duration: 300.ms),
+          ),
           IconButton(
-            icon: const Icon(Icons.settings_rounded),
+            icon: Icon(
+              Icons.settings_rounded,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             onPressed: () =>
                 Navigator.of(context).pushNamed(AppRoutes.settings),
-            tooltip: l10n.settingsTooltip,
-          )
-              .animate()
-              .fadeIn(duration: 300.ms)
-              .scaleXY(begin: 0.8, end: 1.0, duration: 300.ms, curve: Curves.elasticOut),
+            tooltip: AppLocalizations.of(context)!.settingsTooltip,
+          ),
         ],
       ),
     );
@@ -177,16 +167,14 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 룰렛 콘텐츠 영역 ──────────────────────────────────
 
-  Widget _buildRouletteContent(BuildContext context, AppLocalizations l10n) {
+  Widget _buildRouletteContent(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (_notifier.isLoading) {
       return const Center(child: CircularProgressIndicator.adaptive());
     }
 
     if (_notifier.roulettes.isEmpty) {
-      return _EmptyState(onCreateTap: () => _onCreateTap(context))
-          .animate()
-          .fadeIn(duration: 300.ms, curve: Curves.easeOut)
-          .scaleXY(begin: 0.95, end: 1.0, duration: 400.ms, curve: Curves.easeOut);
+      return _EmptyState(onCreateTap: () => _onCreateTap(context));
     }
 
     return CustomScrollView(
@@ -195,16 +183,14 @@ class _HomeScreenState extends State<HomeScreen>
         // 섹션 헤더 + 사용량 뱃지
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 16, 8),
+            padding: const EdgeInsets.fromLTRB(20, 4, 16, 12),
             child: Row(
               children: [
                 Expanded(
+                  // titleMedium은 이미 theme에서 w700 설정
                   child: Text(
                     l10n.sectionMySets,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
                 ValueListenableBuilder<PremiumState>(
@@ -220,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ],
             ),
-          ).animate().fadeIn(duration: 300.ms),
+          ),
         ),
         // 룰렛 카드 리스트
         SliverPadding(
@@ -241,18 +227,7 @@ class _HomeScreenState extends State<HomeScreen>
                       _notifier.rename(_notifier.roulettes[i].id, n),
                   onDelete: () =>
                       _notifier.delete(_notifier.roulettes[i].id),
-                )
-                    .animate()
-                    .slideY(
-                      begin: 0.3,
-                      end: 0.0,
-                      duration: (i * 50 + 300).ms,
-                      curve: Curves.easeOut,
-                    )
-                    .fadeIn(
-                      duration: (i * 50 + 300).ms,
-                      curve: Curves.easeOut,
-                    ),
+                ),
               ),
               childCount: _notifier.roulettes.length,
             ),
@@ -273,6 +248,7 @@ class _HomeScreenState extends State<HomeScreen>
     _showCreateBottomSheet(context);
   }
 
+  /// [이동] 기존 홈 AppBar 템플릿 버튼 → FAB 바텀시트로 통합
   void _showCreateBottomSheet(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet<void>(
@@ -293,8 +269,8 @@ class _HomeScreenState extends State<HomeScreen>
             const SizedBox(height: 8),
             ListTile(
               leading: const Icon(Icons.add_circle_outline_rounded),
-              title: Text(l10n.createBlankTitle),
-              subtitle: Text(l10n.createBlankSubtitle),
+              title: Text(l10n.createManualTitle),
+              subtitle: Text(l10n.createManualSubtitle),
               onTap: () {
                 Navigator.of(ctx).pop();
                 _navigateToEditor(context);
@@ -303,7 +279,7 @@ class _HomeScreenState extends State<HomeScreen>
             ListTile(
               leading: const Icon(Icons.auto_awesome_motion_rounded),
               title: Text(l10n.createTemplateTitle),
-              subtitle: Text(l10n.createTemplateSubtitle),
+              subtitle: Text(l10n.createTemplateSubtitleNew),
               onTap: () {
                 Navigator.of(ctx).pop();
                 Navigator.of(context)
@@ -336,39 +312,40 @@ class _HomeScreenState extends State<HomeScreen>
       _showPremiumRequiredDialog(context);
       return;
     }
-    final l10n = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     final id = await _notifier.duplicate(roulette.id);
     if (id != null && mounted) {
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.duplicated(roulette.name))),
+        SnackBar(content: Text(AppLocalizations.of(context)!.duplicated(roulette.name))),
       );
     }
   }
 
-  /// 룰렛 생성 한도 초과 시 Paywall 유도 다이얼로그
   void _showPremiumRequiredDialog(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        icon: const Icon(Icons.card_giftcard, size: 40),
-        title: Text(l10n.paywallRouletteLimitTitle),
+        icon: const Icon(Icons.lock_outline, size: 40),
+        title: Text(l10n.limitTitle),
         content: Text(
-          l10n.paywallRouletteLimitContent,
+          l10n.limitContent(AppLimits.maxRouletteCount),
           textAlign: TextAlign.center,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(l10n.actionCancel),
+            child: Text(l10n.actionClose),
           ),
           FilledButton(
+            // TODO(Phase3): 프리미엄 구매 플로우 연결
             onPressed: () {
               Navigator.of(ctx).pop();
-              Navigator.of(context).pushNamed(AppRoutes.paywall);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.premiumComingSoon)),
+              );
             },
-            child: Text(l10n.paywallPurchaseButton),
+            child: Text(l10n.premiumButton),
           ),
         ],
       ),
@@ -377,6 +354,10 @@ class _HomeScreenState extends State<HomeScreen>
 }
 
 // ── 세그먼트 탭 바 (분리 위젯) ─────────────────────────────────
+//
+// 배치: 가로 1줄 / 높이 ~44px (padding 4 + inner 8*2 + icon 15)
+// active  → cs.primary 배경 + cs.onPrimary 텍스트/아이콘
+// inactive → 투명 배경 + cs.onSurfaceVariant (dim)
 
 class _QuickSegmentBar extends StatelessWidget {
   final _HomeMode selected;
@@ -391,25 +372,25 @@ class _QuickSegmentBar extends StatelessWidget {
         _HomeMode.number => Icons.tag_rounded,
       };
 
-  String _labelOf(BuildContext context, _HomeMode m) {
-    final l10n = AppLocalizations.of(context)!;
-    return switch (m) {
-      _HomeMode.roulette => l10n.tabRoulette,
-      _HomeMode.coin => l10n.tabCoin,
-      _HomeMode.dice => l10n.tabDice,
-      _HomeMode.number => l10n.tabNumber,
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
+
+    String label(_HomeMode m) => switch (m) {
+          _HomeMode.roulette => l10n.tabRoulette,
+          _HomeMode.coin => l10n.tabCoin,
+          _HomeMode.dice => l10n.tabDice,
+          _HomeMode.number => l10n.tabNumber,
+        };
+
     return Container(
+      height: 44,
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: cs.surfaceContainer,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
       ),
       child: Row(
         children: _HomeMode.values.map((mode) {
@@ -417,31 +398,46 @@ class _QuickSegmentBar extends StatelessWidget {
           return Expanded(
             child: GestureDetector(
               onTap: () => onChanged(mode),
+              behavior: HitTestBehavior.opaque,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                curve: Curves.easeInOut,
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                transform: Matrix4.identity()..scale(isActive ? 1.02 : 1.0),
+                transformAlignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: isActive ? cs.primary : Colors.transparent,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: isActive
+                      ? [
+                          BoxShadow(
+                            color: cs.primary.withOpacity(0.15),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : [],
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
                       _icon(mode),
-                      size: 15,
-                      color: isActive ? cs.onPrimary : cs.onSurfaceVariant,
+                      size: 16,
+                      color: isActive
+                          ? cs.onPrimary
+                          : cs.onSurfaceVariant.withOpacity(0.6),
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      _labelOf(context, mode),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: isActive
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: isActive ? cs.onPrimary : cs.onSurfaceVariant,
-                      ),
+                      label(mode),
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            fontWeight:
+                                isActive ? FontWeight.w700 : FontWeight.w500,
+                            color: isActive
+                                ? cs.onPrimary
+                                : cs.onSurfaceVariant.withOpacity(0.6),
+                          ),
                     ),
                   ],
                 ),
@@ -500,8 +496,8 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -509,22 +505,20 @@ class _EmptyState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(28),
               decoration: BoxDecoration(
                 color: cs.primaryContainer.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.casino_rounded, size: 64, color: cs.primary),
+              child: Icon(Icons.casino_rounded, size: 56, color: cs.primary),
             ),
             const SizedBox(height: 32),
             Text(
               l10n.emptyTitle,
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              // headlineSmall에서 이미 w700 + -0.5 spacing 제공
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
               l10n.emptySubtitle,
               style: Theme.of(context)

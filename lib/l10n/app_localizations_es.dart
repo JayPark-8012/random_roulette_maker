@@ -9,10 +9,10 @@ class AppLocalizationsEs extends AppLocalizations {
   AppLocalizationsEs([String locale = 'es']) : super(locale);
 
   @override
-  String get appTitle => 'Ruleta Aleatoria';
+  String get appTitle => 'Picksy – Random Picker';
 
   @override
-  String get homeTitle => 'Herramientas';
+  String get homeTitle => 'Picksy – Random Picker';
 
   @override
   String get settingsTooltip => 'Ajustes';
@@ -403,7 +403,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get minMaxError => 'El mínimo debe ser menor que el máximo.';
 
   @override
-  String get splashTitle => 'Ruleta Aleatoria';
+  String get splashTitle => 'Picksy – Random Picker';
 
   @override
   String get splashSubtitle => 'Crea tu propia ruleta';
@@ -635,5 +635,53 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get paywallUnlockButton => 'Unlock Premium';
+  String get paywallUnlockButton => 'Desbloquear Premium';
+
+  @override
+  String get premiumStatusFree => 'Versión Gratuita';
+
+  @override
+  String get premiumStatusActive => 'Premium Activo';
+
+  @override
+  String get premiumFeatureAds => 'Sin Anuncios';
+
+  @override
+  String get premiumFeatureSets => 'Ruletas Ilimitadas';
+
+  @override
+  String get premiumFeaturePalettes => 'Todas las Paletas';
+
+  @override
+  String premiumPurchaseDate(String date) {
+    return 'Comprado: $date';
+  }
+
+  @override
+  String get premiumMockNotice =>
+      '(Implementación Mock: No es una compra real)';
+
+  @override
+  String get premiumPurchaseButtonActive => 'Comprado';
+
+  @override
+  String get premiumPurchaseButtonInactive => 'Obtener Premium';
+
+  @override
+  String get premiumRestoreButton => 'Restaurar';
+
+  @override
+  String get premiumRestoreSuccess => '✅ Restauración Exitosa!';
+
+  @override
+  String get premiumRestoreEmpty => '❌ Sin Historial';
+
+  @override
+  String get createManualTitle => 'Empezar en Blanco';
+
+  @override
+  String get createManualSubtitle => 'Introduce los elementos tú mismo';
+
+  @override
+  String get createTemplateSubtitleNew => 'Empezar con una plantilla';
 }

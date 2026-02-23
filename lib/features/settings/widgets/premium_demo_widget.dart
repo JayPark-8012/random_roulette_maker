@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants.dart';
 import '../../../data/premium_service.dart';
+import '../../../l10n/app_localizations.dart';
 
 /// 프리미엠 상태 확인 및 테스트용 위젯
 /// 
@@ -40,14 +41,16 @@ class _PremiumDemoWidgetState extends State<PremiumDemoWidget> {
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success ? '✅ 복구 성공!' : '❌ 구매 기록 없음'),
+          content: Text(success
+              ? AppLocalizations.of(context)!.premiumRestoreSuccess
+              : AppLocalizations.of(context)!.premiumRestoreEmpty),
           duration: const Duration(seconds: 2),
         ),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('오류: $e')),
+        SnackBar(content: Text('${AppLocalizations.of(context)!.paywallError}: $e')),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -56,6 +59,7 @@ class _PremiumDemoWidgetState extends State<PremiumDemoWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
     return ValueListenableBuilder<dynamic>(
@@ -95,7 +99,7 @@ class _PremiumDemoWidgetState extends State<PremiumDemoWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isPremium ? '프리미엄 구독 중' : '무료 버전',
+                        isPremium ? l10n.premiumStatusActive : l10n.premiumStatusFree,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: isPremium
@@ -105,7 +109,7 @@ class _PremiumDemoWidgetState extends State<PremiumDemoWidget> {
                       ),
                       if (purchaseDate != null)
                         Text(
-                          '구매: ${purchaseDate.toLocal()}',
+                          l10n.premiumPurchaseDate(purchaseDate.toLocal().toString()),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -121,18 +125,18 @@ class _PremiumDemoWidgetState extends State<PremiumDemoWidget> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _FeatureRow('✅ 광고 제거'),
-                    _FeatureRow('✅ 룰렛 무제한'),
-                    _FeatureRow('✅ 전체 팔레트'),
+                    _FeatureRow('✅ ${l10n.premiumFeatureAds}'),
+                    _FeatureRow('✅ ${l10n.premiumFeatureSets}'),
+                    _FeatureRow('✅ ${l10n.premiumFeaturePalettes}'),
                   ],
                 )
               else
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _FeatureRow('❌ 광고 표시'),
-                    _FeatureRow('❌ 룰렛 3개 제한'),
-                    _FeatureRow('❌ 팔레트 2개만'),
+                    _FeatureRow('❌ ${l10n.paywallAds}'),
+                    _FeatureRow('❌ ${l10n.paywallRouletteSets} 3'),
+                    _FeatureRow('❌ ${l10n.paywallColorPalettes} 2'),
                   ],
                 ),
 
@@ -144,14 +148,16 @@ class _PremiumDemoWidgetState extends State<PremiumDemoWidget> {
                   Expanded(
                     child: FilledButton(
                       onPressed: _onPurchase,
-                      child: Text(isPremium ? '구매 완료' : '프리미엄 구매'),
+                      child: Text(isPremium
+                          ? l10n.premiumPurchaseButtonActive
+                          : l10n.premiumPurchaseButtonInactive),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: OutlinedButton(
                       onPressed: _isLoading ? null : _onRestore,
-                      child: const Text('복구'),
+                      child: Text(l10n.premiumRestoreButton),
                     ),
                   ),
                 ],
@@ -159,7 +165,7 @@ class _PremiumDemoWidgetState extends State<PremiumDemoWidget> {
 
               const SizedBox(height: 8),
               Text(
-                '(Mock 구현: 실제 결제 아님)',
+                l10n.premiumMockNotice,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                   fontStyle: FontStyle.italic,

@@ -9,10 +9,10 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
-  String get appTitle => '랜덤 룰렛 메이커';
+  String get appTitle => 'Picksy – 랜덤 룰렛 선택기';
 
   @override
-  String get homeTitle => '랜덤 툴';
+  String get homeTitle => 'Picksy – 랜덤 룰렛 선택기';
 
   @override
   String get settingsTooltip => '설정';
@@ -400,7 +400,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get minMaxError => '최솟값은 최댓값보다 작아야 합니다.';
 
   @override
-  String get splashTitle => '랜덤 룰렛 메이커';
+  String get splashTitle => 'Picksy – 랜덤 룰렛 선택기';
 
   @override
   String get splashSubtitle => '나만의 룰렛을 만들어 보세요';
@@ -632,4 +632,51 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get paywallUnlockButton => '프리미엄 잠금 해제';
+
+  @override
+  String get premiumStatusFree => '무료 버전';
+
+  @override
+  String get premiumStatusActive => '프리미엄 구독 중';
+
+  @override
+  String get premiumFeatureAds => '광고 제거';
+
+  @override
+  String get premiumFeatureSets => '룰렛 무제한';
+
+  @override
+  String get premiumFeaturePalettes => '전체 팔레트';
+
+  @override
+  String premiumPurchaseDate(String date) {
+    return '구매: $date';
+  }
+
+  @override
+  String get premiumMockNotice => '(Mock 구현: 실제 결제 아님)';
+
+  @override
+  String get premiumPurchaseButtonActive => '구매 완료';
+
+  @override
+  String get premiumPurchaseButtonInactive => '프리미엄 구매';
+
+  @override
+  String get premiumRestoreButton => '복구';
+
+  @override
+  String get premiumRestoreSuccess => '✅ 복구 성공!';
+
+  @override
+  String get premiumRestoreEmpty => '❌ 구매 기록 없음';
+
+  @override
+  String get createManualTitle => '빈 룰렛으로 시작';
+
+  @override
+  String get createManualSubtitle => '항목을 직접 입력합니다';
+
+  @override
+  String get createTemplateSubtitleNew => '미리 만들어진 구성으로 시작합니다';
 }

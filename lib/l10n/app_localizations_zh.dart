@@ -9,10 +9,10 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
-  String get appTitle => '随机转盘';
+  String get appTitle => 'Picksy – Random Picker';
 
   @override
-  String get homeTitle => '随机工具';
+  String get homeTitle => 'Picksy – Random Picker';
 
   @override
   String get settingsTooltip => '设置';
@@ -400,7 +400,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get minMaxError => '最小值必须小于最大值。';
 
   @override
-  String get splashTitle => '随机转盘';
+  String get splashTitle => 'Picksy – Random Picker';
 
   @override
   String get splashSubtitle => '创建你自己的转盘';
@@ -632,7 +632,54 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get paywallUnlockButton => 'Unlock Premium';
+  String get paywallUnlockButton => '解锁高级版';
+
+  @override
+  String get premiumStatusFree => '免费版';
+
+  @override
+  String get premiumStatusActive => '高级版激活';
+
+  @override
+  String get premiumFeatureAds => '移除广告';
+
+  @override
+  String get premiumFeatureSets => '无限转盘';
+
+  @override
+  String get premiumFeaturePalettes => '全色板解锁';
+
+  @override
+  String premiumPurchaseDate(String date) {
+    return '购买于: $date';
+  }
+
+  @override
+  String get premiumMockNotice => '(模拟实现：非真实购买)';
+
+  @override
+  String get premiumPurchaseButtonActive => '已购买';
+
+  @override
+  String get premiumPurchaseButtonInactive => '升级高级版';
+
+  @override
+  String get premiumRestoreButton => '恢复';
+
+  @override
+  String get premiumRestoreSuccess => '✅ 恢复成功！';
+
+  @override
+  String get premiumRestoreEmpty => '❌ 无购买记录';
+
+  @override
+  String get createManualTitle => '空白开始';
+
+  @override
+  String get createManualSubtitle => '手动输入选项';
+
+  @override
+  String get createTemplateSubtitleNew => '从模板开始';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).

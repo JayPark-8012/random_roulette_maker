@@ -1,8 +1,8 @@
 {
   "@@locale": "ko",
 
-  "appTitle": "랜덤 룰렛 메이커",
-  "homeTitle": "랜덤 툴",
+  "appTitle": "Picksy – 랜덤 룰렛 선택기",
+  "homeTitle": "Picksy – 랜덤 룰렛 선택기",
   "settingsTooltip": "설정",
   "tabRoulette": "룰렛",
   "tabCoin": "코인",
@@ -126,7 +126,7 @@
   "actionGenerate": "생성",
   "recent20": "최근 20회",
   "minMaxError": "최솟값은 최댓값보다 작아야 합니다.",
-  "splashTitle": "랜덤 룰렛 메이커",
+  "splashTitle": "Picksy – 랜덤 룰렛 선택기",
   "splashSubtitle": "나만의 룰렛을 만들어 보세요",
   "templatesTitle": "스타터 세트",
   "templateItemsInfo": "{category} · {count}개 항목",
@@ -198,5 +198,20 @@
   "paywallRouletteLimitContent": "무료 사용자는 최대 3개의 룰렛 세트를 만들 수 있습니다.\n프리미엄으로 업그레이드하면 무제한으로 생성할 수 있습니다.",
   "paywallPaletteLockTitle": "팔레트 잠금",
   "paywallPaletteLockContent": "{paletteName} 팔레트는 프리미엄에서만 사용할 수 있습니다.\n지금 바로 모든 컬러 팔레트를 잠금 해제하세요!",
-  "paywallUnlockButton": "프리미엄 잠금 해제"
+  "paywallUnlockButton": "프리미엄 잠금 해제",
+  "premiumStatusFree": "무료 버전",
+  "premiumStatusActive": "프리미엄 구독 중",
+  "premiumFeatureAds": "광고 제거",
+  "premiumFeatureSets": "룰렛 무제한",
+  "premiumFeaturePalettes": "전체 팔레트",
+  "premiumPurchaseDate": "구매: {date}",
+  "premiumMockNotice": "(Mock 구현: 실제 결제 아님)",
+  "premiumPurchaseButtonActive": "구매 완료",
+  "premiumPurchaseButtonInactive": "프리미엄 구매",
+  "premiumRestoreButton": "복구",
+  "premiumRestoreSuccess": "✅ 복구 성공!",
+  "premiumRestoreEmpty": "❌ 구매 기록 없음",
+  "createManualTitle": "빈 룰렛으로 시작",
+  "createManualSubtitle": "항목을 직접 입력합니다",
+  "createTemplateSubtitleNew": "미리 만들어진 구성으로 시작합니다"
 }
