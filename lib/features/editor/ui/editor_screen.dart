@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants.dart';
 import '../../../domain/roulette.dart';
+import '../../../l10n/app_localizations.dart';
 import '../state/editor_notifier.dart';
 import '../widgets/item_list_tile.dart';
 import '../../play/widgets/roulette_wheel.dart';
@@ -56,6 +57,7 @@ class _EditorScreenState extends State<EditorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
@@ -68,7 +70,7 @@ class _EditorScreenState extends State<EditorScreen> {
           title: AnimatedBuilder(
             animation: _notifier,
             builder: (_, _) => Text(
-              _notifier.isEditMode ? '룰렛 편집' : '룰렛 만들기',
+              _notifier.isEditMode ? l10n.editorTitleEdit : l10n.editorTitleNew,
               style: const TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.8),
             ),
           ),
@@ -78,7 +80,7 @@ class _EditorScreenState extends State<EditorScreen> {
               builder: (_, _) => _notifier.isEditMode
                   ? IconButton(
                       icon: const Icon(Icons.delete_outline_rounded),
-                      tooltip: '룰렛 삭제',
+                      tooltip: l10n.deleteRouletteTooltip,
                       onPressed: () => _confirmDelete(context),
                     )
                   : const SizedBox.shrink(),
@@ -98,8 +100,8 @@ class _EditorScreenState extends State<EditorScreen> {
                       padding: const EdgeInsets.only(right: 8),
                       child: FilledButton(
                         onPressed: () => _save(context),
-                        child: const Text('저장',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: Text(l10n.actionSave,
+                            style: const TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ),
             ),
@@ -108,6 +110,7 @@ class _EditorScreenState extends State<EditorScreen> {
         body: AnimatedBuilder(
           animation: _notifier,
           builder: (context, _) {
+            final l10n = AppLocalizations.of(context)!;
             return Column(
               children: [
                 if (_notifier.error != null)
@@ -116,7 +119,7 @@ class _EditorScreenState extends State<EditorScreen> {
                     actions: [
                       TextButton(
                         onPressed: _notifier.clearError,
-                        child: const Text('닫기'),
+                        child: Text(l10n.actionClose),
                       ),
                     ],
                   ),
@@ -127,11 +130,11 @@ class _EditorScreenState extends State<EditorScreen> {
                     controller: _nameCtrl,
                     maxLength: AppLimits.maxNameLength,
                     decoration: InputDecoration(
-                      labelText: '룰렛 이름',
-                      hintText: '예: 오늘 점심 메뉴',
+                      labelText: l10n.rouletteNameLabel,
+                      hintText: l10n.rouletteNameHint,
                       border: const OutlineInputBorder(),
                       errorText: (_notifier.showErrors && !_notifier.isNameValid)
-                          ? '이름을 입력해 주세요'
+                          ? l10n.rouletteNameError
                           : null,
                     ),
                     onChanged: _notifier.setName,
@@ -145,14 +148,14 @@ class _EditorScreenState extends State<EditorScreen> {
                   child: Row(
                     children: [
                       Text(
-                        '항목 (${_notifier.items.length}개)',
+                        l10n.itemsHeader(_notifier.items.length),
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
                       ),
                       const Spacer(),
                       Text(
-                        '드래그하여 순서 변경',
+                        l10n.dragHint,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               color: Theme.of(context)
                                   .colorScheme
@@ -197,7 +200,7 @@ class _EditorScreenState extends State<EditorScreen> {
         // 항목 추가 버튼
         floatingActionButton: FloatingActionButton.small(
           onPressed: _notifier.addItem,
-          tooltip: '항목 추가',
+          tooltip: l10n.addItemTooltip,
           child: const Icon(Icons.add),
         ),
       ),
@@ -218,19 +221,20 @@ class _EditorScreenState extends State<EditorScreen> {
       navigator.pop();
       return;
     }
+    final l10n = AppLocalizations.of(context)!;
     final leave = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('저장하지 않고 나가기'),
-        content: const Text('변경사항이 저장되지 않습니다. 나가시겠어요?'),
+        title: Text(l10n.exitTitle),
+        content: Text(l10n.exitContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('계속 편집'),
+            child: Text(l10n.actionContinueEditing),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('나가기'),
+            child: Text(l10n.actionLeave),
           ),
         ],
       ),
@@ -242,19 +246,20 @@ class _EditorScreenState extends State<EditorScreen> {
 
   Future<void> _confirmDelete(BuildContext context) async {
     final navigator = Navigator.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('룰렛 삭제'),
-        content: const Text('이 룰렛을 삭제할까요?\n히스토리도 함께 삭제됩니다.'),
+        title: Text(l10n.deleteRouletteTitle),
+        content: Text(l10n.deleteRouletteContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('취소'),
+            child: Text(l10n.actionCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('삭제'),
+            child: Text(l10n.actionDelete),
           ),
         ],
       ),
@@ -319,7 +324,7 @@ class _MiniWheelPreview extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '실시간 프리뷰',
+                  AppLocalizations.of(context)!.previewLabel,
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -344,7 +349,7 @@ class _MiniWheelPreview extends StatelessWidget {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                item.label.isEmpty ? '(빈 항목)' : item.label,
+                                item.label.isEmpty ? AppLocalizations.of(context)!.emptyItemLabel : item.label,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: item.label.isEmpty
@@ -366,7 +371,7 @@ class _MiniWheelPreview extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 2, left: 16),
                     child: Text(
-                      '+ ${items.length - 5}개 더',
+                      AppLocalizations.of(context)!.moreItems(items.length - 5),
                       style: TextStyle(
                         fontSize: 11,
                         color: colorScheme.onSurfaceVariant.withOpacity(0.5),

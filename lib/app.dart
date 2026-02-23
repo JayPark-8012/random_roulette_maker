@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'core/app_themes.dart';
 import 'core/constants.dart';
 import 'features/settings/state/settings_notifier.dart';
+import 'l10n/app_localizations.dart';
 import 'features/splash/ui/splash_screen.dart';
 import 'features/home/ui/home_screen.dart';
 import 'features/editor/ui/editor_screen.dart';
@@ -92,6 +93,9 @@ class _AppState extends State<App> {
     return MaterialApp(
       title: '랜덤 룰렛 메이커',
       debugShowCheckedModeBanner: false,
+      locale: _settings.appLocale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: themeData.buildTheme(Brightness.light),
       darkTheme: themeData.buildTheme(Brightness.dark),
       themeMode: _settings.flutterThemeMode,

@@ -112,7 +112,6 @@ class PlayNotifier extends ChangeNotifier {
       _autoReset = true;
     }
     _excludedIds.clear();
-    _roundNum = 1;
     _saveSpinMode();
     notifyListeners();
   }

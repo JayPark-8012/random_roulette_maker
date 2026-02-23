@@ -1,18 +1,25 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 
 class TemplateCard extends StatelessWidget {
-  final Map<String, dynamic> template;
+  final String emoji;
+  final String name;
+  final String category;
+  final List<String> items;
   final VoidCallback onTap;
 
   const TemplateCard({
     super.key,
-    required this.template,
+    required this.emoji,
+    required this.name,
+    required this.category,
+    required this.items,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final items = (template['items'] as List<dynamic>).cast<String>();
+    final l10n = AppLocalizations.of(context)!;
     final preview = items.take(3).join(', ');
 
     return Card(
@@ -27,13 +34,13 @@ class TemplateCard extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    template['emoji'] as String,
+                    emoji,
                     style: const TextStyle(fontSize: 28),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      template['name'] as String,
+                      name,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -51,7 +58,7 @@ class TemplateCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  template['category'] as String,
+                  category,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: Theme.of(context)
                             .colorScheme
@@ -61,7 +68,7 @@ class TemplateCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                '$preview${items.length > 3 ? ' 외 ${items.length - 3}개' : ''}',
+                '$preview${items.length > 3 ? ' ${l10n.moreItems(items.length - 3)}' : ''}',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),

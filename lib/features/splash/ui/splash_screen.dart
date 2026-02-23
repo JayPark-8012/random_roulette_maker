@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants.dart';
 import '../../../data/local_storage.dart';
+import '../../../l10n/app_localizations.dart';
 import '../state/splash_notifier.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -35,6 +36,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.primary,
       body: Center(
@@ -49,7 +51,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              '랜덤 룰렛 메이커',
+              l10n.splashTitle,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onPrimary,
                     fontWeight: FontWeight.bold,
@@ -57,7 +59,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              '나만의 룰렛을 만들어 보세요',
+              l10n.splashSubtitle,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context)
                         .colorScheme

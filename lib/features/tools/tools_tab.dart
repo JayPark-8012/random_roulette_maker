@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../core/constants.dart';
 import '../../data/local_storage.dart';
+import '../../l10n/app_localizations.dart';
 
 class ToolsTab extends StatefulWidget {
   /// null = 전체 표시 / 'coin' | 'dice' | 'number' = 해당 도구만 표시
@@ -109,7 +110,7 @@ class _ToolsTabState extends State<ToolsTab>
     final max = int.tryParse(_maxCtrl.text.trim()) ?? 100;
     if (min >= max) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('최솟값은 최댓값보다 작아야 합니다.')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.minMaxError)),
       );
       return;
     }
@@ -177,6 +178,7 @@ class _CoinCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     final isHeads = coin == true;
     final color = coin == null
         ? cs.surfaceContainerHighest
@@ -195,7 +197,7 @@ class _CoinCard extends StatelessWidget {
                 Icon(Icons.monetization_on_outlined,
                     size: 20, color: cs.primary),
                 const SizedBox(width: 8),
-                Text('코인 플립',
+                Text(l10n.coinFlipTitle,
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium
@@ -221,7 +223,7 @@ class _CoinCard extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  coin == null ? '?' : (isHeads ? '앞' : '뒤'),
+                  coin == null ? '?' : (isHeads ? l10n.coinHeads : l10n.coinTails),
                   style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w900,
@@ -235,8 +237,8 @@ class _CoinCard extends StatelessWidget {
               child: FilledButton.icon(
                 onPressed: onFlip,
                 icon: const Icon(Icons.flip),
-                label: const Text('뒤집기',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+                label: Text(l10n.actionFlip,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
             if (history.isNotEmpty) ...[
@@ -245,7 +247,7 @@ class _CoinCard extends StatelessWidget {
               const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerLeft,
-                child: Text('최근 10회',
+                child: Text(l10n.recent10,
                     style: Theme.of(context)
                         .textTheme
                         .labelMedium
@@ -257,7 +259,7 @@ class _CoinCard extends StatelessWidget {
                 runSpacing: 6,
                 children: history
                     .map((h) => Chip(
-                          label: Text(h ? '앞' : '뒤',
+                          label: Text(h ? l10n.coinHeads : l10n.coinTails,
                               style: const TextStyle(fontSize: 12)),
                           backgroundColor: h
                               ? cs.primaryContainer
@@ -299,6 +301,7 @@ class _DiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Card(
       child: Padding(
@@ -310,7 +313,7 @@ class _DiceCard extends StatelessWidget {
               children: [
                 Icon(Icons.casino_outlined, size: 20, color: cs.primary),
                 const SizedBox(width: 8),
-                Text('주사위',
+                Text(l10n.diceTitle,
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium
@@ -371,7 +374,7 @@ class _DiceCard extends StatelessWidget {
               child: FilledButton.icon(
                 onPressed: onRoll,
                 icon: const Icon(Icons.casino_rounded),
-                label: Text('D$diceType 굴리기',
+                label: Text(l10n.rollDice(diceType),
                     style: const TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
@@ -379,7 +382,7 @@ class _DiceCard extends StatelessWidget {
               const SizedBox(height: 16),
               const Divider(),
               const SizedBox(height: 8),
-              Text('최근 10회',
+              Text(l10n.recent10,
                   style: Theme.of(context)
                       .textTheme
                       .labelMedium
@@ -427,6 +430,7 @@ class _NumberCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Card(
       child: Padding(
@@ -438,7 +442,7 @@ class _NumberCard extends StatelessWidget {
               children: [
                 Icon(Icons.tag_rounded, size: 20, color: cs.primary),
                 const SizedBox(width: 8),
-                Text('랜덤 숫자',
+                Text(l10n.randomNumberTitle,
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium
@@ -453,8 +457,8 @@ class _NumberCard extends StatelessWidget {
                     controller: minCtrl,
                     keyboardType: TextInputType.number,
                     textAlign: TextAlign.center,
-                    decoration: const InputDecoration(
-                      labelText: '최솟값',
+                    decoration: InputDecoration(
+                      labelText: l10n.minLabel,
                       isDense: true,
                     ),
                   ),
@@ -472,8 +476,8 @@ class _NumberCard extends StatelessWidget {
                     controller: maxCtrl,
                     keyboardType: TextInputType.number,
                     textAlign: TextAlign.center,
-                    decoration: const InputDecoration(
-                      labelText: '최댓값',
+                    decoration: InputDecoration(
+                      labelText: l10n.maxLabel,
                       isDense: true,
                     ),
                   ),
@@ -518,15 +522,15 @@ class _NumberCard extends StatelessWidget {
               child: FilledButton.icon(
                 onPressed: onGenerate,
                 icon: const Icon(Icons.shuffle_rounded),
-                label: const Text('생성',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+                label: Text(l10n.actionGenerate,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
             if (history.isNotEmpty) ...[
               const SizedBox(height: 16),
               const Divider(),
               const SizedBox(height: 8),
-              Text('최근 20회',
+              Text(l10n.recent20,
                   style: Theme.of(context)
                       .textTheme
                       .labelMedium

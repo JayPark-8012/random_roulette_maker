@@ -1,0 +1,580 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Random Roulette Maker",
+  "@appTitle": {},
+
+  "homeTitle": "Random Tools",
+  "@homeTitle": {},
+
+  "settingsTooltip": "Settings",
+  "@settingsTooltip": {},
+
+  "tabRoulette": "Roulette",
+  "@tabRoulette": {},
+
+  "tabCoin": "Coin",
+  "@tabCoin": {},
+
+  "tabDice": "Dice",
+  "@tabDice": {},
+
+  "tabNumber": "Number",
+  "@tabNumber": {},
+
+  "sectionMySets": "My Roulette Sets",
+  "@sectionMySets": {},
+
+  "fabCreateNew": "New Roulette",
+  "@fabCreateNew": {},
+
+  "emptyTitle": "No Roulettes Yet",
+  "@emptyTitle": {},
+
+  "emptySubtitle": "Having trouble deciding?\nCreate your first roulette now!",
+  "@emptySubtitle": {},
+
+  "emptyButton": "Create First Roulette",
+  "@emptyButton": {},
+
+  "createBlankTitle": "Start Blank",
+  "@createBlankTitle": {},
+
+  "createBlankSubtitle": "Enter items yourself",
+  "@createBlankSubtitle": {},
+
+  "createTemplateTitle": "Starter Sets",
+  "@createTemplateTitle": {},
+
+  "createTemplateSubtitle": "Start from a preset",
+  "@createTemplateSubtitle": {},
+
+  "duplicated": "\"{name}\" duplicated.",
+  "@duplicated": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "limitTitle": "Roulette Limit",
+  "@limitTitle": {},
+
+  "limitContent": "Free plan allows up to {count} roulettes.\nDelete existing ones or upgrade to premium.",
+  "@limitContent": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "actionClose": "Close",
+  "@actionClose": {},
+
+  "actionCancel": "Cancel",
+  "@actionCancel": {},
+
+  "actionDelete": "Delete",
+  "@actionDelete": {},
+
+  "actionSave": "Save",
+  "@actionSave": {},
+
+  "actionConfirm": "OK",
+  "@actionConfirm": {},
+
+  "actionLeave": "Leave",
+  "@actionLeave": {},
+
+  "actionRename": "Rename",
+  "@actionRename": {},
+
+  "premiumComingSoon": "Premium features are coming soon.",
+  "@premiumComingSoon": {},
+
+  "premiumButton": "Learn about Premium",
+  "@premiumButton": {},
+
+  "editorTitleEdit": "Edit Roulette",
+  "@editorTitleEdit": {},
+
+  "editorTitleNew": "Create Roulette",
+  "@editorTitleNew": {},
+
+  "deleteRouletteTooltip": "Delete Roulette",
+  "@deleteRouletteTooltip": {},
+
+  "addItemTooltip": "Add Item",
+  "@addItemTooltip": {},
+
+  "rouletteNameLabel": "Roulette Name",
+  "@rouletteNameLabel": {},
+
+  "rouletteNameHint": "e.g. Today's Lunch",
+  "@rouletteNameHint": {},
+
+  "rouletteNameError": "Please enter a name",
+  "@rouletteNameError": {},
+
+  "itemsHeader": "Items ({count})",
+  "@itemsHeader": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "dragHint": "Drag to reorder",
+  "@dragHint": {},
+
+  "previewLabel": "Live Preview",
+  "@previewLabel": {},
+
+  "emptyItemLabel": "(empty)",
+  "@emptyItemLabel": {},
+
+  "moreItems": "+ {count} more",
+  "@moreItems": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "exitTitle": "Leave without Saving",
+  "@exitTitle": {},
+
+  "exitContent": "Changes won't be saved. Leave?",
+  "@exitContent": {},
+
+  "actionContinueEditing": "Keep Editing",
+  "@actionContinueEditing": {},
+
+  "deleteRouletteTitle": "Delete Roulette",
+  "@deleteRouletteTitle": {},
+
+  "deleteRouletteContent": "Delete this roulette?\nHistory will also be deleted.",
+  "@deleteRouletteContent": {},
+
+  "cardDeleteContent": "Delete \"{name}\"?\nHistory will also be deleted.",
+  "@cardDeleteContent": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+
+  "renameTitle": "Rename",
+  "@renameTitle": {},
+
+  "playFallbackTitle": "Roulette",
+  "@playFallbackTitle": {},
+
+  "notEnoughItems": "Not enough items. Please add from the editor.",
+  "@notEnoughItems": {},
+
+  "modeLottery": "Lottery",
+  "@modeLottery": {},
+
+  "modeRound": "Round",
+  "@modeRound": {},
+
+  "modeCustom": "Custom",
+  "@modeCustom": {},
+
+  "remainingItems": "Remaining: {count}",
+  "@remainingItems": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "roundStatus": "Round {current} / {total}",
+  "@roundStatus": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+
+  "noRepeat": "No Repeat",
+  "@noRepeat": {},
+
+  "autoReset": "Auto Reset",
+  "@autoReset": {},
+
+  "allPicked": "All items drawn!",
+  "@allPicked": {},
+
+  "actionReset": "Reset",
+  "@actionReset": {},
+
+  "spinLabel": "SPIN",
+  "@spinLabel": {},
+
+  "spinningLabel": "Spinning...",
+  "@spinningLabel": {},
+
+  "historyTitle": "Recent Results",
+  "@historyTitle": {},
+
+  "noHistory": "No records yet.",
+  "@noHistory": {},
+
+  "shareTitle": "Share",
+  "@shareTitle": {},
+
+  "shareTextTitle": "Share as Text",
+  "@shareTextTitle": {},
+
+  "shareTextSubtitle": "Share roulette name and result",
+  "@shareTextSubtitle": {},
+
+  "shareImageTitle": "Share as Image",
+  "@shareImageTitle": {},
+
+  "shareImageSubtitle": "Share roulette screen as image",
+  "@shareImageSubtitle": {},
+
+  "shareImageFailed": "Failed to share image.",
+  "@shareImageFailed": {},
+
+  "resultLabel": "Result",
+  "@resultLabel": {},
+
+  "actionReSpin": "Spin Again",
+  "@actionReSpin": {},
+
+  "actionCopy": "Copy",
+  "@actionCopy": {},
+
+  "copiedMessage": "Result copied to clipboard.",
+  "@copiedMessage": {},
+
+  "statsTooltip": "Stats",
+  "@statsTooltip": {},
+
+  "historyTooltip": "History",
+  "@historyTooltip": {},
+
+  "settingsTitle": "Settings",
+  "@settingsTitle": {},
+
+  "sectionTheme": "Theme",
+  "@sectionTheme": {},
+
+  "screenModeLabel": "Display Mode",
+  "@screenModeLabel": {},
+
+  "themeModeSystem": "System",
+  "@themeModeSystem": {},
+
+  "themeModeLight": "Light",
+  "@themeModeLight": {},
+
+  "themeModeDark": "Dark",
+  "@themeModeDark": {},
+
+  "colorPaletteLabel": "Color Palette",
+  "@colorPaletteLabel": {},
+
+  "premiumThemeTitle": "Premium Theme",
+  "@premiumThemeTitle": {},
+
+  "premiumThemeContent": "This theme is a premium feature.\nUpgrade to use it.",
+  "@premiumThemeContent": {},
+
+  "sectionFeedback": "Feedback",
+  "@sectionFeedback": {},
+
+  "soundLabel": "Sound",
+  "@soundLabel": {},
+
+  "soundSubtitle": "Spin and result sound effects",
+  "@soundSubtitle": {},
+
+  "soundPackLabel": "Sound Pack",
+  "@soundPackLabel": {},
+
+  "packBasic": "Basic",
+  "@packBasic": {},
+
+  "packClicky": "Clicky",
+  "@packClicky": {},
+
+  "packParty": "Party",
+  "@packParty": {},
+
+  "vibrationLabel": "Vibration",
+  "@vibrationLabel": {},
+
+  "vibrationSubtitle": "Vibrate on result",
+  "@vibrationSubtitle": {},
+
+  "hapticOff": "Off",
+  "@hapticOff": {},
+
+  "hapticLight": "Light",
+  "@hapticLight": {},
+
+  "hapticStrong": "Strong",
+  "@hapticStrong": {},
+
+  "sectionSpinTime": "Spin Duration",
+  "@sectionSpinTime": {},
+
+  "spinShort": "Short (2s)",
+  "@spinShort": {},
+
+  "spinNormal": "Normal (4.5s)",
+  "@spinNormal": {},
+
+  "spinLong": "Long (7s)",
+  "@spinLong": {},
+
+  "sectionLanguage": "Language",
+  "@sectionLanguage": {},
+
+  "langSystem": "System (Recommended)",
+  "@langSystem": {},
+
+  "langEn": "English",
+  "@langEn": {},
+
+  "langKo": "한국어",
+  "@langKo": {},
+
+  "langEs": "Español",
+  "@langEs": {},
+
+  "langPtBr": "Português (Brasil)",
+  "@langPtBr": {},
+
+  "langJa": "日本語",
+  "@langJa": {},
+
+  "langZhHans": "简体中文",
+  "@langZhHans": {},
+
+  "sectionAppInfo": "App Info",
+  "@sectionAppInfo": {},
+
+  "versionLabel": "Version",
+  "@versionLabel": {},
+
+  "openSourceLabel": "Open Source Licenses",
+  "@openSourceLabel": {},
+
+  "contactLabel": "Contact Us",
+  "@contactLabel": {},
+
+  "comingSoon": "Coming soon.",
+  "@comingSoon": {},
+
+  "coinFlipTitle": "Coin Flip",
+  "@coinFlipTitle": {},
+
+  "coinHeads": "H",
+  "@coinHeads": {},
+
+  "coinTails": "T",
+  "@coinTails": {},
+
+  "actionFlip": "Flip",
+  "@actionFlip": {},
+
+  "recent10": "Recent 10",
+  "@recent10": {},
+
+  "diceTitle": "Dice",
+  "@diceTitle": {},
+
+  "rollDice": "Roll D{type}",
+  "@rollDice": {
+    "placeholders": {
+      "type": {"type": "int"}
+    }
+  },
+
+  "randomNumberTitle": "Random Number",
+  "@randomNumberTitle": {},
+
+  "minLabel": "Min",
+  "@minLabel": {},
+
+  "maxLabel": "Max",
+  "@maxLabel": {},
+
+  "actionGenerate": "Generate",
+  "@actionGenerate": {},
+
+  "recent20": "Recent 20",
+  "@recent20": {},
+
+  "minMaxError": "Min must be less than max.",
+  "@minMaxError": {},
+
+  "splashTitle": "Random Roulette Maker",
+  "@splashTitle": {},
+
+  "splashSubtitle": "Create your own roulette",
+  "@splashSubtitle": {},
+
+  "templatesTitle": "Starter Sets",
+  "@templatesTitle": {},
+
+  "templateItemsInfo": "{category} · {count} items",
+  "@templateItemsInfo": {
+    "placeholders": {
+      "category": {"type": "String"},
+      "count": {"type": "int"}
+    }
+  },
+
+  "useTemplate": "Use This Starter Set",
+  "@useTemplate": {},
+
+  "freePlanLimit": "Free plan allows up to {count} roulettes",
+  "@freePlanLimit": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "itemCount": "{count} items",
+  "@itemCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "menuEdit": "Edit",
+  "@menuEdit": {},
+
+  "menuDuplicate": "Duplicate",
+  "@menuDuplicate": {},
+
+  "menuRename": "Rename",
+  "@menuRename": {},
+
+  "statsTitle": "Stats",
+  "@statsTitle": {},
+
+  "statsRecentN": "({count} spins)",
+  "@statsRecentN": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "statsRecentResults": "Recent Results",
+  "@statsRecentResults": {},
+
+  "statsFrequency": "Frequency",
+  "@statsFrequency": {},
+
+  "statsTimes": "{count}x",
+  "@statsTimes": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "statsExpected": "E:{pct}%",
+  "@statsExpected": {
+    "placeholders": {
+      "pct": {"type": "String"}
+    }
+  },
+
+  "starterSetsTitle": "Starter Sets",
+  "@starterSetsTitle": {},
+
+  "starterSetYesNo": "Yes / No",
+  "@starterSetYesNo": {},
+
+  "starterSetTruthDare": "Truth or Dare",
+  "@starterSetTruthDare": {},
+
+  "starterSetTeamSplit": "Team Split",
+  "@starterSetTeamSplit": {},
+
+  "starterSetNumbers": "Numbers 1-10",
+  "@starterSetNumbers": {},
+
+  "starterSetFood": "Food",
+  "@starterSetFood": {},
+
+  "starterSetRandomOrder": "Random Order",
+  "@starterSetRandomOrder": {},
+
+  "starterSetWinnerPick": "Pick a Winner",
+  "@starterSetWinnerPick": {},
+
+  "starterCatDecision": "Decision",
+  "@starterCatDecision": {},
+
+  "starterCatFun": "Fun",
+  "@starterCatFun": {},
+
+  "starterCatTeam": "Team",
+  "@starterCatTeam": {},
+
+  "starterCatNumbers": "Numbers",
+  "@starterCatNumbers": {},
+
+  "starterCatFood": "Food",
+  "@starterCatFood": {},
+
+  "starterCatGame": "Game",
+  "@starterCatGame": {},
+
+  "itemYes": "Yes",
+  "@itemYes": {},
+
+  "itemNo": "No",
+  "@itemNo": {},
+
+  "itemTruth": "Truth",
+  "@itemTruth": {},
+
+  "itemDare": "Dare",
+  "@itemDare": {},
+
+  "itemTeamA": "Team A",
+  "@itemTeamA": {},
+
+  "itemTeamB": "Team B",
+  "@itemTeamB": {},
+
+  "itemPlayer1": "Player 1",
+  "@itemPlayer1": {},
+
+  "itemPlayer2": "Player 2",
+  "@itemPlayer2": {},
+
+  "itemPlayer3": "Player 3",
+  "@itemPlayer3": {},
+
+  "itemPlayer4": "Player 4",
+  "@itemPlayer4": {},
+
+  "itemCandidateA": "Candidate A",
+  "@itemCandidateA": {},
+
+  "itemCandidateB": "Candidate B",
+  "@itemCandidateB": {},
+
+  "itemCandidateC": "Candidate C",
+  "@itemCandidateC": {},
+
+  "itemPizza": "Pizza",
+  "@itemPizza": {},
+
+  "itemBurger": "Burger",
+  "@itemBurger": {},
+
+  "itemPasta": "Pasta",
+  "@itemPasta": {},
+
+  "itemSalad": "Salad",
+  "@itemSalad": {},
+
+  "itemSushi": "Sushi",
+  "@itemSushi": {}
+}

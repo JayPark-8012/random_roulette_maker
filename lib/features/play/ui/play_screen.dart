@@ -9,6 +9,7 @@ import '../../../core/constants.dart';
 import '../../../core/utils.dart';
 import '../../../domain/item.dart';
 import '../../../domain/settings.dart';
+import '../../../l10n/app_localizations.dart';
 import '../state/play_notifier.dart';
 import '../widgets/roulette_wheel.dart';
 import '../widgets/stats_sheet.dart';
@@ -44,8 +45,9 @@ class _PlayScreenState extends State<PlayScreen>
         if (!mounted) return;
         // 항목 2개 미만 체크
         if ((_notifier.roulette?.items.length ?? 0) < AppLimits.minItemCount) {
+          final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('항목이 부족합니다. 편집 화면에서 추가해 주세요.')),
+            SnackBar(content: Text(l10n.notEnoughItems)),
           );
           Navigator.of(context).pushReplacementNamed(
             AppRoutes.editor,
@@ -151,14 +153,15 @@ class _PlayScreenState extends State<PlayScreen>
 
   Future<void> _shareImage(Item winner) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context)!;
     try {
       final boundary =
           _wheelKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
-      if (boundary == null) throw Exception('캡처 불가');
+      if (boundary == null) throw Exception('capture failed');
       final image = await boundary.toImage(pixelRatio: 3.0);
       final byteData =
           await image.toByteData(format: ui.ImageByteFormat.png);
-      if (byteData == null) throw Exception('변환 실패');
+      if (byteData == null) throw Exception('convert failed');
       final bytes = byteData.buffer.asUint8List();
       await Share.shareXFiles(
         [XFile.fromData(bytes, mimeType: 'image/png', name: 'roulette_result.png')],
@@ -166,26 +169,27 @@ class _PlayScreenState extends State<PlayScreen>
       );
     } catch (_) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('이미지 공유에 실패했습니다.')),
+        SnackBar(content: Text(l10n.shareImageFailed)),
       );
     }
   }
 
   void _showShareOptions(BuildContext sheetCtx, Item winner) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog<void>(
       context: context,
       builder: (dCtx) => SimpleDialog(
-        title: const Text('공유'),
+        title: Text(l10n.shareTitle),
         children: [
           SimpleDialogOption(
             onPressed: () {
               Navigator.of(dCtx).pop();
               _shareText(winner);
             },
-            child: const ListTile(
-              leading: Icon(Icons.text_fields_outlined),
-              title: Text('텍스트 공유'),
-              subtitle: Text('룰렛명과 결과를 텍스트로'),
+            child: ListTile(
+              leading: const Icon(Icons.text_fields_outlined),
+              title: Text(l10n.shareTextTitle),
+              subtitle: Text(l10n.shareTextSubtitle),
             ),
           ),
           SimpleDialogOption(
@@ -193,10 +197,10 @@ class _PlayScreenState extends State<PlayScreen>
               Navigator.of(dCtx).pop();
               _shareImage(winner);
             },
-            child: const ListTile(
-              leading: Icon(Icons.image_outlined),
-              title: Text('이미지 공유'),
-              subtitle: Text('룰렛 화면을 이미지로'),
+            child: ListTile(
+              leading: const Icon(Icons.image_outlined),
+              title: Text(l10n.shareImageTitle),
+              subtitle: Text(l10n.shareImageSubtitle),
             ),
           ),
         ],
@@ -205,6 +209,7 @@ class _PlayScreenState extends State<PlayScreen>
   }
 
   void _showResultSheet(Item winner) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       isDismissible: true,
@@ -229,7 +234,7 @@ class _PlayScreenState extends State<PlayScreen>
           await Clipboard.setData(ClipboardData(text: text));
           navigator.pop();
           messenger.showSnackBar(
-            const SnackBar(content: Text('결과를 클립보드에 복사했습니다.')),
+            SnackBar(content: Text(l10n.copiedMessage)),
           );
         },
         onShare: () => _showShareOptions(ctx, winner),
@@ -256,6 +261,7 @@ class _PlayScreenState extends State<PlayScreen>
 
   void _showHistory() {
     final history = _notifier.history;
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder: (ctx) => Column(
@@ -263,7 +269,7 @@ class _PlayScreenState extends State<PlayScreen>
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              '최근 결과',
+              l10n.historyTitle,
               style: Theme.of(context).textTheme.titleLarge,
             )
                 .animate()
@@ -272,7 +278,7 @@ class _PlayScreenState extends State<PlayScreen>
           ),
           Expanded(
             child: history.isEmpty
-                ? const Center(child: Text('아직 기록이 없습니다.'))
+                ? Center(child: Text(l10n.noHistory))
                 : ListView.builder(
                     itemCount: history.length,
                     itemBuilder: (_, i) {
@@ -309,6 +315,7 @@ class _PlayScreenState extends State<PlayScreen>
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -320,14 +327,14 @@ class _PlayScreenState extends State<PlayScreen>
         title: AnimatedBuilder(
           animation: _notifier,
           builder: (_, _) => Text(
-            _notifier.roulette?.name ?? '룰렛',
+            _notifier.roulette?.name ?? l10n.playFallbackTitle,
             style: const TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.8),
           ),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.bar_chart_rounded),
-            tooltip: '통계',
+            tooltip: l10n.statsTooltip,
             onPressed: () {
               if (_notifier.roulette != null) _showStats();
             },
@@ -337,7 +344,7 @@ class _PlayScreenState extends State<PlayScreen>
               .scaleXY(begin: 0.8, end: 1.0, duration: 300.ms, curve: Curves.elasticOut),
           IconButton(
             icon: const Icon(Icons.history_rounded),
-            tooltip: '히스토리',
+            tooltip: l10n.historyTooltip,
             onPressed: _showHistory,
           )
               .animate()
@@ -392,52 +399,57 @@ class _PlayScreenState extends State<PlayScreen>
                     .fadeIn(duration: 300.ms, delay: 100.ms)
                     .slideY(begin: 0.2, end: 0.0, duration: 300.ms, delay: 100.ms, curve: Curves.easeOut),
               ),
-              // 모드별 상태 표시
-              if (_notifier.noRepeat && !_notifier.autoReset && !_notifier.allPicked)
-                Padding(
+              // 모드별 상태 표시 (고정 높이 - 레이아웃 점프 방지)
+              Visibility(
+                visible: (_notifier.noRepeat &&
+                        !_notifier.autoReset &&
+                        !_notifier.allPicked) ||
+                    _notifier.spinMode == SpinMode.round,
+                maintainSize: true,
+                maintainAnimation: true,
+                maintainState: true,
+                child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
-                  child: Row(
-                    children: [
-                      Icon(Icons.person_remove_outlined,
-                          size: 13,
-                          color: colorScheme.onSurfaceVariant
-                              .withValues(alpha: 0.7)),
-                      const SizedBox(width: 5),
-                      Text(
-                        '남은 항목 ${_notifier.remainingCount}개',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: colorScheme.onSurfaceVariant
-                              .withValues(alpha: 0.7),
+                  child: _notifier.spinMode == SpinMode.round
+                      ? Row(
+                          children: [
+                            Icon(Icons.repeat_rounded,
+                                size: 13,
+                                color: colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.7)),
+                            const SizedBox(width: 5),
+                            Text(
+                              l10n.roundStatus(
+                                  (_notifier.roulette?.items.length ?? 0) -
+                                      _notifier.remainingCount,
+                                  _notifier.roulette?.items.length ?? 0),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.7),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Row(
+                          children: [
+                            Icon(Icons.person_remove_outlined,
+                                size: 13,
+                                color: colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.7)),
+                            const SizedBox(width: 5),
+                            Text(
+                              l10n.remainingItems(_notifier.remainingCount),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colorScheme.onSurfaceVariant
+                                    .withValues(alpha: 0.7),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                )
-                    .animate()
-                    .fadeIn(duration: 200.ms, delay: 150.ms)
-                    .slideX(begin: -0.2, end: 0.0, duration: 200.ms, delay: 150.ms),
-              if (_notifier.spinMode == SpinMode.round)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
-                  child: Row(
-                    children: [
-                      Icon(Icons.repeat_rounded,
-                          size: 13,
-                          color: colorScheme.onSurfaceVariant
-                              .withValues(alpha: 0.7)),
-                      const SizedBox(width: 5),
-                      Text(
-                        '라운드 ${_notifier.roundNum} / ${_notifier.roulette?.items.length ?? 0}개',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: colorScheme.onSurfaceVariant
-                              .withValues(alpha: 0.7),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
+              ),
               Visibility(
                 visible: _notifier.spinMode == SpinMode.custom,
                 maintainSize: true,
@@ -449,7 +461,7 @@ class _PlayScreenState extends State<PlayScreen>
                     children: [
                       Expanded(
                         child: FilterChip(
-                          label: const Text('중복 제외'),
+                          label: Text(l10n.noRepeat),
                           selected: _notifier.noRepeat,
                           onSelected: _notifier.isSpinning
                               ? null
@@ -463,7 +475,7 @@ class _PlayScreenState extends State<PlayScreen>
                       const SizedBox(width: 8),
                       Expanded(
                         child: FilterChip(
-                          label: const Text('자동 리셋'),
+                          label: Text(l10n.autoReset),
                           selected: _notifier.autoReset,
                           onSelected:
                               (_notifier.noRepeat && !_notifier.isSpinning)
@@ -489,7 +501,7 @@ class _PlayScreenState extends State<PlayScreen>
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          '모든 항목을 뽑았습니다!',
+                          l10n.allPicked,
                           style: TextStyle(
                               color: colorScheme.primary,
                               fontWeight: FontWeight.w600),
@@ -497,7 +509,7 @@ class _PlayScreenState extends State<PlayScreen>
                       ),
                       TextButton(
                         onPressed: _notifier.resetExcluded,
-                        child: const Text('리셋'),
+                        child: Text(l10n.actionReset),
                       ),
                     ],
                   ),
@@ -546,6 +558,7 @@ class _ResultSheetState extends State<_ResultSheet> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     final winnerColor = widget.winner.color;
     final isLight = winnerColor.computeLuminance() > 0.4;
     final textColor = isLight ? Colors.black87 : Colors.white;
@@ -623,7 +636,7 @@ class _ResultSheetState extends State<_ResultSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '당쳊 항목',
+                        l10n.resultLabel,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -665,7 +678,7 @@ class _ResultSheetState extends State<_ResultSheet> {
                     Expanded(
                       child: OutlinedButton.icon(
                         icon: const Icon(Icons.refresh_rounded),
-                        label: const Text('다시 돌리기'),
+                        label: Text(l10n.actionReSpin),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           side: BorderSide(
@@ -687,9 +700,9 @@ class _ResultSheetState extends State<_ResultSheet> {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
                         onPressed: widget.onClose,
-                        child: const Text(
-                          '확인',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        child: Text(
+                          l10n.actionConfirm,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       )
                           .animate()
@@ -704,7 +717,7 @@ class _ResultSheetState extends State<_ResultSheet> {
                     Expanded(
                       child: TextButton.icon(
                         icon: const Icon(Icons.copy_rounded, size: 18),
-                        label: const Text('내용 복사'),
+                        label: Text(l10n.actionCopy),
                         style: TextButton.styleFrom(
                           foregroundColor: colorScheme.onSurfaceVariant,
                         ),
@@ -717,7 +730,7 @@ class _ResultSheetState extends State<_ResultSheet> {
                     Expanded(
                       child: TextButton.icon(
                         icon: const Icon(Icons.ios_share_rounded, size: 18),
-                        label: const Text('공유'),
+                        label: Text(l10n.shareTitle),
                         style: TextButton.styleFrom(
                           foregroundColor: colorScheme.onSurfaceVariant,
                         ),
@@ -754,10 +767,11 @@ class _SpinModeSegment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    const modes = [
-      (SpinMode.lottery, '추첨'),
-      (SpinMode.round, '라운드'),
-      (SpinMode.custom, '커스텀'),
+    final l10n = AppLocalizations.of(context)!;
+    final modes = [
+      (SpinMode.lottery, l10n.modeLottery),
+      (SpinMode.round, l10n.modeRound),
+      (SpinMode.custom, l10n.modeCustom),
     ];
 
     return Container(
@@ -835,6 +849,7 @@ class _SpinButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     final isDisabled = isSpinning || allPicked;
 
     return SizedBox(
@@ -875,14 +890,14 @@ class _SpinButton extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 14),
-                      const Text(
-                        '돌아가는 중...',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1),
+                      Text(
+                        l10n.spinningLabel,
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1),
                       ),
                     ],
                   )
                 : Text(
-                    allPicked ? '모두 뉵힐' : 'SPIN',
+                    allPicked ? l10n.allPicked : l10n.spinLabel,
                     key: const ValueKey('spin'),
                     style: const TextStyle(
                       fontSize: 22,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/utils.dart';
 import '../../../domain/history.dart';
 import '../../../domain/roulette.dart';
+import '../../../l10n/app_localizations.dart';
 
 class StatsSheet extends StatelessWidget {
   final Roulette roulette;
@@ -12,6 +13,7 @@ class StatsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     // 빈도 계산
     final freq = <String, _FreqItem>{};
@@ -52,10 +54,10 @@ class StatsSheet extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Row(
             children: [
-              Text('통계', style: theme.textTheme.titleLarge),
+              Text(l10n.statsTitle, style: theme.textTheme.titleLarge),
               const SizedBox(width: 8),
               Text(
-                '최근 ${history.length}회',
+                l10n.statsRecentN(history.length),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -69,7 +71,7 @@ class StatsSheet extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 40),
             child: Center(
               child: Text(
-                '아직 기록이 없습니다.',
+                l10n.noHistory,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -85,7 +87,7 @@ class StatsSheet extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 4),
                   child: Text(
-                    '최근 결과',
+                    l10n.statsRecentResults,
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: theme.colorScheme.primary,
                     ),
@@ -111,7 +113,7 @@ class StatsSheet extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
                   child: Text(
-                    '항목별 빈도',
+                    l10n.statsFrequency,
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: theme.colorScheme.primary,
                     ),
@@ -161,7 +163,7 @@ class StatsSheet extends StatelessWidget {
                             SizedBox(
                               width: 30,
                               child: Text(
-                                '${item.count}회',
+                                l10n.statsTimes(item.count),
                                 textAlign: TextAlign.end,
                                 style: theme.textTheme.bodySmall,
                               ),
@@ -170,7 +172,7 @@ class StatsSheet extends StatelessWidget {
                             SizedBox(
                               width: 52,
                               child: Text(
-                                '기대${pct.toStringAsFixed(1)}%',
+                                l10n.statsExpected(pct.toStringAsFixed(1)),
                                 textAlign: TextAlign.end,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,

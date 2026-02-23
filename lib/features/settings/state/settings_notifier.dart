@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' show ThemeMode;
+import 'package:flutter/material.dart' show Locale, ThemeMode;
 import '../../../core/app_themes.dart';
 import '../../../core/utils.dart';
 import '../../../data/settings_repository.dart';
@@ -21,12 +21,25 @@ class SettingsNotifier extends ChangeNotifier {
   String? get lastUsedRouletteId => _settings.lastUsedRouletteId;
   String get themeId => _settings.themeId;
   AppThemeMode get appThemeMode => _settings.appThemeMode;
+  String get localeCode => _settings.localeCode;
 
   /// AppThemeMode → Flutter ThemeMode 변환 (MaterialApp에서 사용)
   ThemeMode get flutterThemeMode => switch (_settings.appThemeMode) {
         AppThemeMode.light => ThemeMode.light,
         AppThemeMode.dark => ThemeMode.dark,
         AppThemeMode.system => ThemeMode.system,
+      };
+
+  /// localeCode → Flutter Locale 변환 (MaterialApp.locale에서 사용)
+  /// null이면 시스템 언어를 따름
+  Locale? get appLocale => switch (_settings.localeCode) {
+        'en' => const Locale('en'),
+        'ko' => const Locale('ko'),
+        'es' => const Locale('es'),
+        'pt-BR' => const Locale('pt', 'BR'),
+        'ja' => const Locale('ja'),
+        'zh-Hans' => const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'),
+        _ => null,
       };
 
   Future<void> load() async {
@@ -68,6 +81,12 @@ class SettingsNotifier extends ChangeNotifier {
   Future<void> setThemeId(String id) async {
     _settings = _settings.copyWith(themeId: id);
     _applyPalette();
+    await _repo.save(_settings);
+    notifyListeners();
+  }
+
+  Future<void> setLocaleCode(String code) async {
+    _settings = _settings.copyWith(localeCode: code);
     await _repo.save(_settings);
     notifyListeners();
   }

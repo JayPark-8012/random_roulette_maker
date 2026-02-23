@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/utils.dart';
 import '../../../domain/roulette.dart';
+import '../../../l10n/app_localizations.dart';
 
 enum RouletteCardAction { edit, duplicate, rename, delete }
 
@@ -25,7 +26,7 @@ class RouletteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    // 룰렛 첫 번째 아이템 컨러 기반 Tint
+    final l10n = AppLocalizations.of(context)!;
     final tintColor = roulette.items.isNotEmpty
         ? roulette.items.first.color
         : colorScheme.primary;
@@ -53,16 +54,10 @@ class RouletteCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color.lerp(
-                colorScheme.surface,
-                tintColor,
-                tintOpacity,
-              ) ?? colorScheme.surface,
-              Color.lerp(
-                colorScheme.surface,
-                tintColor,
-                tintOpacity * 0.2,
-              ) ?? colorScheme.surface,
+              Color.lerp(colorScheme.surface, tintColor, tintOpacity) ??
+                  colorScheme.surface,
+              Color.lerp(colorScheme.surface, tintColor, tintOpacity * 0.2) ??
+                  colorScheme.surface,
             ],
           ),
           borderRadius: BorderRadius.circular(18),
@@ -88,7 +83,6 @@ class RouletteCard extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  // 좌측 컴러 엕센트 바
                   Container(
                     width: 4,
                     height: 52,
@@ -118,26 +112,34 @@ class RouletteCard extends StatelessWidget {
                         Row(
                           children: [
                             Text(
-                              '항목 ${roulette.items.length}개',
+                              l10n.itemCount(roulette.items.length),
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                    color: colorScheme.onSurfaceVariant
+                                        .withOpacity(0.7),
                                     fontWeight: FontWeight.w500,
                                   ),
                             ),
                             if (roulette.lastPlayedAt != null) ...[
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 6),
                                 child: Text(
                                   '·',
                                   style: TextStyle(
-                                    color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+                                    color: colorScheme.onSurfaceVariant
+                                        .withOpacity(0.4),
                                   ),
                                 ),
                               ),
                               Text(
-                                AppUtils.formatRelativeDate(roulette.lastPlayedAt!),
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                                AppUtils.formatRelativeDate(
+                                    roulette.lastPlayedAt!),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: colorScheme.onSurfaceVariant
+                                          .withOpacity(0.5),
                                     ),
                               ),
                             ],
@@ -160,43 +162,7 @@ class RouletteCard extends StatelessWidget {
                       constraints: const BoxConstraints(),
                       splashRadius: 20,
                       color: colorScheme.onSurfaceVariant.withOpacity(0.6),
-                      onPressed: () {
-                        final RenderBox button = context.findRenderObject() as RenderBox;
-                        final RenderBox overlay = Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
-                        final RelativeRect position = RelativeRect.fromRect(
-                          Rect.fromPoints(
-                            button.localToGlobal(Offset(button.size.width, 0), ancestor: overlay),
-                            button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
-                          ),
-                          Offset.zero & overlay.size,
-                        );
-                        showMenu<RouletteCardAction>(
-                          context: context,
-                          position: position,
-                          elevation: 8,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          items: const [
-                            PopupMenuItem(
-                              value: RouletteCardAction.edit,
-                              child: _MenuRow(icon: Icons.edit_note_rounded, label: '편집'),
-                            ),
-                            PopupMenuItem(
-                              value: RouletteCardAction.duplicate,
-                              child: _MenuRow(icon: Icons.copy_rounded, label: '복제'),
-                            ),
-                            PopupMenuItem(
-                              value: RouletteCardAction.rename,
-                              child: _MenuRow(icon: Icons.drive_file_rename_outline_rounded, label: '이름 변경'),
-                            ),
-                            PopupMenuItem(
-                              value: RouletteCardAction.delete,
-                              child: _MenuRow(icon: Icons.delete_outline_rounded, label: '삭제', isDestructive: true),
-                            ),
-                          ],
-                        ).then((action) {
-                          if (action != null) _handleAction(context, action);
-                        });
-                      },
+                      onPressed: () => _showMenu(context, l10n),
                     ),
                   ),
                 ],
@@ -206,6 +172,55 @@ class RouletteCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _showMenu(BuildContext context, AppLocalizations l10n) {
+    final RenderBox button = context.findRenderObject() as RenderBox;
+    final RenderBox overlay =
+        Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
+    final RelativeRect position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        button.localToGlobal(Offset(button.size.width, 0),
+            ancestor: overlay),
+        button.localToGlobal(button.size.bottomRight(Offset.zero),
+            ancestor: overlay),
+      ),
+      Offset.zero & overlay.size,
+    );
+    showMenu<RouletteCardAction>(
+      context: context,
+      position: position,
+      elevation: 8,
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      items: [
+        PopupMenuItem(
+          value: RouletteCardAction.edit,
+          child: _MenuRow(
+              icon: Icons.edit_note_rounded, label: l10n.menuEdit),
+        ),
+        PopupMenuItem(
+          value: RouletteCardAction.duplicate,
+          child: _MenuRow(
+              icon: Icons.copy_rounded, label: l10n.menuDuplicate),
+        ),
+        PopupMenuItem(
+          value: RouletteCardAction.rename,
+          child: _MenuRow(
+              icon: Icons.drive_file_rename_outline_rounded,
+              label: l10n.menuRename),
+        ),
+        PopupMenuItem(
+          value: RouletteCardAction.delete,
+          child: _MenuRow(
+              icon: Icons.delete_outline_rounded,
+              label: l10n.actionDelete,
+              isDestructive: true),
+        ),
+      ],
+    ).then((action) {
+      if (action != null) _handleAction(context, action);
+    });
   }
 
   void _handleAction(BuildContext context, RouletteCardAction action) {
@@ -224,24 +239,25 @@ class RouletteCard extends StatelessWidget {
   }
 
   void _showRenameDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final ctrl = TextEditingController(text: roulette.name);
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('이름 변경'),
+        title: Text(l10n.renameTitle),
         content: TextField(
           controller: ctrl,
           maxLength: 30,
           autofocus: true,
-          decoration: const InputDecoration(
-            labelText: '룰렛 이름',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: l10n.rouletteNameLabel,
+            border: const OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('취소'),
+            child: Text(l10n.actionCancel),
           ),
           FilledButton(
             onPressed: () {
@@ -249,7 +265,7 @@ class RouletteCard extends StatelessWidget {
               if (name.isNotEmpty) onRename(name);
               Navigator.of(ctx).pop();
             },
-            child: const Text('변경'),
+            child: Text(l10n.actionRename),
           ),
         ],
       ),
@@ -257,19 +273,20 @@ class RouletteCard extends StatelessWidget {
   }
 
   Future<bool?> _showDeleteConfirm(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('룰렛 삭제'),
-        content: Text('"${roulette.name}"을(를) 삭제할까요?\n히스토리도 함께 삭제됩니다.'),
+        title: Text(l10n.deleteRouletteTitle),
+        content: Text(l10n.cardDeleteContent(roulette.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('취소'),
+            child: Text(l10n.actionCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('삭제'),
+            child: Text(l10n.actionDelete),
           ),
         ],
       ),

@@ -13,6 +13,8 @@ class Settings {
   final String? lastUsedRouletteId;
   final String themeId;
   final AppThemeMode appThemeMode;
+  /// 'system' | 'en' | 'ko' | 'es' | 'pt-BR' | 'ja' | 'zh-Hans'
+  final String localeCode;
 
   const Settings({
     this.soundEnabled = true,
@@ -22,6 +24,7 @@ class Settings {
     this.lastUsedRouletteId,
     this.themeId = 'indigo',
     this.appThemeMode = AppThemeMode.system,
+    this.localeCode = 'system',
   });
 
   Settings copyWith({
@@ -33,6 +36,7 @@ class Settings {
     String? themeId,
     AppThemeMode? appThemeMode,
     bool clearLastUsed = false,
+    String? localeCode,
   }) {
     return Settings(
       soundEnabled: soundEnabled ?? this.soundEnabled,
@@ -43,6 +47,7 @@ class Settings {
           clearLastUsed ? null : (lastUsedRouletteId ?? this.lastUsedRouletteId),
       themeId: themeId ?? this.themeId,
       appThemeMode: appThemeMode ?? this.appThemeMode,
+      localeCode: localeCode ?? this.localeCode,
     );
   }
 
@@ -55,6 +60,7 @@ class Settings {
       'lastUsedRouletteId': lastUsedRouletteId,
       'themeId': themeId,
       'appThemeMode': appThemeMode.name,
+      'localeCode': localeCode,
       'schemaVersion': 2,
     };
   }
@@ -68,6 +74,7 @@ class Settings {
       lastUsedRouletteId: json['lastUsedRouletteId'] as String?,
       themeId: json['themeId'] as String? ?? 'indigo',
       appThemeMode: _parseAppThemeMode(json['appThemeMode'] as String?),
+      localeCode: json['localeCode'] as String? ?? 'system',
     );
   }
 
