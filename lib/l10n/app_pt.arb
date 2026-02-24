@@ -1,8 +1,8 @@
 {
   "@@locale": "pt",
 
-  "appTitle": "Picksy – Random Picker",
-  "homeTitle": "Picksy – Random Picker",
+  "appTitle": "Spin Wheel – Random Roulette",
+  "homeTitle": "Spin Wheel – Random Roulette",
   "settingsTooltip": "Configurações",
   "tabRoulette": "Roleta",
   "tabCoin": "Moeda",
@@ -126,7 +126,7 @@
   "actionGenerate": "Gerar",
   "recent20": "Últimas 20",
   "minMaxError": "O mínimo deve ser menor que o máximo.",
-  "splashTitle": "Picksy – Random Picker",
+  "splashTitle": "Spin Wheel – Random Roulette",
   "splashSubtitle": "Crie sua própria roleta",
   "templatesTitle": "Kits de Início",
   "templateItemsInfo": "{category} · {count} itens",

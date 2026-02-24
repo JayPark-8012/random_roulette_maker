@@ -9,10 +9,10 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
-  String get appTitle => 'Picksy – 랜덤 룰렛 선택기';
+  String get appTitle => 'Spin Wheel – 랜덤 룰렛';
 
   @override
-  String get homeTitle => 'Picksy – 랜덤 룰렛 선택기';
+  String get homeTitle => 'Spin Wheel – 랜덤 룰렛';
 
   @override
   String get settingsTooltip => '설정';
@@ -400,7 +400,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get minMaxError => '최솟값은 최댓값보다 작아야 합니다.';
 
   @override
-  String get splashTitle => 'Picksy – 랜덤 룰렛 선택기';
+  String get splashTitle => 'Spin Wheel – 랜덤 룰렛';
 
   @override
   String get splashSubtitle => '나만의 룰렛을 만들어 보세요';

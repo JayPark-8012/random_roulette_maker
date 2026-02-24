@@ -31,8 +31,8 @@ class RouletteCard extends StatelessWidget {
         ? roulette.items.first.color
         : colorScheme.primary;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final tintOpacity = isDark ? 0.10 : 0.07;
-    final borderOpacity = isDark ? 0.25 : 0.20;
+    final tintOpacity = isDark ? 0.15 : 0.10;
+    final borderOpacity = isDark ? 0.35 : 0.28;
 
     return Dismissible(
       key: Key(roulette.id),
@@ -56,18 +56,18 @@ class RouletteCard extends StatelessWidget {
             colors: [
               Color.lerp(colorScheme.surface, tintColor, tintOpacity) ??
                   colorScheme.surface,
-              Color.lerp(colorScheme.surface, tintColor, tintOpacity * 0.2) ??
+              Color.lerp(colorScheme.surface, tintColor, tintOpacity * 0.4) ??
                   colorScheme.surface,
             ],
           ),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: tintColor.withOpacity(borderOpacity),
+            color: tintColor.withValues(alpha: borderOpacity),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: tintColor.withOpacity(0.06),
+              color: tintColor.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -77,21 +77,12 @@ class RouletteCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           child: InkWell(
             onTap: onTap,
-            splashColor: tintColor.withOpacity(0.1),
-            highlightColor: tintColor.withOpacity(0.05),
+            splashColor: tintColor.withValues(alpha: 0.1),
+            highlightColor: tintColor.withValues(alpha: 0.05),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
               child: Row(
                 children: [
-                  Container(
-                    width: 4,
-                    height: 52,
-                    margin: const EdgeInsets.only(right: 14),
-                    decoration: BoxDecoration(
-                      color: tintColor,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
                   _ColorPreview(roulette: roulette),
                   const SizedBox(width: 14),
                   Expanded(
@@ -115,7 +106,7 @@ class RouletteCard extends StatelessWidget {
                               l10n.itemCount(roulette.items.length),
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: colorScheme.onSurfaceVariant
-                                        .withOpacity(0.7),
+                                        .withValues(alpha: 0.7),
                                     fontWeight: FontWeight.w500,
                                   ),
                             ),
@@ -127,7 +118,7 @@ class RouletteCard extends StatelessWidget {
                                   '·',
                                   style: TextStyle(
                                     color: colorScheme.onSurfaceVariant
-                                        .withOpacity(0.4),
+                                        .withValues(alpha: 0.4),
                                   ),
                                 ),
                               ),
@@ -139,7 +130,7 @@ class RouletteCard extends StatelessWidget {
                                     .bodySmall
                                     ?.copyWith(
                                       color: colorScheme.onSurfaceVariant
-                                          .withOpacity(0.5),
+                                          .withValues(alpha: 0.5),
                                     ),
                               ),
                             ],
@@ -148,12 +139,30 @@ class RouletteCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: colorScheme.outline.withOpacity(0.5),
-                    size: 20,
+                  const SizedBox(width: 8),
+                  // 컬러 플레이 버튼
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: tintColor.withValues(alpha: isDark ? 0.22 : 0.16),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: tintColor.withValues(alpha: 0.25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.play_arrow_rounded,
+                      color: tintColor,
+                      size: 22,
+                    ),
                   ),
                   const SizedBox(width: 4),
+                  // 메뉴 버튼
                   Material(
                     color: Colors.transparent,
                     child: IconButton(
@@ -161,7 +170,7 @@ class RouletteCard extends StatelessWidget {
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       splashRadius: 20,
-                      color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                       onPressed: () => _showMenu(context, l10n),
                     ),
                   ),
@@ -335,21 +344,21 @@ class _ColorPreview extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      width: 52,
-      height: 52,
+      width: 68,
+      height: 68,
       decoration: BoxDecoration(
         color: colorScheme.surface,
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withOpacity(0.06),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: colorScheme.shadow.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(2),
+        padding: const EdgeInsets.all(2.5),
         child: Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
@@ -359,15 +368,15 @@ class _ColorPreview extends StatelessWidget {
           ),
           child: Center(
             child: Container(
-              width: 14,
-              height: 14,
+              width: 18,
+              height: 18,
               decoration: BoxDecoration(
                 color: colorScheme.surface,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 2,
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 3,
                   ),
                 ],
               ),

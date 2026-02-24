@@ -474,42 +474,55 @@ class _PlayScreenState extends State<PlayScreen>
     return AppBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          centerTitle: false,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          title: AnimatedBuilder(
-            animation: _notifier,
-            builder: (_, _) => Text(
-              _notifier.roulette?.name ?? l10n.playFallbackTitle,
-              style: const TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.8),
-            ),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.bar_chart_rounded),
-              tooltip: l10n.statsTooltip,
-              onPressed: () {
-                if (_notifier.roulette != null) _showStats();
-              },
-            )
-                .animate()
-                .fadeIn(duration: 300.ms)
-                .scaleXY(begin: 0.8, end: 1.0, duration: 300.ms, curve: Curves.elasticOut),
-            IconButton(
-              icon: const Icon(Icons.history_rounded),
-              tooltip: l10n.historyTooltip,
-              onPressed: _showHistory,
-            )
-                .animate()
-                .fadeIn(duration: 300.ms, delay: 50.ms)
-                .scaleXY(begin: 0.8, end: 1.0, duration: 300.ms, delay: 50.ms, curve: Curves.elasticOut),
-          ],
-        ),
-        body: AnimatedBuilder(
-          animation: _notifier,
-          builder: (context, _) {
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ── 슬림 커스텀 헤더 ──
+              AnimatedBuilder(
+                animation: _notifier,
+                builder: (_, _) => Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 4, 8, 0),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      Expanded(
+                        child: Text(
+                          _notifier.roulette?.name ?? l10n.playFallbackTitle,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.8,
+                            fontSize: 17,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.bar_chart_rounded),
+                        tooltip: l10n.statsTooltip,
+                        onPressed: () {
+                          if (_notifier.roulette != null) _showStats();
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.history_rounded),
+                        tooltip: l10n.historyTooltip,
+                        onPressed: _showHistory,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // ── 본문 ──
+              Expanded(
+                child: AnimatedBuilder(
+                  animation: _notifier,
+                  builder: (context, _) {
             final roulette = _notifier.roulette;
             if (roulette == null) {
               return const Center(child: CircularProgressIndicator.adaptive());
@@ -538,9 +551,28 @@ class _PlayScreenState extends State<PlayScreen>
                                     child: Stack(
                                       alignment: Alignment.topCenter,
                                       children: [
-                                        // 휠: 포인터 높이 절반(18px)만큼 아래로 → 50% 중첩
+                                        // ① 글로우 레이어 (휠 뒤 배경 조명)
+                                        Positioned(
+                                          top: 24,
+                                          left: 0,
+                                          right: 0,
+                                          height: MediaQuery.of(context).size.width * 0.92,
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              gradient: RadialGradient(
+                                                colors: [
+                                                  colorScheme.primary.withValues(alpha: 0.22),
+                                                  Colors.transparent,
+                                                ],
+                                                stops: const [0.50, 1.0],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        // ② 휠: 포인터 높이 절반(24px)만큼 아래로 → 50% 중첩
                                         Padding(
-                                          padding: const EdgeInsets.only(top: 18),
+                                          padding: const EdgeInsets.only(top: 24),
                                           child: AnimatedBuilder(
                                             animation: _animController,
                                             builder: (_, _) => CustomPaint(
@@ -549,6 +581,7 @@ class _PlayScreenState extends State<PlayScreen>
                                                 rotationAngle: _isDragging
                                                     ? _dragAngle
                                                     : _rotationAnim.value,
+                                                primaryColor: colorScheme.primary,
                                               ),
                                               size: Size.square(
                                                 MediaQuery.of(context).size.width * 0.92,
@@ -556,7 +589,7 @@ class _PlayScreenState extends State<PlayScreen>
                                             ),
                                           ),
                                         ),
-                                        // 포인터: 휠 위에 렌더 + 섹터 틱 회전 애니메이션
+                                        // ③ 포인터: 휠 위에 렌더 + 섹터 틱 회전 애니메이션
                                         AnimatedBuilder(
                                           animation: _pointerController,
                                           builder: (_, child) => Transform.rotate(
@@ -726,7 +759,11 @@ class _PlayScreenState extends State<PlayScreen>
                 );
               },
             );
-          },
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -804,7 +841,7 @@ class _ResultSheetState extends State<_ResultSheet> {
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: winnerColor.withOpacity(0.35),
+                  color: winnerColor.withValues(alpha: 0.35),
                   blurRadius: 20,
                   spreadRadius: 2,
                 ),
@@ -816,7 +853,7 @@ class _ResultSheetState extends State<_ResultSheet> {
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -835,7 +872,7 @@ class _ResultSheetState extends State<_ResultSheet> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: textColor.withOpacity(0.7),
+                          color: textColor.withValues(alpha: 0.7),
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -967,9 +1004,17 @@ class _SpinModeSegment extends StatelessWidget {
     required this.onModeSelected,
   });
 
+  static Color _modeColor(SpinMode mode) => switch (mode) {
+        SpinMode.lottery => const Color(0xFF22C55E), // 초록
+        SpinMode.round   => const Color(0xFF3B82F6), // 파랑
+        SpinMode.custom  => const Color(0xFFF59E0B), // 주황
+        _                => const Color(0xFF7C3AED),
+      };
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
     final modes = [
       (SpinMode.lottery, l10n.modeLottery),
@@ -978,7 +1023,7 @@ class _SpinModeSegment extends StatelessWidget {
     ];
 
     return Container(
-      height: 38,
+      height: 42,
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(14),
@@ -988,27 +1033,30 @@ class _SpinModeSegment extends StatelessWidget {
           final (mode, label) = entry;
           final isSelected = currentMode == mode;
           final canTap = !isDisabled;
+          final modeColor = _modeColor(mode);
 
           return Expanded(
             child: GestureDetector(
               onTap: canTap ? () => onModeSelected(mode) : null,
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
+                duration: const Duration(milliseconds: 200),
                 margin: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
-                  color: isSelected ? cs.surface : Colors.transparent,
+                  color: isSelected
+                      ? modeColor.withValues(alpha: isDark ? 0.20 : 0.14)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(11),
                   border: isSelected
                       ? Border.all(
-                          color: cs.outlineVariant.withValues(alpha: 0.6),
-                          width: 0.5)
+                          color: modeColor.withValues(alpha: 0.45),
+                          width: 1)
                       : null,
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: cs.shadow.withValues(alpha: 0.08),
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
+                            color: modeColor.withValues(alpha: 0.22),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           )
                         ]
                       : [],
@@ -1018,11 +1066,9 @@ class _SpinModeSegment extends StatelessWidget {
                     label,
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: isSelected
-                          ? FontWeight.w700
-                          : FontWeight.w400,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
                       color: isSelected
-                          ? cs.onSurface
+                          ? modeColor
                           : cs.onSurfaceVariant.withValues(alpha: 0.65),
                     ),
                   ),
@@ -1085,8 +1131,47 @@ class _PremiumSpinButton extends StatefulWidget {
   State<_PremiumSpinButton> createState() => _PremiumSpinButtonState();
 }
 
-class _PremiumSpinButtonState extends State<_PremiumSpinButton> {
+class _PremiumSpinButtonState extends State<_PremiumSpinButton>
+    with SingleTickerProviderStateMixin {
   bool _isPressed = false;
+  late AnimationController _pulseCtrl;
+  late Animation<double> _pulseAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    _pulseAnim = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
+    );
+    _updatePulse();
+  }
+
+  @override
+  void didUpdateWidget(_PremiumSpinButton old) {
+    super.didUpdateWidget(old);
+    if (old.isSpinning != widget.isSpinning ||
+        old.onPressed != widget.onPressed) {
+      _updatePulse();
+    }
+  }
+
+  void _updatePulse() {
+    if (!widget.isSpinning && widget.onPressed != null) {
+      if (!_pulseCtrl.isAnimating) _pulseCtrl.repeat(reverse: true);
+    } else {
+      _pulseCtrl.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulseCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1099,25 +1184,38 @@ class _PremiumSpinButtonState extends State<_PremiumSpinButton> {
       child: AnimatedScale(
         scale: _isPressed ? 0.97 : 1.0,
         duration: const Duration(milliseconds: 120),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            gradient: LinearGradient(
-              colors: [
-                widget.color,
-                Color.lerp(widget.color, Colors.black, 0.1) ?? widget.color,
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: widget.color.withOpacity(isDisabled ? 0 : 0.4),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
+        child: AnimatedBuilder(
+          animation: _pulseAnim,
+          builder: (_, child) {
+            final t = _pulseAnim.value;
+            final glowAlpha = (isDisabled || widget.isSpinning)
+                ? 0.0
+                : 0.28 + t * 0.22; // idle: 0.28 ~ 0.50
+            final glowBlur = (isDisabled || widget.isSpinning)
+                ? 0.0
+                : 12.0 + t * 16.0; // idle: 12 ~ 28
+            return Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                gradient: LinearGradient(
+                  colors: [
+                    widget.color,
+                    Color.lerp(widget.color, Colors.black, 0.1) ?? widget.color,
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: widget.color.withValues(alpha: glowAlpha),
+                    blurRadius: glowBlur,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
-            ],
-          ),
+              child: child,
+            );
+          },
           child: Center(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),

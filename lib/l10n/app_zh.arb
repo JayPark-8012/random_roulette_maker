@@ -1,8 +1,8 @@
 {
   "@@locale": "zh",
 
-  "appTitle": "Picksy – Random Picker",
-  "homeTitle": "Picksy – Random Picker",
+  "appTitle": "Spin Wheel – Random Roulette",
+  "homeTitle": "Spin Wheel – Random Roulette",
   "settingsTooltip": "设置",
   "tabRoulette": "转盘",
   "tabCoin": "硬币",
@@ -126,7 +126,7 @@
   "actionGenerate": "生成",
   "recent20": "最近20次",
   "minMaxError": "最小值必须小于最大值。",
-  "splashTitle": "Picksy – Random Picker",
+  "splashTitle": "Spin Wheel – Random Roulette",
   "splashSubtitle": "创建你自己的转盘",
   "templatesTitle": "入门套装",
   "templateItemsInfo": "{category} · {count} 个选项",

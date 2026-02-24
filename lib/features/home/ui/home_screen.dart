@@ -1,7 +1,6 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/services.dart' show SystemNavigator;
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter/services.dart' show HapticFeedback, SystemNavigator;
 import '../../../core/constants.dart';
 import '../../../data/premium_service.dart';
 import '../../../domain/premium_state.dart';
@@ -140,21 +139,75 @@ class _HomeScreenState extends State<HomeScreen>
   // ── 헤더 ──────────────────────────────────────────────
 
   Widget _buildHeader(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // 앱 이름에 무지개 그라디언트 적용
+    const logoGradient = LinearGradient(
+      colors: [
+        Color(0xFFFF6B6B),
+        Color(0xFFFFD93D),
+        Color(0xFF6BCB77),
+        Color(0xFF4D96FF),
+      ],
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+    );
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 8, 0),
+      padding: const EdgeInsets.fromLTRB(20, 14, 8, 0),
       child: Row(
         children: [
-          Expanded(
-            // TextTheme에서 headlineMedium이 이미 w800, -0.8 spacing 제공
-            child: Text(
-              AppLocalizations.of(context)!.homeTitle,
-              style: Theme.of(context).textTheme.headlineMedium,
+          // 로고 아이콘
+          Container(
+            width: 34,
+            height: 34,
+            margin: const EdgeInsets.only(right: 10),
+            decoration: BoxDecoration(
+              gradient: const SweepGradient(
+                colors: [
+                  Color(0xFFFF6B6B),
+                  Color(0xFFFFD93D),
+                  Color(0xFF6BCB77),
+                  Color(0xFF4D96FF),
+                  Color(0xFF7C3AED),
+                  Color(0xFFFF6B6B),
+                ],
+              ),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: cs.primary.withValues(alpha: isDark ? 0.5 : 0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.track_changes_rounded,
+              color: Colors.white,
+              size: 18,
             ),
           ),
+          // 앱 이름 (그라디언트 텍스트)
+          Expanded(
+            child: ShaderMask(
+              shaderCallback: (bounds) => logoGradient.createShader(bounds),
+              blendMode: BlendMode.srcIn,
+              child: Text(
+                AppLocalizations.of(context)!.homeTitle,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                    ),
+              ),
+            ),
+          ),
+          // 설정 버튼
           IconButton(
             icon: Icon(
               Icons.settings_rounded,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              color: cs.onSurfaceVariant,
             ),
             onPressed: () =>
                 Navigator.of(context).pushNamed(AppRoutes.settings),
@@ -355,9 +408,8 @@ class _HomeScreenState extends State<HomeScreen>
 
 // ── 세그먼트 탭 바 (분리 위젯) ─────────────────────────────────
 //
-// 배치: 가로 1줄 / 높이 ~44px (padding 4 + inner 8*2 + icon 15)
-// active  → cs.primary 배경 + cs.onPrimary 텍스트/아이콘
-// inactive → 투명 배경 + cs.onSurfaceVariant (dim)
+// 모드별 고유 컬러, 아이콘+레이블 세로 배치, 활성 시 glow shadow
+// height: 58px / active → 솔리드 컬러 배경 + 흰 텍스트/아이콘
 
 class _QuickSegmentBar extends StatelessWidget {
   final _HomeMode selected;
@@ -366,77 +418,94 @@ class _QuickSegmentBar extends StatelessWidget {
   const _QuickSegmentBar({required this.selected, required this.onChanged});
 
   static IconData _icon(_HomeMode m) => switch (m) {
-        _HomeMode.roulette => Icons.casino_rounded,
-        _HomeMode.coin => Icons.monetization_on_outlined,
-        _HomeMode.dice => Icons.casino_outlined,
-        _HomeMode.number => Icons.tag_rounded,
+        _HomeMode.roulette => Icons.track_changes_rounded,
+        _HomeMode.coin     => Icons.monetization_on_rounded,
+        _HomeMode.dice     => Icons.casino_rounded,
+        _HomeMode.number   => Icons.shuffle_rounded,
+      };
+
+  // 모드별 액센트 컬러
+  static Color _modeColor(_HomeMode m) => switch (m) {
+        _HomeMode.roulette => const Color(0xFF7C3AED),
+        _HomeMode.coin     => const Color(0xFFF59E0B),
+        _HomeMode.dice     => const Color(0xFFEC4899),
+        _HomeMode.number   => const Color(0xFF3B82F6),
       };
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     String label(_HomeMode m) => switch (m) {
           _HomeMode.roulette => l10n.tabRoulette,
-          _HomeMode.coin => l10n.tabCoin,
-          _HomeMode.dice => l10n.tabDice,
-          _HomeMode.number => l10n.tabNumber,
+          _HomeMode.coin     => l10n.tabCoin,
+          _HomeMode.dice     => l10n.tabDice,
+          _HomeMode.number   => l10n.tabNumber,
         };
 
     return Container(
-      height: 44,
+      height: 58,
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: cs.surfaceContainer,
-        borderRadius: BorderRadius.circular(22),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.07)
+            : cs.surfaceContainer,
+        borderRadius: BorderRadius.circular(28),
+        border: isDark
+            ? Border.all(
+                color: Colors.white.withValues(alpha: 0.08),
+                width: 1,
+              )
+            : null,
       ),
       child: Row(
         children: _HomeMode.values.map((mode) {
           final isActive = mode == selected;
+          final accent = _modeColor(mode);
+
           return Expanded(
             child: GestureDetector(
               onTap: () => onChanged(mode),
               behavior: HitTestBehavior.opaque,
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
+                duration: const Duration(milliseconds: 200),
                 curve: Curves.easeInOut,
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                transform: Matrix4.identity()..scale(isActive ? 1.02 : 1.0),
-                transformAlignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isActive ? cs.primary : Colors.transparent,
-                  borderRadius: BorderRadius.circular(18),
+                  color: isActive ? accent : Colors.transparent,
+                  borderRadius: BorderRadius.circular(24),
                   boxShadow: isActive
                       ? [
                           BoxShadow(
-                            color: cs.primary.withOpacity(0.15),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                            color: accent.withValues(alpha: 0.45),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
                         ]
                       : [],
                 ),
-                child: Row(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
                       _icon(mode),
-                      size: 16,
+                      size: 20,
                       color: isActive
-                          ? cs.onPrimary
-                          : cs.onSurfaceVariant.withOpacity(0.6),
+                          ? Colors.white
+                          : cs.onSurfaceVariant.withValues(alpha: 0.5),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(height: 3),
                     Text(
                       label(mode),
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             fontWeight:
                                 isActive ? FontWeight.w700 : FontWeight.w500,
                             color: isActive
-                                ? cs.onPrimary
-                                : cs.onSurfaceVariant.withOpacity(0.6),
+                                ? Colors.white
+                                : cs.onSurfaceVariant.withValues(alpha: 0.5),
+                            fontSize: 10,
                           ),
                     ),
                   ],
@@ -504,18 +573,11 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(28),
-              decoration: BoxDecoration(
-                color: cs.primaryContainer.withValues(alpha: 0.3),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.casino_rounded, size: 56, color: cs.primary),
-            ),
+            // 천천히 도는 미니 룰렛 휠
+            const _MiniSpinningWheel(),
             const SizedBox(height: 32),
             Text(
               l10n.emptyTitle,
-              // headlineSmall에서 이미 w700 + -0.5 spacing 제공
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
@@ -542,4 +604,117 @@ class _EmptyState extends StatelessWidget {
       ),
     );
   }
+}
+
+// ── 미니 스피닝 휠 ─────────────────────────────────────────────
+
+class _MiniSpinningWheel extends StatefulWidget {
+  const _MiniSpinningWheel();
+
+  @override
+  State<_MiniSpinningWheel> createState() => _MiniSpinningWheelState();
+}
+
+class _MiniSpinningWheelState extends State<_MiniSpinningWheel>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 6),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, child) => Transform.rotate(
+        angle: _ctrl.value * 2 * pi,
+        child: child,
+      ),
+      child: const CustomPaint(
+        painter: _SimpleWheelPainter(),
+        size: Size(128, 128),
+      ),
+    );
+  }
+}
+
+class _SimpleWheelPainter extends CustomPainter {
+  const _SimpleWheelPainter();
+
+  static const _colors = [
+    Color(0xFFFF6B6B),
+    Color(0xFFFFD93D),
+    Color(0xFF6BCB77),
+    Color(0xFF4ECDC4),
+    Color(0xFF7C3AED),
+    Color(0xFFEC4899),
+  ];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 2;
+    const count = 6;
+    const sweep = 2 * pi / count;
+    final fill = Paint()..style = PaintingStyle.fill;
+
+    // 섹터 채우기
+    for (int i = 0; i < count; i++) {
+      fill.color = _colors[i];
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        i * sweep - pi / 2,
+        sweep,
+        true,
+        fill,
+      );
+    }
+
+    // 섹터 구분선
+    final divider = Paint()
+      ..color = Colors.white.withValues(alpha: 0.5)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+    for (int i = 0; i < count; i++) {
+      final angle = i * sweep - pi / 2;
+      canvas.drawLine(
+        center,
+        Offset(center.dx + radius * cos(angle), center.dy + radius * sin(angle)),
+        divider,
+      );
+    }
+
+    // 외곽 링
+    final ring = Paint()
+      ..color = Colors.white.withValues(alpha: 0.6)
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke;
+    canvas.drawCircle(center, radius, ring);
+
+    // 중앙 허브 (흰 원)
+    fill
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, radius * 0.18, fill);
+    final hubBorder = Paint()
+      ..color = Colors.black.withValues(alpha: 0.10)
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+    canvas.drawCircle(center, radius * 0.18, hubBorder);
+  }
+
+  @override
+  bool shouldRepaint(_SimpleWheelPainter old) => false;
 }

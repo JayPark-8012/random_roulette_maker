@@ -1,9 +1,9 @@
 {
   "@@locale": "en",
 
-  "appTitle": "Picksy – Random Picker",
+  "appTitle": "Spin Wheel – Random Roulette",
   "@appTitle": {},
-  "homeTitle": "Picksy – Random Picker",
+  "homeTitle": "Spin Wheel – Random Roulette",
   "@homeTitle": {},
 
   "settingsTooltip": "Settings",
@@ -408,7 +408,7 @@
   "minMaxError": "Min must be less than max.",
   "@minMaxError": {},
 
-  "splashTitle": "Picksy – Random Picker",
+  "splashTitle": "Spin Wheel – Random Roulette",
   "@splashTitle": {},
 
   "splashSubtitle": "Create your own roulette",

@@ -9,10 +9,10 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Picksy – Random Picker';
+  String get appTitle => 'Spin Wheel – Random Roulette';
 
   @override
-  String get homeTitle => 'Picksy – Random Picker';
+  String get homeTitle => 'Spin Wheel – Random Roulette';
 
   @override
   String get settingsTooltip => 'Settings';
@@ -403,7 +403,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get minMaxError => 'Min must be less than max.';
 
   @override
-  String get splashTitle => 'Picksy – Random Picker';
+  String get splashTitle => 'Spin Wheel – Random Roulette';
 
   @override
   String get splashSubtitle => 'Create your own roulette';

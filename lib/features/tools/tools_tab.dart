@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../core/constants.dart';
@@ -22,9 +23,7 @@ class _ToolsTabState extends State<ToolsTab>
   bool? _coin; // null=미실행
   final List<bool> _coinHistory = [];
 
-  // ── 주사위 상태 ───────────────────────────────────────
-  static const _diceSides = [4, 6, 8, 10, 12, 20];
-  int _diceType = 6;
+  // ── 주사위 상태 (D6 고정) ─────────────────────────────
   int? _diceResult;
   final List<Map<String, int>> _diceHistory = [];
 
@@ -68,7 +67,6 @@ class _ToolsTabState extends State<ToolsTab>
         if (_numHistory.isNotEmpty) _numResult = _numHistory.first['result'];
       });
     } catch (e) {
-      // LocalStorage 초기화 전이거나 web 환경에서는 무시
       debugPrint('ToolsTab._load() error: $e');
     }
   }
@@ -96,10 +94,10 @@ class _ToolsTabState extends State<ToolsTab>
   }
 
   void _rollDice() {
-    final r = Random().nextInt(_diceType) + 1;
+    final r = Random().nextInt(6) + 1;
     setState(() {
       _diceResult = r;
-      _diceHistory.insert(0, {'type': _diceType, 'result': r});
+      _diceHistory.insert(0, {'type': 6, 'result': r});
       if (_diceHistory.length > 10) _diceHistory.removeLast();
     });
     _save();
@@ -108,12 +106,7 @@ class _ToolsTabState extends State<ToolsTab>
   void _generateNumber() {
     final min = int.tryParse(_minCtrl.text.trim()) ?? 1;
     final max = int.tryParse(_maxCtrl.text.trim()) ?? 100;
-    if (min >= max) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.minMaxError)),
-      );
-      return;
-    }
+    if (min >= max) return; // 검증은 _NumberCardState에서 처리
     final r = min + Random().nextInt(max - min + 1);
     setState(() {
       _numResult = r;
@@ -137,22 +130,16 @@ class _ToolsTabState extends State<ToolsTab>
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
       children: [
-        // [재사용] 코인 플립 카드
         if (so == null || so == 'coin')
           _CoinCard(coin: _coin, history: _coinHistory, onFlip: _flipCoin),
-        // [재사용] 주사위 카드
-        if (so == null) const SizedBox(height: 12),
+        if (so == null) const SizedBox(height: 14),
         if (so == null || so == 'dice')
           _DiceCard(
-            diceType: _diceType,
-            diceSides: _diceSides,
             result: _diceResult,
             history: _diceHistory,
-            onTypeChanged: (t) => setState(() => _diceType = t),
             onRoll: _rollDice,
           ),
-        // [재사용] 랜덤 숫자 카드
-        if (so == null) const SizedBox(height: 12),
+        if (so == null) const SizedBox(height: 14),
         if (so == null || so == 'number')
           _NumberCard(
             minCtrl: _minCtrl,
@@ -166,8 +153,84 @@ class _ToolsTabState extends State<ToolsTab>
   }
 }
 
-// ── 코인 플립 카드 ─────────────────────────────────────────
-class _CoinCard extends StatelessWidget {
+// ── 공통 카드 데코레이션 헬퍼 ───────────────────────────────────
+BoxDecoration _cardDecoration(
+    Color accentColor, Color surface, bool isDark) {
+  return BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color.lerp(surface, accentColor, isDark ? 0.13 : 0.08) ?? surface,
+        Color.lerp(surface, accentColor, isDark ? 0.04 : 0.02) ?? surface,
+      ],
+    ),
+    borderRadius: BorderRadius.circular(22),
+    border: Border.all(
+      color: accentColor.withValues(alpha: isDark ? 0.38 : 0.25),
+      width: 1,
+    ),
+    boxShadow: [
+      BoxShadow(
+        color: accentColor.withValues(alpha: 0.12),
+        blurRadius: 18,
+        offset: const Offset(0, 6),
+      ),
+    ],
+  );
+}
+
+// 아이콘 배지 헤더 위젯
+Widget _cardHeader(
+    BuildContext context, IconData icon, String title, Color color, bool isDark) {
+  return Row(
+    children: [
+      Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: isDark ? 0.22 : 0.15),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, size: 18, color: color),
+      ),
+      const SizedBox(width: 10),
+      Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+      ),
+    ],
+  );
+}
+
+// 가로 스크롤 히스토리 배지 리스트
+Widget _historyRow(
+    List<Widget> badges, String label, BuildContext context) {
+  final cs = Theme.of(context).colorScheme;
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: Theme.of(context)
+            .textTheme
+            .labelMedium
+            ?.copyWith(color: cs.onSurfaceVariant),
+      ),
+      const SizedBox(height: 8),
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(children: badges),
+      ),
+    ],
+  );
+}
+
+// ── 코인 플립 카드 (StatefulWidget + 3D flip) ──────────────────
+class _CoinCard extends StatefulWidget {
   final bool? coin;
   final List<bool> history;
   final VoidCallback onFlip;
@@ -176,112 +239,219 @@ class _CoinCard extends StatelessWidget {
       {required this.coin, required this.history, required this.onFlip});
 
   @override
+  State<_CoinCard> createState() => _CoinCardState();
+}
+
+class _CoinCardState extends State<_CoinCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _flipCtrl;
+  late Animation<double> _flipAnim;
+  bool? _prevCoin;
+
+  @override
+  void initState() {
+    super.initState();
+    _prevCoin = widget.coin;
+    _flipCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _flipAnim = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _flipCtrl, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void didUpdateWidget(_CoinCard old) {
+    super.didUpdateWidget(old);
+    if (old.coin != widget.coin && widget.coin != null) {
+      _prevCoin = old.coin;
+      _flipCtrl.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _flipCtrl.dispose();
+    super.dispose();
+  }
+
+  Widget _buildCoinFace(bool? isHeads, ColorScheme cs, AppLocalizations l10n) {
+    if (isHeads == null) {
+      return Container(
+        width: 114,
+        height: 114,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: cs.surfaceContainerHighest,
+          border: Border.all(
+            color: cs.outlineVariant.withValues(alpha: 0.5),
+            width: 2.5,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            '?',
+            style: TextStyle(
+              fontSize: 40,
+              fontWeight: FontWeight.w900,
+              color: cs.onSurfaceVariant.withValues(alpha: 0.45),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // 앞면: 골드 메탈릭 / 뒷면: 실버 메탈릭
+    final isH = isHeads;
+    final topColor =
+        isH ? const Color(0xFFFFD700) : const Color(0xFFDDDDEE);
+    final botColor =
+        isH ? const Color(0xFFCC8800) : const Color(0xFF9898B0);
+    final glowColor = isH ? Colors.amber : Colors.blueGrey;
+    final embossColor =
+        isH ? const Color(0xFF7A4800) : const Color(0xFF3A3A5A);
+
+    return Container(
+      width: 114,
+      height: 114,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [topColor, botColor],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: glowColor.withValues(alpha: 0.60),
+            blurRadius: 24,
+            spreadRadius: 3,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // 상단 광택 반원
+          Positioned(
+            top: 16,
+            left: 16,
+            child: Container(
+              width: 32,
+              height: 18,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.30),
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+          ),
+          // 중앙 엠보싱 아이콘
+          Icon(
+            isH ? Icons.wb_sunny_rounded : Icons.nightlight_round,
+            size: 38,
+            color: embossColor.withValues(alpha: 0.70),
+          ),
+          // 외곽 테두리 링
+          Container(
+            width: 114,
+            height: 114,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.22),
+                width: 3,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
-    final isHeads = coin == true;
-    final color = coin == null
-        ? cs.surfaceContainerHighest
-        : (isHeads ? cs.primary : cs.secondary);
-    final textColor = coin == null
-        ? cs.onSurfaceVariant
-        : (isHeads ? cs.onPrimary : cs.onSecondary);
+    const accentColor = Color(0xFFF5C04A);
 
-    const accentColor = Color(0xFFF5C04A); // Casual Gold
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+    return Container(
+      decoration: _cardDecoration(accentColor, cs.surface, isDark),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Row(
-              children: [
-                Icon(Icons.monetization_on_outlined,
-                    size: 20, color: accentColor),
-                const SizedBox(width: 8),
-                Text(l10n.coinFlipTitle,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold, color: accentColor)),
-              ],
+            // ── 헤더 ──
+            _cardHeader(context, Icons.monetization_on_outlined,
+                l10n.coinFlipTitle, accentColor, isDark),
+            const SizedBox(height: 24),
+            // ── 코인 (3D 플립 애니메이션) ──
+            AnimatedBuilder(
+              animation: _flipAnim,
+              builder: (_, _) {
+                final t = _flipAnim.value;
+                final double scaleX;
+                final bool? displayCoin;
+                if (t < 0.5) {
+                  scaleX = 1.0 - t * 2;
+                  displayCoin = _prevCoin;
+                } else {
+                  scaleX = (t - 0.5) * 2;
+                  displayCoin = widget.coin;
+                }
+                return Transform.scale(
+                  scaleX: scaleX.clamp(0.0, 1.0),
+                  child: _buildCoinFace(displayCoin, cs, l10n),
+                );
+              },
             ),
             const SizedBox(height: 20),
-            _ResultBounce(
-              resultKey: coin,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                  boxShadow: coin != null
-                      ? [
-                          BoxShadow(
-                            color: color.withOpacity(0.4),
-                            blurRadius: 18,
-                            spreadRadius: 2,
-                            offset: const Offset(0, 4),
-                          )
-                        ]
-                      : [],
-                ),
-                child: Center(
-                  child: Text(
-                    coin == null
-                        ? '?'
-                        : (isHeads ? l10n.coinHeads : l10n.coinTails),
-                    style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        color: textColor),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              height: 52,
+              height: 54,
               child: _PremiumButton(
-                onPressed: onFlip,
+                onPressed: widget.onFlip,
                 icon: Icons.flip,
                 label: l10n.actionFlip,
                 color: accentColor,
               ),
             ),
-            if (history.isNotEmpty) ...[
+            // ── 히스토리 ──
+            if (widget.history.isNotEmpty) ...[
               const SizedBox(height: 16),
-              const Divider(),
+              Divider(color: accentColor.withValues(alpha: 0.2)),
               const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(l10n.recent10,
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelMedium
-                        ?.copyWith(color: cs.onSurfaceVariant)),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: history
-                    .map((h) => Chip(
-                          label: Text(h ? l10n.coinHeads : l10n.coinTails,
-                              style: const TextStyle(fontSize: 12)),
-                          backgroundColor: h
-                              ? cs.primaryContainer
-                              : cs.secondaryContainer,
-                          side: BorderSide.none,
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          visualDensity: VisualDensity.compact,
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                        ))
-                    .toList(),
+              _historyRow(
+                widget.history.map((h) {
+                  final hColor = h
+                      ? const Color(0xFFFFD700)
+                      : const Color(0xFFB0B0C0);
+                  return Container(
+                    margin: const EdgeInsets.only(right: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: hColor.withValues(alpha: isDark ? 0.22 : 0.15),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                          color: hColor.withValues(alpha: 0.45), width: 1),
+                    ),
+                    child: Text(
+                      h ? l10n.coinHeads : l10n.coinTails,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? hColor.withValues(alpha: 0.9)
+                            : hColor.withValues(alpha: 0.80),
+                      ),
+                    ),
+                  );
+                }).toList(),
+                l10n.recent10,
+                context,
               ),
             ],
           ],
@@ -291,137 +461,184 @@ class _CoinCard extends StatelessWidget {
   }
 }
 
-// ── 주사위 카드 ────────────────────────────────────────────
-class _DiceCard extends StatelessWidget {
-  final int diceType;
-  final List<int> diceSides;
+// ── 주사위 카드 (D6 고정 + 감속 카운터 애니메이션) ───────────────────────
+class _DiceCard extends StatefulWidget {
   final int? result;
   final List<Map<String, int>> history;
-  final ValueChanged<int> onTypeChanged;
   final VoidCallback onRoll;
 
   const _DiceCard({
-    required this.diceType,
-    required this.diceSides,
     required this.result,
     required this.history,
-    required this.onTypeChanged,
     required this.onRoll,
   });
 
   @override
+  State<_DiceCard> createState() => _DiceCardState();
+}
+
+class _DiceCardState extends State<_DiceCard> {
+  // 감속 딜레이 목록 (ms) — 총 10틱
+  static const _rollDelays = [35, 35, 40, 50, 65, 80, 100, 125, 155, 190];
+
+  int? _displayResult;
+  bool _isRolling = false;
+  int _rollDoneCount = 0;
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  void _startRoll() {
+    widget.onRoll();
+    setState(() {
+      _isRolling = true;
+      _displayResult = Random().nextInt(6) + 1;
+    });
+    _scheduleRollTick(0);
+  }
+
+  void _scheduleRollTick(int tick) {
+    if (_disposed) return;
+    Timer(Duration(milliseconds: _rollDelays[tick]), () {
+      if (_disposed) return;
+      final nextVal = Random().nextInt(6) + 1;
+      if (tick + 1 < _rollDelays.length) {
+        setState(() => _displayResult = nextVal);
+        _scheduleRollTick(tick + 1);
+      } else {
+        setState(() {
+          _isRolling = false;
+          _displayResult = null;
+          _rollDoneCount++;
+        });
+      }
+    });
+  }
+
+  Widget _buildDiceFace(int? result, Color accentColor, ColorScheme cs,
+      bool isDark, {bool rolling = false}) {
+    if (result == null) {
+      return Container(
+        width: 128,
+        height: 128,
+        decoration: BoxDecoration(
+          color: cs.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: cs.outlineVariant.withValues(alpha: 0.35),
+            width: 1.5,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            '?',
+            style: TextStyle(
+              fontSize: 44,
+              fontWeight: FontWeight.w900,
+              color: cs.onSurfaceVariant.withValues(alpha: 0.45),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: 128,
+      height: 128,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: accentColor.withValues(alpha: rolling ? 0.15 : 0.35),
+            blurRadius: 20,
+            spreadRadius: 2,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: CustomPaint(
+        size: const Size(128, 128),
+        painter: _DiceFacePainter(
+            value: result, color: accentColor, isDark: isDark, rolling: rolling),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
+    const accentColor = Color(0xFFAB47BC);
 
-    const accentColor = Color(0xFFAB47BC); // Premium Purple
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+    final shownResult = _isRolling ? _displayResult : widget.result;
+
+    return Container(
+      decoration: _cardDecoration(accentColor, cs.surface, isDark),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.casino_outlined, size: 20, color: accentColor),
-                const SizedBox(width: 8),
-                Text(l10n.diceTitle,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold, color: accentColor)),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: diceSides
-                  .map((s) => ChoiceChip(
-                        label: Text('D$s'),
-                        selected: diceType == s,
-                        onSelected: (_) => onTypeChanged(s),
-                        visualDensity: VisualDensity.compact,
-                        showCheckmark: false,
-                      ))
-                  .toList(),
-            ),
-            const SizedBox(height: 16),
+            // ── 헤더 ──
+            _cardHeader(context, Icons.casino_outlined,
+                l10n.diceTitle, accentColor, isDark),
+            const SizedBox(height: 20),
             Center(
               child: _ResultBounce(
-                resultKey: result,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  width: 96,
-                  height: 96,
-                  decoration: BoxDecoration(
-                    color: result != null
-                        ? cs.primaryContainer
-                        : cs.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: result != null
-                        ? [
-                            BoxShadow(
-                              color: cs.primary.withOpacity(0.3),
-                              blurRadius: 18,
-                              spreadRadius: 2,
-                              offset: const Offset(0, 4),
-                            )
-                          ]
-                        : [],
-                  ),
-                  child: Center(
-                    child: Text(
-                      result != null ? '$result' : '?',
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w900,
-                        color: result != null
-                            ? cs.onPrimaryContainer
-                            : cs.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
+                resultKey: _rollDoneCount,
+                child: _buildDiceFace(
+                  shownResult, accentColor, cs, isDark,
+                  rolling: _isRolling,
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
-              height: 52,
+              height: 54,
               child: _PremiumButton(
-                onPressed: onRoll,
+                onPressed: _isRolling ? null : _startRoll,
                 icon: Icons.casino_rounded,
-                label: l10n.rollDice(diceType),
+                label: l10n.rollDice(6),
                 color: accentColor,
               ),
             ),
-            if (history.isNotEmpty) ...[
+            // ── 히스토리 ──
+            if (widget.history.isNotEmpty) ...[
               const SizedBox(height: 16),
-              const Divider(),
+              Divider(color: accentColor.withValues(alpha: 0.2)),
               const SizedBox(height: 8),
-              Text(l10n.recent10,
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelMedium
-                      ?.copyWith(color: cs.onSurfaceVariant)),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: history
-                    .map((h) => Chip(
-                          label: Text('D${h['type']} → ${h['result']}',
-                              style: const TextStyle(fontSize: 12)),
-                          backgroundColor: cs.surfaceContainerHighest,
-                          side: BorderSide.none,
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          visualDensity: VisualDensity.compact,
+              _historyRow(
+                widget.history
+                    .map((h) => Container(
+                          margin: const EdgeInsets.only(right: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: accentColor.withValues(
+                                alpha: isDark ? 0.18 : 0.12),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                                color: accentColor.withValues(alpha: 0.35),
+                                width: 1),
+                          ),
+                          child: Text(
+                            '${h['result']}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: accentColor,
+                            ),
+                          ),
                         ))
                     .toList(),
+                l10n.recent10,
+                context,
               ),
             ],
           ],
@@ -431,8 +648,94 @@ class _DiceCard extends StatelessWidget {
   }
 }
 
-// ── 랜덤 숫자 카드 ─────────────────────────────────────────
-class _NumberCard extends StatelessWidget {
+// ── D6 눈 CustomPainter ─────────────────────────────────────
+class _DiceFacePainter extends CustomPainter {
+  final int value;
+  final Color color;
+  final bool isDark;
+  final bool rolling;
+
+  const _DiceFacePainter({
+    required this.value,
+    required this.color,
+    required this.isDark,
+    this.rolling = false,
+  });
+
+  // 눈 위치 (0.0~1.0 비율)
+  static const _dots = <int, List<Offset>>{
+    1: [Offset(0.50, 0.50)],
+    2: [Offset(0.72, 0.28), Offset(0.28, 0.72)],
+    3: [Offset(0.72, 0.28), Offset(0.50, 0.50), Offset(0.28, 0.72)],
+    4: [
+      Offset(0.28, 0.28),
+      Offset(0.72, 0.28),
+      Offset(0.28, 0.72),
+      Offset(0.72, 0.72)
+    ],
+    5: [
+      Offset(0.28, 0.28),
+      Offset(0.72, 0.28),
+      Offset(0.50, 0.50),
+      Offset(0.28, 0.72),
+      Offset(0.72, 0.72)
+    ],
+    6: [
+      Offset(0.28, 0.25),
+      Offset(0.72, 0.25),
+      Offset(0.28, 0.50),
+      Offset(0.72, 0.50),
+      Offset(0.28, 0.75),
+      Offset(0.72, 0.75)
+    ],
+  };
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final bgAlpha = rolling
+        ? (isDark ? 0.12 : 0.08)
+        : (isDark ? 0.22 : 0.15);
+    final bgColor = color.withValues(alpha: bgAlpha);
+    final borderColor = color.withValues(alpha: rolling ? 0.25 : 0.45);
+    final dotColor = color.withValues(alpha: rolling ? 0.40 : 1.0);
+
+    final rrect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      const Radius.circular(24),
+    );
+
+    // 배경
+    canvas.drawRRect(rrect, Paint()..color = bgColor);
+    // 테두리
+    canvas.drawRRect(
+        rrect,
+        Paint()
+          ..color = borderColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5);
+
+    // 눈
+    final positions = _dots[value.clamp(1, 6)] ?? [];
+    final dotRadius = size.width * 0.09;
+    for (final pos in positions) {
+      canvas.drawCircle(
+        Offset(pos.dx * size.width, pos.dy * size.height),
+        dotRadius,
+        Paint()..color = dotColor,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DiceFacePainter old) =>
+      old.value != value ||
+      old.color != color ||
+      old.isDark != isDark ||
+      old.rolling != rolling;
+}
+
+// ── 랜덤 숫자 카드 (StatefulWidget + 감속 카운터 애니메이션) ──────────
+class _NumberCard extends StatefulWidget {
   final TextEditingController minCtrl;
   final TextEditingController maxCtrl;
   final int? result;
@@ -448,83 +751,168 @@ class _NumberCard extends StatelessWidget {
   });
 
   @override
+  State<_NumberCard> createState() => _NumberCardState();
+}
+
+class _NumberCardState extends State<_NumberCard> {
+  // 감속 딜레이 목록 (ms) — 총 12틱
+  static const _genDelays = [30, 30, 35, 45, 58, 72, 90, 110, 135, 165, 200, 240];
+
+  int? _displayResult;
+  bool _isGenerating = false;
+  int _genDoneCount = 0;
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  void _startGenerate() {
+    final min = int.tryParse(widget.minCtrl.text.trim()) ?? 1;
+    final max = int.tryParse(widget.maxCtrl.text.trim()) ?? 100;
+    if (min >= max) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.minMaxError)),
+      );
+      return;
+    }
+    widget.onGenerate(); // 즉시 부모 상태 갱신
+    setState(() {
+      _isGenerating = true;
+      _displayResult = min + Random().nextInt(max - min + 1);
+    });
+    _scheduleGenTick(min, max, 0);
+  }
+
+  void _scheduleGenTick(int min, int max, int tick) {
+    if (_disposed) return;
+    Timer(Duration(milliseconds: _genDelays[tick]), () {
+      if (_disposed) return;
+      final nextVal = min + Random().nextInt(max - min + 1);
+      if (tick + 1 < _genDelays.length) {
+        setState(() => _displayResult = nextVal);
+        _scheduleGenTick(min, max, tick + 1);
+      } else {
+        setState(() {
+          _isGenerating = false;
+          _displayResult = null;
+          _genDoneCount++;
+        });
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
+    const accentColor = Color(0xFF42A5F5);
 
-    const accentColor = Color(0xFF42A5F5); // Soft Blue
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+    final shownResult = _isGenerating ? _displayResult : widget.result;
+
+    final inputBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide:
+          BorderSide(color: accentColor.withValues(alpha: 0.35), width: 1),
+    );
+    final focusedBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: accentColor, width: 2),
+    );
+
+    return Container(
+      decoration: _cardDecoration(accentColor, cs.surface, isDark),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.tag_rounded, size: 20, color: accentColor),
-                const SizedBox(width: 8),
-                Text(l10n.randomNumberTitle,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold, color: accentColor)),
-              ],
-            ),
-            const SizedBox(height: 14),
+            // ── 헤더 ──
+            _cardHeader(context, Icons.tag_rounded,
+                l10n.randomNumberTitle, accentColor, isDark),
+            const SizedBox(height: 16),
+            // ── min / max 입력 — 생성 중 비활성 ──
             Row(
               children: [
                 Expanded(
                   child: TextField(
-                    controller: minCtrl,
+                    controller: widget.minCtrl,
+                    enabled: !_isGenerating,
                     keyboardType: TextInputType.number,
                     textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                     decoration: InputDecoration(
                       labelText: l10n.minLabel,
                       isDense: true,
+                      filled: true,
+                      fillColor:
+                          accentColor.withValues(alpha: isDark ? 0.10 : 0.06),
+                      border: inputBorder,
+                      enabledBorder: inputBorder,
+                      focusedBorder: focusedBorder,
                     ),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('~',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(color: cs.onSurfaceVariant)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Icon(
+                    Icons.arrow_forward_rounded,
+                    color: accentColor.withValues(alpha: 0.55),
+                    size: 20,
+                  ),
                 ),
                 Expanded(
                   child: TextField(
-                    controller: maxCtrl,
+                    controller: widget.maxCtrl,
+                    enabled: !_isGenerating,
                     keyboardType: TextInputType.number,
                     textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                     decoration: InputDecoration(
                       labelText: l10n.maxLabel,
                       isDense: true,
+                      filled: true,
+                      fillColor:
+                          accentColor.withValues(alpha: isDark ? 0.10 : 0.06),
+                      border: inputBorder,
+                      enabledBorder: inputBorder,
+                      focusedBorder: focusedBorder,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 22),
             Center(
               child: _ResultBounce(
-                resultKey: result,
+                resultKey: _genDoneCount,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
+                  duration: const Duration(milliseconds: 150),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                      const EdgeInsets.symmetric(horizontal: 40, vertical: 18),
                   decoration: BoxDecoration(
-                    color: result != null
-                        ? cs.tertiaryContainer
+                    color: shownResult != null
+                        ? accentColor.withValues(
+                            alpha: _isGenerating
+                                ? (isDark ? 0.12 : 0.08)
+                                : (isDark ? 0.22 : 0.15))
                         : cs.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow: result != null
+                    border: Border.all(
+                      color: shownResult != null
+                          ? accentColor.withValues(
+                              alpha: _isGenerating ? 0.25 : 0.45)
+                          : cs.outlineVariant.withValues(alpha: 0.35),
+                      width: 1.5,
+                    ),
+                    boxShadow: shownResult != null && !_isGenerating
                         ? [
                             BoxShadow(
-                              color: cs.tertiary.withOpacity(0.3),
-                              blurRadius: 18,
+                              color: accentColor.withValues(alpha: 0.28),
+                              blurRadius: 20,
                               spreadRadius: 2,
                               offset: const Offset(0, 4),
                             )
@@ -532,54 +920,75 @@ class _NumberCard extends StatelessWidget {
                         : [],
                   ),
                   child: Text(
-                    result != null ? '$result' : '?',
+                    shownResult != null ? '$shownResult' : '?',
                     style: TextStyle(
-                      fontSize: 48,
+                      fontSize: 52,
                       fontWeight: FontWeight.w900,
-                      color: result != null
-                          ? cs.onTertiaryContainer
-                          : cs.onSurfaceVariant,
+                      color: shownResult != null
+                          ? accentColor.withValues(
+                              alpha: _isGenerating ? 0.45 : 1.0)
+                          : cs.onSurfaceVariant.withValues(alpha: 0.45),
                     ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
             SizedBox(
               width: double.infinity,
-              height: 52,
+              height: 54,
               child: _PremiumButton(
-                onPressed: onGenerate,
+                onPressed: _isGenerating ? null : _startGenerate,
                 icon: Icons.shuffle_rounded,
                 label: l10n.actionGenerate,
                 color: accentColor,
               ),
             ),
-            if (history.isNotEmpty) ...[
+            // ── 히스토리 ──
+            if (widget.history.isNotEmpty) ...[
               const SizedBox(height: 16),
-              const Divider(),
+              Divider(color: accentColor.withValues(alpha: 0.2)),
               const SizedBox(height: 8),
-              Text(l10n.recent20,
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelMedium
-                      ?.copyWith(color: cs.onSurfaceVariant)),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: history
-                    .map((h) => Chip(
-                          label: Text(
-                              '${h['min']}~${h['max']}: ${h['result']}',
-                              style: const TextStyle(fontSize: 12)),
-                          backgroundColor: cs.surfaceContainerHighest,
-                          side: BorderSide.none,
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          visualDensity: VisualDensity.compact,
+              _historyRow(
+                widget.history
+                    .map((h) => Container(
+                          margin: const EdgeInsets.only(right: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 11, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: accentColor.withValues(
+                                alpha: isDark ? 0.18 : 0.11),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                                color: accentColor.withValues(alpha: 0.35),
+                                width: 1),
+                          ),
+                          child: RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: '${h['min']}~${h['max']} ',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: cs.onSurfaceVariant
+                                        .withValues(alpha: 0.65),
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: '${h['result']}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: accentColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ))
                     .toList(),
+                l10n.recent20,
+                context,
               ),
             ],
           ],
@@ -589,7 +998,7 @@ class _NumberCard extends StatelessWidget {
   }
 }
 
-// ── 프리미엄 공통 위젯 ──────────────────────────────────────────
+// ── 공통 액션 버튼 (pulse glow) ──────────────────────────────────────────
 
 class _PremiumButton extends StatefulWidget {
   final VoidCallback? onPressed;
@@ -608,8 +1017,42 @@ class _PremiumButton extends StatefulWidget {
   State<_PremiumButton> createState() => _PremiumButtonState();
 }
 
-class _PremiumButtonState extends State<_PremiumButton> {
+class _PremiumButtonState extends State<_PremiumButton>
+    with SingleTickerProviderStateMixin {
   bool _isPressed = false;
+  late AnimationController _pulseCtrl;
+  late Animation<double> _pulseAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _pulseAnim = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
+    );
+    if (widget.onPressed != null) _pulseCtrl.repeat(reverse: true);
+  }
+
+  @override
+  void didUpdateWidget(_PremiumButton old) {
+    super.didUpdateWidget(old);
+    if (old.onPressed != widget.onPressed) {
+      if (widget.onPressed != null) {
+        if (!_pulseCtrl.isAnimating) _pulseCtrl.repeat(reverse: true);
+      } else {
+        _pulseCtrl.stop();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulseCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -622,25 +1065,37 @@ class _PremiumButtonState extends State<_PremiumButton> {
       child: AnimatedScale(
         scale: _isPressed ? 0.97 : 1.0,
         duration: const Duration(milliseconds: 120),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            gradient: LinearGradient(
-              colors: [
-                widget.color,
-                Color.lerp(widget.color, Colors.black, 0.08) ?? widget.color,
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: widget.color.withOpacity(isDisabled ? 0 : 0.3),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+        child: AnimatedBuilder(
+          animation: _pulseAnim,
+          builder: (_, child) {
+            final t = _pulseAnim.value;
+            final glowAlpha =
+                isDisabled ? 0.0 : 0.25 + t * 0.20; // 0.25 ~ 0.45
+            final glowBlur =
+                isDisabled ? 0.0 : 10.0 + t * 12.0; // 10 ~ 22
+            return Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                gradient: LinearGradient(
+                  colors: [
+                    widget.color,
+                    Color.lerp(widget.color, Colors.black, 0.08) ??
+                        widget.color,
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: widget.color.withValues(alpha: glowAlpha),
+                    blurRadius: glowBlur,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-            ],
-          ),
+              child: child,
+            );
+          },
           child: Center(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -664,6 +1119,7 @@ class _PremiumButtonState extends State<_PremiumButton> {
   }
 }
 
+// ── 결과 바운스 애니메이션 ────────────────────────────────────
 class _ResultBounce extends StatefulWidget {
   final Widget child;
   final dynamic resultKey;
@@ -685,8 +1141,8 @@ class _ResultBounceState extends State<_ResultBounce>
     _ctrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 300));
     _scale = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0.85, end: 1.05), weight: 60),
-      TweenSequenceItem(tween: Tween(begin: 1.05, end: 1.0), weight: 40),
+      TweenSequenceItem(tween: Tween(begin: 0.85, end: 1.06), weight: 60),
+      TweenSequenceItem(tween: Tween(begin: 1.06, end: 1.0), weight: 40),
     ]).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
   }
 

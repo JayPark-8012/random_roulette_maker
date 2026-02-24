@@ -111,13 +111,13 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Picksy – Random Picker'**
+  /// **'Spin Wheel – Random Roulette'**
   String get appTitle;
 
   /// No description provided for @homeTitle.
   ///
   /// In en, this message translates to:
-  /// **'Picksy – Random Picker'**
+  /// **'Spin Wheel – Random Roulette'**
   String get homeTitle;
 
   /// No description provided for @settingsTooltip.
@@ -861,7 +861,7 @@ abstract class AppLocalizations {
   /// No description provided for @splashTitle.
   ///
   /// In en, this message translates to:
-  /// **'Picksy – Random Picker'**
+  /// **'Spin Wheel – Random Roulette'**
   String get splashTitle;
 
   /// No description provided for @splashSubtitle.

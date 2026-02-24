@@ -1,8 +1,8 @@
 {
   "@@locale": "ko",
 
-  "appTitle": "Picksy – 랜덤 룰렛 선택기",
-  "homeTitle": "Picksy – 랜덤 룰렛 선택기",
+  "appTitle": "Spin Wheel – 랜덤 룰렛",
+  "homeTitle": "Spin Wheel – 랜덤 룰렛",
   "settingsTooltip": "설정",
   "tabRoulette": "룰렛",
   "tabCoin": "코인",
@@ -126,7 +126,7 @@
   "actionGenerate": "생성",
   "recent20": "최근 20회",
   "minMaxError": "최솟값은 최댓값보다 작아야 합니다.",
-  "splashTitle": "Picksy – 랜덤 룰렛 선택기",
+  "splashTitle": "Spin Wheel – 랜덤 룰렛",
   "splashSubtitle": "나만의 룰렛을 만들어 보세요",
   "templatesTitle": "스타터 세트",
   "templateItemsInfo": "{category} · {count}개 항목",

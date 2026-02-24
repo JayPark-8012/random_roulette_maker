@@ -1,8 +1,8 @@
 {
   "@@locale": "ja",
 
-  "appTitle": "Picksy – Random Picker",
-  "homeTitle": "Picksy – Random Picker",
+  "appTitle": "Spin Wheel – Random Roulette",
+  "homeTitle": "Spin Wheel – Random Roulette",
   "settingsTooltip": "設定",
   "tabRoulette": "ルーレット",
   "tabCoin": "コイン",
@@ -126,7 +126,7 @@
   "actionGenerate": "生成",
   "recent20": "直近20回",
   "minMaxError": "最小値は最大値より小さくしてください。",
-  "splashTitle": "Picksy – Random Picker",
+  "splashTitle": "Spin Wheel – Random Roulette",
   "splashSubtitle": "あなただけのルーレットを作ろう",
   "templatesTitle": "スターターセット",
   "templateItemsInfo": "{category} · {count}個の項目",

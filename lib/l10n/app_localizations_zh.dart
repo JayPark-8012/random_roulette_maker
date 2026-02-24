@@ -9,10 +9,10 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
-  String get appTitle => 'Picksy – Random Picker';
+  String get appTitle => 'Spin Wheel – Random Roulette';
 
   @override
-  String get homeTitle => 'Picksy – Random Picker';
+  String get homeTitle => 'Spin Wheel – Random Roulette';
 
   @override
   String get settingsTooltip => '设置';
@@ -400,7 +400,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get minMaxError => '最小值必须小于最大值。';
 
   @override
-  String get splashTitle => 'Picksy – Random Picker';
+  String get splashTitle => 'Spin Wheel – Random Roulette';
 
   @override
   String get splashSubtitle => '创建你自己的转盘';
