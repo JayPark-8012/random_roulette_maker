@@ -3,7 +3,6 @@ import '../../../core/constants.dart';
 import '../../../data/local_storage.dart';
 import '../../../data/premium_service.dart';
 import '../../../data/mock_purchase_provider.dart';
-import '../../../l10n/app_localizations.dart';
 import '../state/splash_notifier.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -21,7 +20,6 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initialize() async {
-    // 저장소 초기화 + 프리미엄 서비스 초기화 + 최소 1초 표시
     await Future.wait([
       LocalStorage.instance.init(),
       PremiumService.initialize(MockPurchaseProvider()),
@@ -29,8 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
     ]);
 
     if (!mounted) return;
-    
-    // SettingsNotifier 로드
+
     await SplashNotifier.instance.initializeApp();
 
     if (!mounted) return;
@@ -39,44 +36,33 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // TODO(Phase2): 앱 아이콘 이미지로 교체
-            Icon(
-              Icons.casino_rounded,
-              size: 96,
-              color: Theme.of(context).colorScheme.onPrimary,
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // 전체 화면 스플래시 이미지
+          Image.asset(
+            'assets/icons/splash_image.png',
+            fit: BoxFit.cover,
+          ),
+          // 하단 로딩 인디케이터
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 48,
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white.withValues(alpha: 0.7),
+                ),
+              ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              l10n.splashTitle,
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.splashSubtitle,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onPrimary
-                        .withAlpha(204),
-                  ),
-            ),
-            const SizedBox(height: 48),
-            CircularProgressIndicator(
-              color: Theme.of(context).colorScheme.onPrimary,
-              strokeWidth: 2,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

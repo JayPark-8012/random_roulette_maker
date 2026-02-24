@@ -36,7 +36,7 @@ class PremiumService extends ChangeNotifier {
   static Future<void> initialize(PurchaseProvider purchaseProvider) async {
     if (_instance != null) return;
 
-    synchronized(_lock, () async {
+    await synchronized(_lock, () async {
       _instance = PremiumService._(purchaseProvider);
       await _instance!._loadState();
     });

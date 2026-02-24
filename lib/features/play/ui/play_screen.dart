@@ -14,6 +14,7 @@ import '../state/play_notifier.dart';
 import '../widgets/roulette_wheel.dart';
 import '../widgets/stats_sheet.dart';
 import '../../../core/widgets/app_background.dart';
+import '../../../data/ad_service.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -133,7 +134,7 @@ class _PlayScreenState extends State<PlayScreen>
       ..forward().then((_) {
         if (!mounted) return;
         _currentAngle = targetAngle % (2 * pi);
-        _notifier.finishSpin(winnerItem).then((_) {
+        _notifier.finishSpin(winnerItem).then((_) async {
           if (!mounted) return;
           if (_notifier.noRepeat) {
             setState(() {
@@ -141,6 +142,8 @@ class _PlayScreenState extends State<PlayScreen>
               _rotationAnim = const AlwaysStoppedAnimation(0);
             });
           }
+          await AdService.instance.tryShowInterstitialAfterSpin();
+          if (!mounted) return;
           _showResultSheet(winnerItem);
         });
       });

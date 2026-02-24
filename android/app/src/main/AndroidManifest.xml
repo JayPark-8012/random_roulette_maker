@@ -1,8 +1,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 인터넷 권한 (AdMob 필수) -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:label="Picksy"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
+
+        <!--
+          ★★★ 출시 전 반드시 AdMob 콘솔 앱 ID로 교체 ★★★
+          현재 값: Google 공식 테스트 App ID (개발/QA 전용, 실제 광고 미출력)
+          교체 방법: https://apps.admob.com → 앱 → 앱 ID 확인
+        -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

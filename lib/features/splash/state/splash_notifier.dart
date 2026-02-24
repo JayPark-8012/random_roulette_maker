@@ -1,3 +1,4 @@
+import '../../../data/ad_service.dart';
 import '../../../data/mock_purchase_provider.dart';
 import '../../../data/premium_service.dart';
 import '../../settings/state/settings_notifier.dart';
@@ -12,5 +13,7 @@ class SplashNotifier {
     await PremiumService.initialize(MockPurchaseProvider());
     // 설정 불러오기
     await SettingsNotifier.instance.load();
+    // AdMob 초기화 (프리미엄이면 내부에서 스킵)
+    await AdService.instance.initialize();
   }
 }
