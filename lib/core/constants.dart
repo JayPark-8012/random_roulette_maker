@@ -51,10 +51,11 @@ const List<Color> kDefaultPalette = [
 // ── 애니메이션 상수 ──────────────────────────────────────
 class SpinConfig {
   SpinConfig._();
-  static const Duration shortDuration = Duration(seconds: 2);
+  // 각 설정별 스핀 시간 — avg 각속도 ≈ 7 rad/s 기준으로 회전 수와 짝맞춤
+  static const Duration shortDuration  = Duration(milliseconds: 2500);
   static const Duration normalDuration = Duration(milliseconds: 4500);
-  static const Duration longDuration = Duration(seconds: 7);
-  // 추가 회전 수 범위 (섹터 중앙 도달 전 전체 회전 수)
-  static const int minExtraRotations = 3;
-  static const int maxExtraRotations = 5;
+  static const Duration longDuration   = Duration(milliseconds: 7000);
+  // 스왑 제스처 속도 기준 (px/s)
+  static const double swipeMinVelocity = 300;
+  static const double swipeMaxVelocity = 3000;
 }

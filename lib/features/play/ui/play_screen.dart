@@ -24,18 +24,54 @@ class PlayScreen extends StatefulWidget {
 }
 
 class _PlayScreenState extends State<PlayScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final PlayNotifier _notifier = PlayNotifier();
   late AnimationController _animController;
   late Animation<double> _rotationAnim;
   double _currentAngle = 0;
   final GlobalKey _wheelKey = GlobalKey();
 
+  // 인터랙티브 드래그 상태
+  bool _isDragging = false;
+  double _dragAngle = 0;    // 드래그 중 실시간 각도
+  double _wheelRadius = 0;  // 드래그 시작 시 캐시
+
+  // 포인터 틱 애니메이션
+  late AnimationController _pointerController;
+  late Animation<double> _pointerAnim; // 0→1→-0.2→0 (꺾임 후 스프링 복귀)
+  double _pointerKickAngle = 0;        // 현재 틱의 최대 꺾임 각도(라디안)
+  int _pointerSectorIndex = -1;        // 직전 프레임의 섹터 인덱스
+  double _prevAngle = 0;               // 직전 프레임 회전각 (속도/방향 계산용)
+
   @override
   void initState() {
     super.initState();
     _animController = AnimationController(vsync: this);
     _rotationAnim = const AlwaysStoppedAnimation(0);
+    _animController.addListener(_onWheelTick);
+
+    _pointerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
+    // 꺾임(0→1) → 스프링 반동(1→-0.2) → 안정(-0.2→0)
+    _pointerAnim = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween(begin: 0.0, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 25,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: 1.0, end: -0.2)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 50,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: -0.2, end: 0.0)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 25,
+      ),
+    ]).animate(_pointerController);
   }
 
   @override
@@ -62,13 +98,115 @@ class _PlayScreenState extends State<PlayScreen>
 
   @override
   void dispose() {
+    _animController.removeListener(_onWheelTick);
     _animController.dispose();
+    _pointerController.dispose();
     _notifier.dispose();
     super.dispose();
   }
 
+  // 스왑 속도(px/s)를 spinDuration 기준으로 비례 단축
+  // 느린 스왑(300 px/s) → 기본 duration, 빠른 스왑(3000+ px/s) → 35% 단축
+  Duration _velocityToDuration(Duration base, double velocityPxPerSec) {
+    final factor = ((velocityPxPerSec - SpinConfig.swipeMinVelocity) /
+            (SpinConfig.swipeMaxVelocity - SpinConfig.swipeMinVelocity))
+        .clamp(0.0, 1.0);
+    final ms = (base.inMilliseconds * (1.0 - factor * 0.65)).round();
+    return Duration(milliseconds: ms.clamp(900, base.inMilliseconds));
+  }
+
+  // ── 포인터 틱 애니메이션 ─────────────────────────────────────
+
+  /// 스핀 애니메이션 매 프레임마다 호출 — 섹터 경계 통과 시 틱 발동
+  void _onWheelTick() {
+    if (!_notifier.isSpinning) return;
+    _checkSectorCrossing(_rotationAnim.value);
+  }
+
+  /// 현재 회전각 기준으로 포인터(12시)가 위치한 섹터 인덱스를 계산,
+  /// 섹터가 바뀌면 _triggerPointerTick 호출
+  void _checkSectorCrossing(double currentAngle) {
+    final items = _notifier.availableItems;
+    if (items.isEmpty) return;
+
+    final totalWeight = items.fold<int>(0, (s, i) => s + i.weight);
+
+    // 포인터(화면 -π/2) → 휠 로컬 기준 섹터 위치
+    // sector 0 이 로컬 -π/2 에서 시작하므로: φ = -currentAngle (mod 2π)
+    final sectorAngle =
+        ((-currentAngle) % (2 * pi) + 2 * pi) % (2 * pi);
+
+    int sectorIndex = items.length - 1;
+    double accumulated = 0;
+    for (int i = 0; i < items.length; i++) {
+      accumulated += 2 * pi * items[i].weight / totalWeight;
+      if (sectorAngle < accumulated) {
+        sectorIndex = i;
+        break;
+      }
+    }
+
+    if (_pointerSectorIndex >= 0 && sectorIndex != _pointerSectorIndex) {
+      final speedRad = (currentAngle - _prevAngle).abs();
+      _triggerPointerTick(speedRad, currentAngle);
+    }
+
+    _pointerSectorIndex = sectorIndex;
+    _prevAngle = currentAngle;
+  }
+
+  /// 포인터 틱 1회 실행: 속도에 비례한 꺾임 각도 + 방향 결정
+  void _triggerPointerTick(double speedRad, double currentAngle) {
+    // speedRad: 한 프레임 간 변화량(라디안) — 느림~0.01, 빠름~0.15
+    final speedFactor = (speedRad / 0.12).clamp(0.0, 1.0);
+    final kickRad = (5.0 + speedFactor * 20.0) * pi / 180; // 5°~25°
+    // 회전 방향과 같은 방향으로 꺾임
+    final direction = currentAngle >= _prevAngle ? 1.0 : -1.0;
+    _pointerKickAngle = kickRad * direction;
+    _pointerController.forward(from: 0);
+  }
+
+  // ── 인터랙티브 드래그 핸들러 ────────────────────────────────
+
+  void _onPanStart(DragStartDetails details) {
+    if (_notifier.isSpinning) return;
+    _prevAngle = _currentAngle;
+    _pointerSectorIndex = -1; // 드래그 시작 시 직전 섹터 리셋 → 첫 틱 오작동 방지
+    setState(() {
+      _isDragging = true;
+      _dragAngle = _currentAngle;
+      // 드래그 δx / 반지름 = 회전 라디안 → 반지름 캐시
+      _wheelRadius = MediaQuery.of(context).size.width * 0.92 / 2;
+    });
+  }
+
+  void _onPanUpdate(DragUpdateDetails details) {
+    if (!_isDragging) return;
+    final newAngle = _dragAngle - details.delta.dx / _wheelRadius;
+    _checkSectorCrossing(newAngle);
+    setState(() => _dragAngle = newAngle);
+  }
+
+  void _onPanEnd(DragEndDetails details) {
+    if (!_isDragging) return;
+    setState(() => _isDragging = false);
+
+    final velocity = details.velocity.pixelsPerSecond.distance;
+
+    // 드래그 위치를 _currentAngle 에 반영 (스핀 시작각 동기화)
+    _currentAngle = _dragAngle % (2 * 3.141592653589793);
+
+    if (velocity < SpinConfig.swipeMinVelocity) {
+      // 속도 부족 → 드래그 위치에 그냥 멈춤
+      _rotationAnim = AlwaysStoppedAnimation(_currentAngle);
+      return;
+    }
+    // 속도 충분 → 현재 각도 기준으로 스핀 시작
+    _spin(swipeVelocity: velocity);
+  }
+
   // debugSeed: 동일 결과 재현용 (null이면 Random() 사용)
-  void _spin({int? debugSeed}) {
+  void _spin({int? debugSeed, double swipeVelocity = 0}) {
     if (_notifier.isSpinning) return;
     final allItems = _notifier.roulette?.items;
     if (allItems == null || allItems.length < AppLimits.minItemCount) return;
@@ -94,39 +232,51 @@ class _PlayScreenState extends State<PlayScreen>
     }
     final winnerIndex = candidates.indexOf(winnerItem);
 
-    // 2. 가중치 비례 섹터 중앙에 포인터(12시)가 오는 각도 역산
+    // 2. 가중치 비례 섹터 내 랜덤 위치 역산
+    //    섹터 중앙(0.5) 대신 15%~85% 내 랜덤 → 항상 중앙에 멈추는 인위적 느낌 제거
     double winnerStartFraction = 0;
     for (int i = 0; i < winnerIndex; i++) {
       winnerStartFraction += candidates[i].weight / totalWeight;
     }
     final winnerFraction = candidates[winnerIndex].weight / totalWeight;
+    final sectorOffset = 0.15 + random.nextDouble() * 0.70;
     final targetNormalized =
-        (winnerStartFraction + winnerFraction / 2) * 2 * pi;
+        (winnerStartFraction + winnerFraction * sectorOffset) * 2 * pi;
     final finalCycleAngle = (2 * pi - targetNormalized) % (2 * pi);
 
     final currentCycleAngle = _currentAngle % (2 * pi);
     final deltaAngle =
         (finalCycleAngle - currentCycleAngle + 2 * pi) % (2 * pi);
 
-    // 3~5회전 후 섹터 중앙에 정확히 멈춤
-    final extraRotations = SpinConfig.minExtraRotations +
-        random.nextInt(
-            SpinConfig.maxExtraRotations - SpinConfig.minExtraRotations + 1);
-    final targetAngle = _currentAngle + extraRotations * 2 * pi + deltaAngle;
-
-    final duration = switch (_notifier.settings.spinDuration) {
-      SpinDuration.short => SpinConfig.shortDuration,
-      SpinDuration.long => SpinConfig.longDuration,
-      SpinDuration.normal => SpinConfig.normalDuration,
+    // 설정별 회전 수 범위 (duration과 짝맞춤 → 일관된 초기 속도 느낌)
+    final (minRot, maxRot) = switch (_notifier.settings.spinDuration) {
+      SpinDuration.short  => (3, 4),
+      SpinDuration.normal => (5, 7),
+      SpinDuration.long   => (8, 11),
     };
+    final extraRotations = minRot + random.nextInt(maxRot - minRot + 1);
+    final totalAngle = extraRotations * 2 * pi + deltaAngle;
+    final targetAngle = _currentAngle + totalAngle;
 
+    // 설정별 고정 duration — 등감속(Curves.decelerate)으로 t=1 에서 속도 = 0
+    final baseDuration = switch (_notifier.settings.spinDuration) {
+      SpinDuration.short  => SpinConfig.shortDuration,
+      SpinDuration.normal => SpinConfig.normalDuration,
+      SpinDuration.long   => SpinConfig.longDuration,
+    };
+    final duration = swipeVelocity > 0
+        ? _velocityToDuration(baseDuration, swipeVelocity)
+        : baseDuration;
+
+    // Curves.decelerate = 1-(1-t)² → 속도 v(t) = 2(1-t), 리니어하게 감소 → t=1 에서 v=0
+    _pointerSectorIndex = -1; // 스핀 시작 시 섹터 리셋 → 첫 틱 오작동 방지
     _animController.duration = duration;
     _rotationAnim = Tween<double>(
       begin: _currentAngle,
       end: targetAngle,
     ).animate(CurvedAnimation(
       parent: _animController,
-      curve: Curves.easeOut,
+      curve: Curves.decelerate,
     ));
 
     _animController
@@ -375,26 +525,50 @@ class _PlayScreenState extends State<PlayScreen>
                       child: Column(
                         children: [
                           Expanded(
-                            child: RepaintBoundary(
-                              key: _wheelKey,
-                              child: Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const RoulettePointer(),
-                                    AnimatedBuilder(
-                                      animation: _animController,
-                                      builder: (_, _) => CustomPaint(
-                                        painter: RouletteWheelPainter(
-                                          items: _notifier.availableItems,
-                                          rotationAngle: _rotationAnim.value,
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onPanStart: _onPanStart,
+                              onPanUpdate: _onPanUpdate,
+                              onPanEnd: _onPanEnd,
+                              child: RepaintBoundary(
+                                key: _wheelKey,
+                                child: Center(
+                                  child: SizedBox(
+                                    width: MediaQuery.of(context).size.width * 0.92,
+                                    child: Stack(
+                                      alignment: Alignment.topCenter,
+                                      children: [
+                                        // 휠: 포인터 높이 절반(18px)만큼 아래로 → 50% 중첩
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 18),
+                                          child: AnimatedBuilder(
+                                            animation: _animController,
+                                            builder: (_, _) => CustomPaint(
+                                              painter: RouletteWheelPainter(
+                                                items: _notifier.availableItems,
+                                                rotationAngle: _isDragging
+                                                    ? _dragAngle
+                                                    : _rotationAnim.value,
+                                              ),
+                                              size: Size.square(
+                                                MediaQuery.of(context).size.width * 0.92,
+                                              ),
+                                            ),
+                                          ),
                                         ),
-                                        size: Size.square(
-                                          MediaQuery.of(context).size.width * 0.82,
+                                        // 포인터: 휠 위에 렌더 + 섹터 틱 회전 애니메이션
+                                        AnimatedBuilder(
+                                          animation: _pointerController,
+                                          builder: (_, child) => Transform.rotate(
+                                            angle: _pointerKickAngle * _pointerAnim.value,
+                                            alignment: Alignment.topCenter,
+                                            child: child,
+                                          ),
+                                          child: const RoulettePointer(),
                                         ),
-                                      ),
+                                      ],
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -988,3 +1162,4 @@ class _PremiumSpinButtonState extends State<_PremiumSpinButton> {
     );
   }
 }
+
