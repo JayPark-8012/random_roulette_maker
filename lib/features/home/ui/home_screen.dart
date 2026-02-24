@@ -21,24 +21,19 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with TickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> {
   _HomeMode _mode = _HomeMode.roulette;
   final HomeNotifier _notifier = HomeNotifier();
-  late AnimationController _modeAnimController;
 
   @override
   void initState() {
     super.initState();
-    _modeAnimController =
-        AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
     _notifier.addListener(_rebuild);
     _notifier.load();
   }
 
   @override
   void dispose() {
-    _modeAnimController.dispose();
     _notifier.removeListener(_rebuild);
     _notifier.dispose();
     super.dispose();
@@ -67,41 +62,32 @@ class _HomeScreenState extends State<HomeScreen>
       });
     }
 
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (_, _) => SystemNavigator.pop(),
       child: Scaffold(
-        backgroundColor: Colors.transparent, // Let AppBackground show
+        backgroundColor: Colors.transparent,
         body: AppBackground(
           child: SafeArea(
+            bottom: false,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // ── 헤더: 브랜드명 + 설정 버튼 ─────────────────
                 _buildHeader(context),
-                const SizedBox(height: 16),
-                // ── 세그먼트 탭 (분리 위젯) ─────────────────────
-                _QuickSegmentBar(
-                  selected: _mode,
-                  onChanged: (m) {
-                    HapticFeedback.selectionClick();
-                    setState(() => _mode = m);
-                  },
-                ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 // ── 콘텐츠 영역 (Offstage로 state 유지) ──────────
                 Expanded(
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      // [룰렛 모드] 내 룰렛 세트 리스트
                       Offstage(
                         offstage: _mode != _HomeMode.roulette,
                         child: _buildRouletteContent(context),
                       ),
-                      // [코인/주사위/숫자 모드] 기존 ToolsTab 재사용
-                      // showOnly 파라미터로 해당 도구 카드만 표시
-                      // Offstage로 항상 tree에 유지 → 히스토리 state 보존
                       Offstage(
                         offstage: _mode == _HomeMode.roulette,
                         child: ToolsTab(showOnly: _toolsShowOnly),
@@ -113,25 +99,62 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
         ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      // FAB: 룰렛 모드에서만 표시
-      floatingActionButton: _mode == _HomeMode.roulette
-          ? FloatingActionButton.extended(
-              onPressed: () => _onCreateTap(context),
-              backgroundColor: cs.primary,
-              foregroundColor: cs.onPrimary,
-              elevation: 2,
-              highlightElevation: 4,
-              shape: const StadiumBorder(),
-              icon: const Icon(Icons.add_rounded, size: 22),
-              label: Text(
-                AppLocalizations.of(context)!.fabCreateNew,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: cs.onPrimary,
-                    ),
-              ),
-            )
-          : null,
+        // ── 하단 NavigationBar ────────────────────────────────
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: _mode.index,
+          onDestinationSelected: (i) {
+            HapticFeedback.selectionClick();
+            setState(() => _mode = _HomeMode.values[i]);
+          },
+          backgroundColor:
+              isDark ? const Color(0xFF0D0818) : const Color(0xFFF4F4F8),
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          height: 68,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          destinations: [
+            NavigationDestination(
+              icon: const Icon(Icons.track_changes_outlined),
+              selectedIcon: const Icon(Icons.track_changes_rounded),
+              label: l10n.tabRoulette,
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.monetization_on_outlined),
+              selectedIcon: const Icon(Icons.monetization_on_rounded),
+              label: l10n.tabCoin,
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.casino_outlined),
+              selectedIcon: const Icon(Icons.casino_rounded),
+              label: l10n.tabDice,
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.shuffle_rounded),
+              selectedIcon: const Icon(Icons.shuffle_rounded),
+              label: l10n.tabNumber,
+            ),
+          ],
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        // FAB: 룰렛 모드에서만 표시
+        floatingActionButton: _mode == _HomeMode.roulette
+            ? FloatingActionButton.extended(
+                onPressed: () => _onCreateTap(context),
+                backgroundColor: cs.primary,
+                foregroundColor: cs.onPrimary,
+                elevation: 3,
+                highlightElevation: 6,
+                shape: const StadiumBorder(),
+                icon: const Icon(Icons.add_rounded, size: 22),
+                label: Text(
+                  l10n.fabCreateNew,
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: cs.onPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              )
+            : null,
       ),
     );
   }
@@ -140,7 +163,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildHeader(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // 앱 이름에 무지개 그라디언트 적용
     const logoGradient = LinearGradient(
@@ -163,8 +185,8 @@ class _HomeScreenState extends State<HomeScreen>
             width: 34,
             height: 34,
             margin: const EdgeInsets.only(right: 10),
-            decoration: BoxDecoration(
-              gradient: const SweepGradient(
+            decoration: const BoxDecoration(
+              gradient: SweepGradient(
                 colors: [
                   Color(0xFFFF6B6B),
                   Color(0xFFFFD93D),
@@ -175,13 +197,6 @@ class _HomeScreenState extends State<HomeScreen>
                 ],
               ),
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: cs.primary.withValues(alpha: isDark ? 0.5 : 0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
-              ],
             ),
             child: const Icon(
               Icons.track_changes_rounded,
@@ -401,119 +416,6 @@ class _HomeScreenState extends State<HomeScreen>
             child: Text(l10n.premiumButton),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ── 세그먼트 탭 바 (분리 위젯) ─────────────────────────────────
-//
-// 모드별 고유 컬러, 아이콘+레이블 세로 배치, 활성 시 glow shadow
-// height: 58px / active → 솔리드 컬러 배경 + 흰 텍스트/아이콘
-
-class _QuickSegmentBar extends StatelessWidget {
-  final _HomeMode selected;
-  final ValueChanged<_HomeMode> onChanged;
-
-  const _QuickSegmentBar({required this.selected, required this.onChanged});
-
-  static IconData _icon(_HomeMode m) => switch (m) {
-        _HomeMode.roulette => Icons.track_changes_rounded,
-        _HomeMode.coin     => Icons.monetization_on_rounded,
-        _HomeMode.dice     => Icons.casino_rounded,
-        _HomeMode.number   => Icons.shuffle_rounded,
-      };
-
-  // 모드별 액센트 컬러
-  static Color _modeColor(_HomeMode m) => switch (m) {
-        _HomeMode.roulette => const Color(0xFF7C3AED),
-        _HomeMode.coin     => const Color(0xFFF59E0B),
-        _HomeMode.dice     => const Color(0xFFEC4899),
-        _HomeMode.number   => const Color(0xFF3B82F6),
-      };
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final cs = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    String label(_HomeMode m) => switch (m) {
-          _HomeMode.roulette => l10n.tabRoulette,
-          _HomeMode.coin     => l10n.tabCoin,
-          _HomeMode.dice     => l10n.tabDice,
-          _HomeMode.number   => l10n.tabNumber,
-        };
-
-    return Container(
-      height: 58,
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.07)
-            : cs.surfaceContainer,
-        borderRadius: BorderRadius.circular(28),
-        border: isDark
-            ? Border.all(
-                color: Colors.white.withValues(alpha: 0.08),
-                width: 1,
-              )
-            : null,
-      ),
-      child: Row(
-        children: _HomeMode.values.map((mode) {
-          final isActive = mode == selected;
-          final accent = _modeColor(mode);
-
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => onChanged(mode),
-              behavior: HitTestBehavior.opaque,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                decoration: BoxDecoration(
-                  color: isActive ? accent : Colors.transparent,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: isActive
-                      ? [
-                          BoxShadow(
-                            color: accent.withValues(alpha: 0.45),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ]
-                      : [],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      _icon(mode),
-                      size: 20,
-                      color: isActive
-                          ? Colors.white
-                          : cs.onSurfaceVariant.withValues(alpha: 0.5),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      label(mode),
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            fontWeight:
-                                isActive ? FontWeight.w700 : FontWeight.w500,
-                            color: isActive
-                                ? Colors.white
-                                : cs.onSurfaceVariant.withValues(alpha: 0.5),
-                            fontSize: 10,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        }).toList(),
       ),
     );
   }

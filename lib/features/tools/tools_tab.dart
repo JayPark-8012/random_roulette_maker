@@ -157,26 +157,12 @@ class _ToolsTabState extends State<ToolsTab>
 BoxDecoration _cardDecoration(
     Color accentColor, Color surface, bool isDark) {
   return BoxDecoration(
-    gradient: LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [
-        Color.lerp(surface, accentColor, isDark ? 0.13 : 0.08) ?? surface,
-        Color.lerp(surface, accentColor, isDark ? 0.04 : 0.02) ?? surface,
-      ],
-    ),
+    color: Color.lerp(surface, accentColor, isDark ? 0.11 : 0.06),
     borderRadius: BorderRadius.circular(22),
     border: Border.all(
-      color: accentColor.withValues(alpha: isDark ? 0.38 : 0.25),
-      width: 1,
+      color: accentColor.withValues(alpha: isDark ? 0.50 : 0.35),
+      width: 1.5,
     ),
-    boxShadow: [
-      BoxShadow(
-        color: accentColor.withValues(alpha: 0.12),
-        blurRadius: 18,
-        offset: const Offset(0, 6),
-      ),
-    ],
   );
 }
 
@@ -324,10 +310,9 @@ class _CoinCardState extends State<_CoinCard>
         ),
         boxShadow: [
           BoxShadow(
-            color: glowColor.withValues(alpha: 0.60),
-            blurRadius: 24,
-            spreadRadius: 3,
-            offset: const Offset(0, 5),
+            color: glowColor.withValues(alpha: 0.35),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -553,10 +538,9 @@ class _DiceCardState extends State<_DiceCard> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: accentColor.withValues(alpha: rolling ? 0.15 : 0.35),
-            blurRadius: 20,
-            spreadRadius: 2,
-            offset: const Offset(0, 5),
+            color: accentColor.withValues(alpha: rolling ? 0.10 : 0.25),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -911,10 +895,9 @@ class _NumberCardState extends State<_NumberCard> {
                     boxShadow: shownResult != null && !_isGenerating
                         ? [
                             BoxShadow(
-                              color: accentColor.withValues(alpha: 0.28),
-                              blurRadius: 20,
-                              spreadRadius: 2,
-                              offset: const Offset(0, 4),
+                              color: accentColor.withValues(alpha: 0.20),
+                              blurRadius: 6,
+                              offset: const Offset(0, 3),
                             )
                           ]
                         : [],
@@ -1017,101 +1000,81 @@ class _PremiumButton extends StatefulWidget {
   State<_PremiumButton> createState() => _PremiumButtonState();
 }
 
-class _PremiumButtonState extends State<_PremiumButton>
-    with SingleTickerProviderStateMixin {
+/// 3D 아케이드 버튼 (tools 카드용) — _PremiumSpinButton 과 동일한 스타일
+class _PremiumButtonState extends State<_PremiumButton> {
   bool _isPressed = false;
-  late AnimationController _pulseCtrl;
-  late Animation<double> _pulseAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
-    _pulseAnim = Tween(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
-    );
-    if (widget.onPressed != null) _pulseCtrl.repeat(reverse: true);
-  }
-
-  @override
-  void didUpdateWidget(_PremiumButton old) {
-    super.didUpdateWidget(old);
-    if (old.onPressed != widget.onPressed) {
-      if (widget.onPressed != null) {
-        if (!_pulseCtrl.isAnimating) _pulseCtrl.repeat(reverse: true);
-      } else {
-        _pulseCtrl.stop();
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _pulseCtrl.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     final isDisabled = widget.onPressed == null;
+    final color = isDisabled
+        ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.25)
+        : widget.color;
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
       onTapCancel: () => setState(() => _isPressed = false),
       onTap: widget.onPressed,
-      child: AnimatedScale(
-        scale: _isPressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 120),
-        child: AnimatedBuilder(
-          animation: _pulseAnim,
-          builder: (_, child) {
-            final t = _pulseAnim.value;
-            final glowAlpha =
-                isDisabled ? 0.0 : 0.25 + t * 0.20; // 0.25 ~ 0.45
-            final glowBlur =
-                isDisabled ? 0.0 : 10.0 + t * 12.0; // 10 ~ 22
-            return Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                gradient: LinearGradient(
-                  colors: [
-                    widget.color,
-                    Color.lerp(widget.color, Colors.black, 0.08) ??
-                        widget.color,
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-                boxShadow: [
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 80),
+        curve: Curves.easeOut,
+        transform: Matrix4.translationValues(0, _isPressed ? 4.0 : 0.0, 0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          gradient: LinearGradient(
+            colors: [
+              Color.lerp(color, Colors.white, isDisabled ? 0.0 : 0.22)!,
+              color,
+              Color.lerp(color, Colors.black, isDisabled ? 0.0 : 0.30)!,
+            ],
+            stops: const [0.0, 0.42, 1.0],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+          boxShadow: isDisabled
+              ? []
+              : [
                   BoxShadow(
-                    color: widget.color.withValues(alpha: glowAlpha),
-                    blurRadius: glowBlur,
-                    offset: const Offset(0, 4),
+                    color: Color.lerp(color, Colors.black, 0.55)!
+                        .withValues(alpha: 0.75),
+                    blurRadius: 0,
+                    offset: Offset(0, _isPressed ? 1.0 : 5.0),
+                  ),
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.20),
+                    blurRadius: 10,
+                    offset: const Offset(0, 8),
                   ),
                 ],
-              ),
-              child: child,
-            );
-          },
-          child: Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(widget.icon, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  widget.label,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+        ),
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(widget.icon,
+                  color: isDisabled
+                      ? Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.4)
+                      : Colors.white,
+                  size: 20),
+              const SizedBox(width: 8),
+              Text(
+                widget.label,
+                style: TextStyle(
+                  color: isDisabled
+                      ? Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.4)
+                      : Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

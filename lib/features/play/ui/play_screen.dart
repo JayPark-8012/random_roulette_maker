@@ -551,26 +551,7 @@ class _PlayScreenState extends State<PlayScreen>
                                     child: Stack(
                                       alignment: Alignment.topCenter,
                                       children: [
-                                        // ① 글로우 레이어 (휠 뒤 배경 조명)
-                                        Positioned(
-                                          top: 24,
-                                          left: 0,
-                                          right: 0,
-                                          height: MediaQuery.of(context).size.width * 0.92,
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              gradient: RadialGradient(
-                                                colors: [
-                                                  colorScheme.primary.withValues(alpha: 0.22),
-                                                  Colors.transparent,
-                                                ],
-                                                stops: const [0.50, 1.0],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        // ② 휠: 포인터 높이 절반(24px)만큼 아래로 → 50% 중첩
+                                        // ① 휠: 포인터 높이 절반(24px)만큼 아래로 → 50% 중첩
                                         Padding(
                                           padding: const EdgeInsets.only(top: 24),
                                           child: AnimatedBuilder(
@@ -793,7 +774,36 @@ class _ResultSheet extends StatefulWidget {
   State<_ResultSheet> createState() => _ResultSheetState();
 }
 
-class _ResultSheetState extends State<_ResultSheet> {
+class _ResultSheetState extends State<_ResultSheet>
+    with TickerProviderStateMixin {
+  late final AnimationController _flashCtrl;
+  late final AnimationController _confettiCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    // 등장 시 당첨 색 Flash: 빠르게 사라짐
+    _flashCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 550),
+    );
+    _flashCtrl.forward();
+
+    // Confetti: 2.5초간 낙하
+    _confettiCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2500),
+    );
+    _confettiCtrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _flashCtrl.dispose();
+    _confettiCtrl.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -802,193 +812,288 @@ class _ResultSheetState extends State<_ResultSheet> {
     final isLight = winnerColor.computeLuminance() > 0.4;
     final textColor = isLight ? Colors.black87 : Colors.white;
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color.lerp(colorScheme.surface, winnerColor, 0.08) ?? colorScheme.surface,
-            colorScheme.surface,
-          ],
-        ),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      child: Stack(
         children: [
-          // ── 슈딧 핸들 ──
-          Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colorScheme.outlineVariant,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          )
-              .animate()
-              .fadeIn(duration: 300.ms)
-              .scaleXY(begin: 0.8, end: 1.0, duration: 300.ms, curve: Curves.easeOut),
-          // ── 결과 요약 헤더 ──
+          // ── 메인 시트 콘텐츠 ───────────────────────
           Container(
-            margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-            padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
-            decoration: BoxDecoration(
-              color: winnerColor,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: winnerColor.withValues(alpha: 0.35),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: Row(
+            color: colorScheme.surface,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
+                // ── 핸들 바 ──
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: colorScheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                )
+                    .animate()
+                    .fadeIn(duration: 300.ms)
+                    .scaleXY(begin: 0.8, end: 1.0, duration: 300.ms, curve: Curves.easeOut),
+                // ── 결과 요약 헤더 ──
                 Container(
-                  width: 64,
-                  height: 64,
+                  margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.emoji_events_rounded,
-                    size: 32,
-                    color: textColor,
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.resultLabel,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: textColor.withValues(alpha: 0.7),
-                          letterSpacing: 0.5,
-                        ),
+                    color: winnerColor,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: winnerColor.withValues(alpha: 0.30),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        widget.winner.label,
-                        style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -1.0,
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.emoji_events_rounded,
+                          size: 32,
                           color: textColor,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.resultLabel,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: textColor.withValues(alpha: 0.7),
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              widget.winner.label,
+                              style: TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -1.0,
+                                color: textColor,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+                    .animate()
+                    .scaleXY(begin: 0.85, end: 1.05, duration: 200.ms, curve: Curves.easeInOut)
+                    .then()
+                    .scaleXY(begin: 1.05, end: 1.0, duration: 100.ms, curve: Curves.easeInOut),
+                // ── 버튼 영역 ──
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              icon: const Icon(Icons.refresh_rounded),
+                              label: Text(l10n.actionReSpin),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                side: BorderSide(color: colorScheme.outlineVariant),
+                              ),
+                              onPressed: widget.onReSpin,
+                            )
+                                .animate()
+                                .slideY(begin: 0.2, end: 0.0, duration: 300.ms, delay: 250.ms, curve: Curves.easeOut)
+                                .fadeIn(duration: 300.ms, delay: 250.ms),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: FilledButton(
+                              style: FilledButton.styleFrom(
+                                backgroundColor: winnerColor,
+                                foregroundColor: textColor,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                              ),
+                              onPressed: widget.onClose,
+                              child: Text(
+                                l10n.actionConfirm,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            )
+                                .animate()
+                                .slideY(begin: 0.2, end: 0.0, duration: 300.ms, delay: 300.ms, curve: Curves.easeOut)
+                                .fadeIn(duration: 300.ms, delay: 300.ms),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextButton.icon(
+                              icon: const Icon(Icons.copy_rounded, size: 18),
+                              label: Text(l10n.actionCopy),
+                              style: TextButton.styleFrom(
+                                foregroundColor: colorScheme.onSurfaceVariant,
+                              ),
+                              onPressed: widget.onCopy,
+                            )
+                                .animate()
+                                .slideY(begin: 0.1, end: 0.0, duration: 300.ms, delay: 350.ms, curve: Curves.easeOut)
+                                .fadeIn(duration: 300.ms, delay: 350.ms),
+                          ),
+                          Expanded(
+                            child: TextButton.icon(
+                              icon: const Icon(Icons.ios_share_rounded, size: 18),
+                              label: Text(l10n.shareTitle),
+                              style: TextButton.styleFrom(
+                                foregroundColor: colorScheme.onSurfaceVariant,
+                              ),
+                              onPressed: widget.onShare,
+                            )
+                                .animate()
+                                .slideY(begin: 0.1, end: 0.0, duration: 300.ms, delay: 400.ms, curve: Curves.easeOut)
+                                .fadeIn(duration: 300.ms, delay: 400.ms),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-          )
-              .animate()
-              .scaleXY(
-                begin: 0.85,
-                end: 1.05,
-                duration: 200.ms,
-                curve: Curves.easeInOut,
-              )
-              .then()
-              .scaleXY(
-                begin: 1.05,
-                end: 1.0,
-                duration: 100.ms,
-                curve: Curves.easeInOut,
+          ),
+          // ── Confetti 파티클 레이어 ─────────────────
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedBuilder(
+                animation: _confettiCtrl,
+                builder: (_, _) => CustomPaint(
+                  painter: _ConfettiPainter(
+                    progress: _confettiCtrl.value,
+                    winnerColor: winnerColor,
+                  ),
+                ),
               ),
-          // ── 버튼 영역 ──
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.refresh_rounded),
-                        label: Text(l10n.actionReSpin),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: BorderSide(
-                            color: colorScheme.outlineVariant,
-                          ),
-                        ),
-                        onPressed: widget.onReSpin,
-                      )
-                          .animate()
-                          .slideY(begin: 0.2, end: 0.0, duration: 300.ms, delay: 250.ms, curve: Curves.easeOut)
-                          .fadeIn(duration: 300.ms, delay: 250.ms),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: winnerColor,
-                          foregroundColor: textColor,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                        onPressed: widget.onClose,
-                        child: Text(
-                          l10n.actionConfirm,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      )
-                          .animate()
-                          .slideY(begin: 0.2, end: 0.0, duration: 300.ms, delay: 300.ms, curve: Curves.easeOut)
-                          .fadeIn(duration: 300.ms, delay: 300.ms),
-                    ),
-                  ],
+            ),
+          ),
+          // ── Flash 오버레이 (등장 시 당첨 색 flash) ──
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AnimatedBuilder(
+                animation: _flashCtrl,
+                builder: (_, _) => Opacity(
+                  opacity: (_flashCtrl.value < 1.0
+                          ? (1.0 - _flashCtrl.value) * 0.65
+                          : 0.0)
+                      .clamp(0.0, 1.0),
+                  child: ColoredBox(color: winnerColor),
                 ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton.icon(
-                        icon: const Icon(Icons.copy_rounded, size: 18),
-                        label: Text(l10n.actionCopy),
-                        style: TextButton.styleFrom(
-                          foregroundColor: colorScheme.onSurfaceVariant,
-                        ),
-                        onPressed: widget.onCopy,
-                      )
-                          .animate()
-                          .slideY(begin: 0.1, end: 0.0, duration: 300.ms, delay: 350.ms, curve: Curves.easeOut)
-                          .fadeIn(duration: 300.ms, delay: 350.ms),
-                    ),
-                    Expanded(
-                      child: TextButton.icon(
-                        icon: const Icon(Icons.ios_share_rounded, size: 18),
-                        label: Text(l10n.shareTitle),
-                        style: TextButton.styleFrom(
-                          foregroundColor: colorScheme.onSurfaceVariant,
-                        ),
-                        onPressed: widget.onShare,
-                      )
-                          .animate()
-                          .slideY(begin: 0.1, end: 0.0, duration: 300.ms, delay: 400.ms, curve: Curves.easeOut)
-                          .fadeIn(duration: 300.ms, delay: 400.ms),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
         ],
       ),
     );
   }
+}
+
+// ── Confetti CustomPainter ────────────────────────────────
+//
+// progress 0→1 동안 파티클이 위에서 아래로 낙하.
+// 파티클마다 고정 랜덤 seed로 x위치/속도/크기/색상 사전 결정.
+
+class _ConfettiPainter extends CustomPainter {
+  final double progress;
+  final Color winnerColor;
+
+  static const _count = 48;
+  static final _rng = Random(7); // fixed seed → 매 프레임 동일 배치
+
+  // 파티클 속성: [x(0-1), startDelay(0-0.35), speed(0.6-1), w, h, initRot, drift(-1~1), colorIdx]
+  static final _p = List.generate(_count, (_) => [
+    _rng.nextDouble(),
+    _rng.nextDouble() * 0.35,
+    _rng.nextDouble() * 0.4 + 0.6,
+    _rng.nextDouble() * 8 + 5,
+    _rng.nextDouble() * 4 + 2,
+    _rng.nextDouble() * 6.28,
+    _rng.nextDouble() * 2 - 1,
+    _rng.nextDouble(),
+  ]);
+
+  static const _palette = [
+    Color(0xFFFF6B6B),
+    Color(0xFFFFD93D),
+    Color(0xFF6BCB77),
+    Color(0xFF4D96FF),
+    Color(0xFFEC4899),
+    Color(0xFFF97316),
+    Color(0xFFA78BFA),
+  ];
+
+  const _ConfettiPainter({required this.progress, required this.winnerColor});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (progress <= 0 || progress >= 1.0) return;
+
+    for (final pt in _p) {
+      final x0 = pt[0];
+      final delay = pt[1];
+      final speed = pt[2];
+      final w = pt[3];
+      final h = pt[4];
+      final rot0 = pt[5];
+      final drift = pt[6];
+      final ci = (pt[7] * _palette.length).toInt().clamp(0, _palette.length - 1);
+
+      // 지연 고려한 로컬 progress
+      final t = ((progress - delay) * speed).clamp(0.0, 1.0);
+      if (t <= 0) continue;
+
+      // 후반부 서서히 fade
+      final alpha = t < 0.75 ? 1.0 : (1.0 - (t - 0.75) / 0.25).clamp(0.0, 1.0);
+
+      final px = x0 * size.width + drift * t * 30;
+      final py = -20 + t * (size.height + 40);
+      final rotation = rot0 + t * 6.28 * 2;
+
+      final paint = Paint()
+        ..color = _palette[ci].withValues(alpha: alpha * 0.9)
+        ..style = PaintingStyle.fill;
+
+      canvas.save();
+      canvas.translate(px, py);
+      canvas.rotate(rotation);
+      canvas.drawRect(
+        Rect.fromCenter(center: Offset.zero, width: w, height: h),
+        paint,
+      );
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ConfettiPainter old) => old.progress != progress;
 }
 
 // ── 모드 세그먼트 ─────────────────────────────────────────
@@ -1131,129 +1236,101 @@ class _PremiumSpinButton extends StatefulWidget {
   State<_PremiumSpinButton> createState() => _PremiumSpinButtonState();
 }
 
-class _PremiumSpinButtonState extends State<_PremiumSpinButton>
-    with SingleTickerProviderStateMixin {
+/// 3D 아케이드 버튼: top-highlight → base → bottom-shadow 그라데이션
+/// + 크리스프 바텀 에지 섀도우. 누름 시 4px 아래로 sink.
+class _PremiumSpinButtonState extends State<_PremiumSpinButton> {
   bool _isPressed = false;
-  late AnimationController _pulseCtrl;
-  late Animation<double> _pulseAnim;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    );
-    _pulseAnim = Tween(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
-    );
-    _updatePulse();
-  }
-
-  @override
-  void didUpdateWidget(_PremiumSpinButton old) {
-    super.didUpdateWidget(old);
-    if (old.isSpinning != widget.isSpinning ||
-        old.onPressed != widget.onPressed) {
-      _updatePulse();
-    }
-  }
-
-  void _updatePulse() {
-    if (!widget.isSpinning && widget.onPressed != null) {
-      if (!_pulseCtrl.isAnimating) _pulseCtrl.repeat(reverse: true);
-    } else {
-      _pulseCtrl.stop();
-    }
-  }
-
-  @override
-  void dispose() {
-    _pulseCtrl.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     final isDisabled = widget.onPressed == null;
+    final color = isDisabled
+        ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.25)
+        : widget.color;
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
       onTapCancel: () => setState(() => _isPressed = false),
       onTap: widget.onPressed,
-      child: AnimatedScale(
-        scale: _isPressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 120),
-        child: AnimatedBuilder(
-          animation: _pulseAnim,
-          builder: (_, child) {
-            final t = _pulseAnim.value;
-            final glowAlpha = (isDisabled || widget.isSpinning)
-                ? 0.0
-                : 0.28 + t * 0.22; // idle: 0.28 ~ 0.50
-            final glowBlur = (isDisabled || widget.isSpinning)
-                ? 0.0
-                : 12.0 + t * 16.0; // idle: 12 ~ 28
-            return Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                gradient: LinearGradient(
-                  colors: [
-                    widget.color,
-                    Color.lerp(widget.color, Colors.black, 0.1) ?? widget.color,
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-                boxShadow: [
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 80),
+        curve: Curves.easeOut,
+        transform: Matrix4.translationValues(0, _isPressed ? 4.0 : 0.0, 0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          gradient: LinearGradient(
+            colors: [
+              Color.lerp(color, Colors.white, isDisabled ? 0.0 : 0.22)!,
+              color,
+              Color.lerp(color, Colors.black, isDisabled ? 0.0 : 0.30)!,
+            ],
+            stops: const [0.0, 0.42, 1.0],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+          boxShadow: isDisabled
+              ? []
+              : [
+                  // 크리스프 바텀 에지 — 3D 깊이감
                   BoxShadow(
-                    color: widget.color.withValues(alpha: glowAlpha),
-                    blurRadius: glowBlur,
-                    offset: const Offset(0, 6),
+                    color: Color.lerp(color, Colors.black, 0.55)!
+                        .withValues(alpha: 0.75),
+                    blurRadius: 0,
+                    offset: Offset(0, _isPressed ? 1.0 : 5.0),
+                    spreadRadius: 0,
+                  ),
+                  // 소프트 앰비언트 — 입체감 보조
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.20),
+                    blurRadius: 10,
+                    offset: const Offset(0, 8),
                   ),
                 ],
-              ),
-              child: child,
-            );
-          },
-          child: Center(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: widget.isSpinning
-                  ? Row(
-                      key: const ValueKey('spinning'),
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            color: Colors.white,
-                          ),
+        ),
+        child: Center(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: widget.isSpinning
+                ? Row(
+                    key: const ValueKey('spinning'),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white,
                         ),
-                        const SizedBox(width: 14),
-                        Text(
-                          AppLocalizations.of(context)!.spinningLabel,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Text(
-                      widget.label,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2,
                       ),
+                      const SizedBox(width: 14),
+                      Text(
+                        AppLocalizations.of(context)!.spinningLabel,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ],
+                  )
+                : Text(
+                    widget.label,
+                    key: const ValueKey('idle'),
+                    style: TextStyle(
+                      color: isDisabled
+                          ? Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.4)
+                          : Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2,
                     ),
-            ),
+                  ),
           ),
         ),
       ),

@@ -174,6 +174,22 @@ Play 화면과 도구 탭을 게임 앱 수준의 비주얼로 업그레이드
 
 ---
 
+## Phase 5.5 ✅ — 디자인 리뉴얼 (Sharp Arcade)
+
+### 목표
+Blur/Glow 제거 + 게임 느낌 강화
+
+### 체크리스트
+- [x] Bokeh 블롭 제거 → 단색 배경 (`app_background.dart`)
+- [x] 카드 LinearGradient 제거 → 단색 + 컬러 border 1.5px (`roulette_card.dart`)
+- [x] 카드/배지/로고 박스 섀도우 제거 또는 최소화
+- [x] 상단 세그먼트 탭 제거 → 하단 NavigationBar (Material 3) 교체 (`home_screen.dart`)
+- [x] SPIN 버튼 pulse glow 제거 → 3D 아케이드 버튼 (그라데이션 3단 + 크리스프 에지 섀도우)
+- [x] Play 화면 휠 뒤 radial glow 레이어 제거
+- [x] docs/DESIGN_DIRECTION.md 작성
+
+---
+
 ## Phase 6 ⏳ — 사운드 / 진동 / 결제 실제 연동
 
 ### 목표

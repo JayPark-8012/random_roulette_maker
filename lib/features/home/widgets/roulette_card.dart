@@ -31,8 +31,6 @@ class RouletteCard extends StatelessWidget {
         ? roulette.items.first.color
         : colorScheme.primary;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final tintOpacity = isDark ? 0.15 : 0.10;
-    final borderOpacity = isDark ? 0.35 : 0.28;
 
     return Dismissible(
       key: Key(roulette.id),
@@ -50,28 +48,16 @@ class RouletteCard extends StatelessWidget {
       onDismissed: (_) => onDelete(),
       child: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color.lerp(colorScheme.surface, tintColor, tintOpacity) ??
-                  colorScheme.surface,
-              Color.lerp(colorScheme.surface, tintColor, tintOpacity * 0.4) ??
-                  colorScheme.surface,
-            ],
+          color: Color.lerp(
+            colorScheme.surface,
+            tintColor,
+            isDark ? 0.13 : 0.07,
           ),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: tintColor.withValues(alpha: borderOpacity),
-            width: 1,
+            color: tintColor.withValues(alpha: isDark ? 0.55 : 0.40),
+            width: 1.5,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: tintColor.withValues(alpha: 0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(18),
@@ -145,15 +131,8 @@ class RouletteCard extends StatelessWidget {
                     width: 38,
                     height: 38,
                     decoration: BoxDecoration(
-                      color: tintColor.withValues(alpha: isDark ? 0.22 : 0.16),
+                      color: tintColor.withValues(alpha: isDark ? 0.25 : 0.18),
                       shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: tintColor.withValues(alpha: 0.25),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
                     ),
                     child: Icon(
                       Icons.play_arrow_rounded,
@@ -349,13 +328,6 @@ class _ColorPreview extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(2.5),
