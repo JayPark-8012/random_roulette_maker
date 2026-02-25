@@ -272,6 +272,9 @@
   "colorPaletteLabel": "Color Palette",
   "@colorPaletteLabel": {},
 
+  "wheelThemeLabel": "Wheel Theme",
+  "@wheelThemeLabel": {},
+
   "premiumThemeTitle": "Premium Theme",
   "@premiumThemeTitle": {},
 

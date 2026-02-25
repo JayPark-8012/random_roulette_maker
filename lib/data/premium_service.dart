@@ -172,9 +172,19 @@ class PremiumService extends ChangeNotifier {
     return themeId == 'indigo' || themeId == 'emerald';
   }
 
+  /// 룰렛 휠 테마 사용 가능 여부
+  ///
+  /// 프리미엄: 모든 휠 테마 사용
+  /// 무료: 'classic', 'candy' 2개만 사용
+  bool canUseWheelTheme(String wheelThemeId) {
+    if (isPremium) return true;
+    return wheelThemeId == 'classic' || wheelThemeId == 'candy';
+  }
+
   /// 무료 플랜 제한 정보 반환
   Map<String, dynamic> get freeLimits => {
     'maxRouletteSets': 3,
     'availablePalettes': ['indigo', 'emerald'],
+    'availableWheelThemes': ['classic', 'candy'],
   };
 }

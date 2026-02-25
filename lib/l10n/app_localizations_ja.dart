@@ -266,6 +266,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get colorPaletteLabel => 'カラーパレット';
 
   @override
+  String get wheelThemeLabel => 'ルーレットテーマ';
+
+  @override
   String get premiumThemeTitle => 'プレミアムテーマ';
 
   @override

@@ -266,6 +266,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get colorPaletteLabel => '색상 팔레트';
 
   @override
+  String get wheelThemeLabel => '룰렛 휠 테마';
+
+  @override
   String get premiumThemeTitle => '프리미엄 테마';
 
   @override

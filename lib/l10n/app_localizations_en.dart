@@ -268,6 +268,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get colorPaletteLabel => 'Color Palette';
 
   @override
+  String get wheelThemeLabel => 'Wheel Theme';
+
+  @override
   String get premiumThemeTitle => 'Premium Theme';
 
   @override

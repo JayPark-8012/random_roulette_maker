@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants.dart';
+import '../../../core/utils.dart';
 import '../../../data/roulette_repository.dart';
 import '../../../data/templates_data.dart';
+import '../../../domain/item.dart';
 import '../../../l10n/app_localizations.dart';
 import '../widgets/template_card.dart';
 
-class TemplatesScreen extends StatelessWidget {
+class TemplatesScreen extends StatefulWidget {
   const TemplatesScreen({super.key});
+
+  @override
+  State<TemplatesScreen> createState() => _TemplatesScreenState();
+}
+
+class _TemplatesScreenState extends State<TemplatesScreen> {
+  bool _isCreating = false;
 
   // ── l10n 키 해석 헬퍼 ────────────────────────────────────
 
@@ -72,32 +81,99 @@ class TemplatesScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.starterSetsTitle)),
-      body: GridView.builder(
-        padding: const EdgeInsets.all(12),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          childAspectRatio: 0.9,
-        ),
-        itemCount: kStarterSets.length,
-        itemBuilder: (context, i) {
-          final set = kStarterSets[i];
-          final l10n = AppLocalizations.of(context)!;
-          final name = _resolveName(l10n, set['nameKey'] as String);
-          final category = _resolveCategory(l10n, set['categoryKey'] as String);
-          final items = _resolveItems(l10n, set);
-          return TemplateCard(
-            emoji: set['emoji'] as String,
-            name: name,
-            category: category,
-            items: items,
-            onTap: () => _showDetailSheet(context, set, name, category, items),
-          );
-        },
+      body: Stack(
+        children: [
+          GridView.builder(
+            padding: const EdgeInsets.all(12),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 0.78,
+            ),
+            itemCount: kStarterSets.length,
+            itemBuilder: (context, i) {
+              final set = kStarterSets[i];
+              final name = _resolveName(l10n, set['nameKey'] as String);
+              final category =
+                  _resolveCategory(l10n, set['categoryKey'] as String);
+              final items = _resolveItems(l10n, set);
+              return TemplateCard(
+                emoji: set['emoji'] as String,
+                name: name,
+                category: category,
+                items: items,
+                onTap: () => _onTapCreate(context, name, items),
+                onLongPress: () =>
+                    _showDetailSheet(context, set, name, category, items),
+              );
+            },
+          ),
+          // 생성 중 로딩 오버레이
+          if (_isCreating)
+            const ColoredBox(
+              color: Color(0x66000000),
+              child: Center(child: CircularProgressIndicator.adaptive()),
+            ),
+        ],
       ),
     );
   }
+
+  // ── 즉시 생성 → Play 화면 이동 ───────────────────────────
+
+  Future<void> _onTapCreate(
+    BuildContext context,
+    String name,
+    List<String> items,
+  ) async {
+    if (_isCreating) return;
+    setState(() => _isCreating = true);
+
+    // async gap 전에 캐시
+    final nav = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      final repo = RouletteRepository.instance;
+      final canCreate = await repo.canCreate();
+
+      if (!mounted) return;
+
+      if (!canCreate) {
+        setState(() => _isCreating = false);
+        _showPremiumLimit(this.context); // mounted 확인 후 State.context 사용
+        return;
+      }
+
+      final itemList = items.asMap().entries.map((e) => Item(
+            id: AppUtils.generateId(),
+            label: e.value,
+            colorValue: AppUtils.colorValueForIndex(e.key),
+            order: e.key,
+            weight: 1,
+          )).toList();
+
+      final roulette = await repo.create(name: name, items: itemList);
+
+      if (!mounted) return;
+      setState(() => _isCreating = false);
+
+      // TemplatesScreen을 스택에서 제거하고 Play 화면으로
+      nav.pushReplacementNamed(
+        AppRoutes.play,
+        arguments: roulette.id,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isCreating = false);
+      messenger.showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
+  }
+
+  // ── 상세 시트 (롱프레스) ─────────────────────────────────
 
   void _showDetailSheet(
     BuildContext context,
@@ -184,10 +260,12 @@ class TemplatesScreen extends StatelessWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  icon: const Icon(Icons.add),
+                  icon: const Icon(Icons.rocket_launch_rounded),
                   label: Text(l10n.useTemplate),
-                  onPressed: () =>
-                      _useTemplate(ctx, context, name, items, l10n),
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    _onTapCreate(context, name, items);
+                  },
                 ),
               ),
             ),
@@ -197,52 +275,32 @@ class TemplatesScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _useTemplate(
-    BuildContext sheetCtx,
-    BuildContext screenCtx,
-    String name,
-    List<String> items,
-    AppLocalizations l10n,
-  ) async {
-    final repo = RouletteRepository.instance;
-    final canCreate = await repo.canCreate();
+  // ── 프리미엄 제한 안내 ───────────────────────────────────
 
-    if (!canCreate) {
-      if (sheetCtx.mounted) Navigator.of(sheetCtx).pop();
-      if (screenCtx.mounted) {
-        showModalBottomSheet(
-          context: screenCtx,
-          builder: (ctx) => Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.lock_outline, size: 48),
-                const SizedBox(height: 16),
-                Text(
-                  l10n.freePlanLimit(AppLimits.maxRouletteCount),
-                  style: Theme.of(screenCtx).textTheme.titleMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(l10n.actionClose),
-                ),
-              ],
+  void _showPremiumLimit(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.lock_outline, size: 48),
+            const SizedBox(height: 16),
+            Text(
+              l10n.freePlanLimit(AppLimits.maxRouletteCount),
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
             ),
-          ),
-        );
-      }
-      return;
-    }
-
-    if (sheetCtx.mounted) Navigator.of(sheetCtx).pop();
-    if (screenCtx.mounted) {
-      Navigator.of(screenCtx).pushNamed(
-        AppRoutes.editor,
-        arguments: {'templateName': name, 'templateItems': items},
-      );
-    }
+            const SizedBox(height: 24),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(l10n.actionClose),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

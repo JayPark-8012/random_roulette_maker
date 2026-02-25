@@ -22,6 +22,7 @@ class SettingsNotifier extends ChangeNotifier {
   String get themeId => _settings.themeId;
   AppThemeMode get appThemeMode => _settings.appThemeMode;
   String get localeCode => _settings.localeCode;
+  String get wheelThemeId => _settings.wheelThemeId;
 
   /// AppThemeMode → Flutter ThemeMode 변환 (MaterialApp에서 사용)
   ThemeMode get flutterThemeMode => switch (_settings.appThemeMode) {
@@ -87,6 +88,12 @@ class SettingsNotifier extends ChangeNotifier {
 
   Future<void> setLocaleCode(String code) async {
     _settings = _settings.copyWith(localeCode: code);
+    await _repo.save(_settings);
+    notifyListeners();
+  }
+
+  Future<void> setWheelThemeId(String id) async {
+    _settings = _settings.copyWith(wheelThemeId: id);
     await _repo.save(_settings);
     notifyListeners();
   }

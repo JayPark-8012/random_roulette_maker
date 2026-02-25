@@ -268,6 +268,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get colorPaletteLabel => 'Paleta de colores';
 
   @override
+  String get wheelThemeLabel => 'Tema de ruleta';
+
+  @override
   String get premiumThemeTitle => 'Tema Premium';
 
   @override

@@ -1,25 +1,34 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../../domain/item.dart';
+import '../../../domain/roulette_wheel_theme.dart';
 
 /// 룰렛 휠 CustomPainter
 class RouletteWheelPainter extends CustomPainter {
   final List<Item> items;
   final double rotationAngle;
   final Color? primaryColor; // 테마 컬러 → 베젤 glow에 사용
+  final RouletteWheelTheme? wheelTheme; // null이면 item.color 그대로 사용
 
   const RouletteWheelPainter({
     required this.items,
     this.rotationAngle = 0,
     this.primaryColor,
+    this.wheelTheme,
   });
+
+  Color _sectorColor(int index) {
+    if (wheelTheme != null) {
+      return wheelTheme!.palette[index % wheelTheme!.palette.length];
+    }
+    return items[index].color;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
     if (items.isEmpty) return;
 
     final center = Offset(size.width / 2, size.height / 2);
-    // -18: 외곽 베젤(~18px) 공간 확보
     final radius = min(size.width, size.height) / 2 - 18;
     final totalWeight = items.fold<int>(0, (s, i) => s + i.weight);
 
@@ -35,29 +44,10 @@ class RouletteWheelPainter extends CustomPainter {
     for (int i = 0; i < items.length; i++) {
       final sweepAngle = 2 * pi * items[i].weight / totalWeight;
       final startAngle = currentAngle;
+      final baseColor = _sectorColor(i);
 
-      // 섹터 채우기
-      canvas.drawArc(
-        Rect.fromCircle(center: Offset.zero, radius: radius),
-        startAngle,
-        sweepAngle,
-        true,
-        Paint()
-          ..color = items[i].color
-          ..style = PaintingStyle.fill,
-      );
-
-      // 섹터 테두리
-      canvas.drawArc(
-        Rect.fromCircle(center: Offset.zero, radius: radius),
-        startAngle,
-        sweepAngle,
-        true,
-        Paint()
-          ..color = Colors.white
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.5,
-      );
+      // 스타일별 섹터 렌더링
+      _drawSector(canvas, baseColor, i, startAngle, sweepAngle, radius);
 
       _drawSectorText(canvas, items[i].label, startAngle, sweepAngle, radius);
       currentAngle += sweepAngle;
@@ -67,6 +57,156 @@ class RouletteWheelPainter extends CustomPainter {
     _drawHub(canvas, radius);
 
     canvas.restore();
+  }
+
+  // ── 스타일별 섹터 렌더링 ─────────────────────────────────────────
+
+  void _drawSector(
+    Canvas canvas,
+    Color baseColor,
+    int index,
+    double startAngle,
+    double sweepAngle,
+    double radius,
+  ) {
+    final style = wheelTheme?.style ?? WheelStyle.classic;
+    final rect = Rect.fromCircle(center: Offset.zero, radius: radius);
+
+    switch (style) {
+      case WheelStyle.classic:
+        _drawClassicSector(canvas, baseColor, rect, startAngle, sweepAngle);
+      case WheelStyle.gradient:
+        _drawGradientSector(
+            canvas, baseColor, rect, startAngle, sweepAngle, radius);
+      case WheelStyle.neonGlow:
+        _drawNeonSector(canvas, baseColor, rect, startAngle, sweepAngle);
+      case WheelStyle.metallic:
+        _drawMetallicSector(canvas, baseColor, rect, startAngle, sweepAngle);
+      case WheelStyle.crystal:
+        _drawCrystalSector(
+            canvas, baseColor, rect, startAngle, sweepAngle, radius);
+    }
+  }
+
+  // Classic: 단색 + 흰 테두리
+  void _drawClassicSector(Canvas canvas, Color color, Rect rect,
+      double startAngle, double sweepAngle) {
+    canvas.drawArc(rect, startAngle, sweepAngle, true,
+        Paint()..color = color..style = PaintingStyle.fill);
+    canvas.drawArc(rect, startAngle, sweepAngle, true,
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5);
+  }
+
+  // Gradient: 중심 밝음 → 외곽 어둠 방사형 그라디언트
+  void _drawGradientSector(Canvas canvas, Color color, Rect rect,
+      double startAngle, double sweepAngle, double radius) {
+    final lighter = Color.lerp(color, Colors.white, 0.45)!;
+    final darker = Color.lerp(color, Colors.black, 0.30)!;
+    final paint = Paint()
+      ..shader = RadialGradient(
+        colors: [lighter, color, darker],
+        stops: const [0.0, 0.55, 1.0],
+      ).createShader(Rect.fromCircle(center: Offset.zero, radius: radius));
+    canvas.drawArc(rect, startAngle, sweepAngle, true, paint);
+    canvas.drawArc(rect, startAngle, sweepAngle, true,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.5)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.2);
+  }
+
+  // NeonGlow: 단색 섹터 + 네온 경계선 발광
+  void _drawNeonSector(Canvas canvas, Color color, Rect rect,
+      double startAngle, double sweepAngle) {
+    // 기본 채우기 (약간 어둡게)
+    canvas.drawArc(rect, startAngle, sweepAngle, true,
+        Paint()..color = Color.lerp(color, Colors.black, 0.20)!..style = PaintingStyle.fill);
+    // 글로우 스트로크 (MaskFilter blur)
+    canvas.drawArc(rect, startAngle, sweepAngle, true,
+        Paint()
+          ..color = color.withValues(alpha: 0.85)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3.5
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6));
+    // 흰 내부선 (선명도 강조)
+    canvas.drawArc(rect, startAngle, sweepAngle, true,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.55)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.8);
+  }
+
+  // Metallic: 섹터 위에 45도 방향 하이라이트 스트라이프
+  void _drawMetallicSector(Canvas canvas, Color color, Rect rect,
+      double startAngle, double sweepAngle) {
+    canvas.drawArc(rect, startAngle, sweepAngle, true,
+        Paint()..color = color..style = PaintingStyle.fill);
+    // 하이라이트 (상단 밝은 반사)
+    canvas.drawArc(rect, startAngle, sweepAngle, true,
+        Paint()
+          ..shader = LinearGradient(
+            colors: [
+              Colors.white.withValues(alpha: 0.35),
+              Colors.white.withValues(alpha: 0.0),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ).createShader(rect));
+    canvas.drawArc(rect, startAngle, sweepAngle, true,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.5)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5);
+  }
+
+  // Crystal: 단색 + 섹터 중앙에 작은 마름모 별 장식
+  void _drawCrystalSector(Canvas canvas, Color color, Rect rect,
+      double startAngle, double sweepAngle, double radius) {
+    canvas.drawArc(rect, startAngle, sweepAngle, true,
+        Paint()..color = color..style = PaintingStyle.fill);
+    // 반투명 오버레이 (보석 투명감)
+    canvas.drawArc(rect, startAngle, sweepAngle, true,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.15)
+          ..style = PaintingStyle.fill);
+    canvas.drawArc(rect, startAngle, sweepAngle, true,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.60)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5);
+    // 섹터 중앙에 다이아몬드 별 스파클
+    final midAngle = startAngle + sweepAngle / 2;
+    final sparkR = radius * 0.55;
+    final cx = cos(midAngle) * sparkR;
+    final cy = sin(midAngle) * sparkR;
+    _drawSparkle(canvas, Offset(cx, cy), radius * 0.045);
+  }
+
+  void _drawSparkle(Canvas canvas, Offset center, double size) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.80)
+      ..style = PaintingStyle.fill;
+    // 십자형 4개 점 다이아몬드
+    for (int k = 0; k < 4; k++) {
+      final a = k * pi / 2;
+      final path = Path()
+        ..moveTo(center.dx, center.dy)
+        ..lineTo(center.dx + cos(a) * size * 2.2, center.dy + sin(a) * size * 2.2)
+        ..lineTo(center.dx + cos(a + pi / 2) * size * 0.6,
+            center.dy + sin(a + pi / 2) * size * 0.6)
+        ..close();
+      canvas.drawPath(path, paint);
+      final sym = Path()
+        ..moveTo(center.dx, center.dy)
+        ..lineTo(center.dx + cos(a) * size * 2.2, center.dy + sin(a) * size * 2.2)
+        ..lineTo(center.dx + cos(a - pi / 2) * size * 0.6,
+            center.dy + sin(a - pi / 2) * size * 0.6)
+        ..close();
+      canvas.drawPath(sym, paint);
+    }
   }
 
   // ── 베젤 (메탈릭 링 + 글로우) ─────────────────────────────────
@@ -121,7 +261,8 @@ class RouletteWheelPainter extends CustomPainter {
       center,
       radius + 4,
       Paint()
-        ..color = (primaryColor ?? const Color(0xFF7C3AED)).withValues(alpha: 0.40)
+        ..color =
+            (primaryColor ?? const Color(0xFF7C3AED)).withValues(alpha: 0.40)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 5,
     );
@@ -219,7 +360,8 @@ class RouletteWheelPainter extends CustomPainter {
   bool shouldRepaint(RouletteWheelPainter old) =>
       old.rotationAngle != rotationAngle ||
       old.items != items ||
-      old.primaryColor != primaryColor;
+      old.primaryColor != primaryColor ||
+      old.wheelTheme?.id != wheelTheme?.id;
 }
 
 // ── 포인터 (12시, 휠 상단에 고정) ────────────────────────────────

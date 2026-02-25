@@ -268,6 +268,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get colorPaletteLabel => 'Paleta de cores';
 
   @override
+  String get wheelThemeLabel => 'Tema da roleta';
+
+  @override
   String get premiumThemeTitle => 'Tema Premium';
 
   @override
@@ -947,6 +950,9 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get colorPaletteLabel => 'Paleta de cores';
+
+  @override
+  String get wheelThemeLabel => 'Tema da roleta';
 
   @override
   String get premiumThemeTitle => 'Tema Premium';

@@ -70,6 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onPopInvokedWithResult: (_, _) => SystemNavigator.pop(),
       child: Scaffold(
         backgroundColor: Colors.transparent,
+        extendBody: true,
         body: AppBackground(
           child: SafeArea(
             bottom: false,
@@ -99,60 +100,76 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        // ── 하단 NavigationBar ────────────────────────────────
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: _mode.index,
-          onDestinationSelected: (i) {
-            HapticFeedback.selectionClick();
-            setState(() => _mode = _HomeMode.values[i]);
-          },
-          backgroundColor:
-              isDark ? const Color(0xFF0D0818) : const Color(0xFFF4F4F8),
-          surfaceTintColor: Colors.transparent,
-          elevation: 0,
-          height: 68,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: [
-            NavigationDestination(
-              icon: const Icon(Icons.track_changes_outlined),
-              selectedIcon: const Icon(Icons.track_changes_rounded),
-              label: l10n.tabRoulette,
+        // ── 하단 NavigationBar (Floating Island) ────────────
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black
+                        .withValues(alpha: isDark ? 0.35 : 0.12),
+                    blurRadius: 24,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: NavigationBar(
+                  selectedIndex: _mode.index,
+                  onDestinationSelected: (i) {
+                    HapticFeedback.selectionClick();
+                    setState(() => _mode = _HomeMode.values[i]);
+                  },
+                  backgroundColor:
+                      isDark ? const Color(0xFF1A0F2E) : Colors.white,
+                  surfaceTintColor: Colors.transparent,
+                  elevation: 0,
+                  height: 68,
+                  labelBehavior:
+                      NavigationDestinationLabelBehavior.alwaysShow,
+                  destinations: [
+                    NavigationDestination(
+                      icon: const Icon(Icons.track_changes_outlined),
+                      selectedIcon: const Icon(Icons.track_changes_rounded),
+                      label: l10n.tabRoulette,
+                    ),
+                    NavigationDestination(
+                      icon: const Icon(Icons.monetization_on_outlined),
+                      selectedIcon:
+                          const Icon(Icons.monetization_on_rounded),
+                      label: l10n.tabCoin,
+                    ),
+                    NavigationDestination(
+                      icon: const Icon(Icons.casino_outlined),
+                      selectedIcon: const Icon(Icons.casino_rounded),
+                      label: l10n.tabDice,
+                    ),
+                    NavigationDestination(
+                      icon: const Icon(Icons.shuffle_rounded),
+                      selectedIcon: const Icon(Icons.shuffle_rounded),
+                      label: l10n.tabNumber,
+                    ),
+                  ],
+                ),
+              ),
             ),
-            NavigationDestination(
-              icon: const Icon(Icons.monetization_on_outlined),
-              selectedIcon: const Icon(Icons.monetization_on_rounded),
-              label: l10n.tabCoin,
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.casino_outlined),
-              selectedIcon: const Icon(Icons.casino_rounded),
-              label: l10n.tabDice,
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.shuffle_rounded),
-              selectedIcon: const Icon(Icons.shuffle_rounded),
-              label: l10n.tabNumber,
-            ),
-          ],
+          ),
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         // FAB: 룰렛 모드에서만 표시
         floatingActionButton: _mode == _HomeMode.roulette
-            ? FloatingActionButton.extended(
+            ? FloatingActionButton.large(
                 onPressed: () => _onCreateTap(context),
                 backgroundColor: cs.primary,
                 foregroundColor: cs.onPrimary,
-                elevation: 3,
-                highlightElevation: 6,
-                shape: const StadiumBorder(),
-                icon: const Icon(Icons.add_rounded, size: 22),
-                label: Text(
-                  l10n.fabCreateNew,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: cs.onPrimary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
+                elevation: 6,
+                shape: const CircleBorder(),
+                child: const Icon(Icons.add_rounded, size: 40),
               )
             : null,
       ),
@@ -162,22 +179,23 @@ class _HomeScreenState extends State<HomeScreen> {
   // ── 헤더 ──────────────────────────────────────────────
 
   Widget _buildHeader(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final cs = Theme.of(context).colorScheme;
+    final bgColor = isDark ? const Color(0xFF1A0F2E) : Colors.white;
+    final fgColor = isDark ? Colors.white : cs.onSurface;
 
-    // 앱 이름에 무지개 그라디언트 적용
-    const logoGradient = LinearGradient(
-      colors: [
-        Color(0xFFFF6B6B),
-        Color(0xFFFFD93D),
-        Color(0xFF6BCB77),
-        Color(0xFF4D96FF),
-      ],
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
-    );
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 8, 0),
+    return Container(
+      decoration: BoxDecoration(
+        color: bgColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 14, 8, 12),
       child: Row(
         children: [
           // 로고 아이콘
@@ -185,45 +203,32 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 34,
             height: 34,
             margin: const EdgeInsets.only(right: 10),
-            decoration: const BoxDecoration(
-              gradient: SweepGradient(
-                colors: [
-                  Color(0xFFFF6B6B),
-                  Color(0xFFFFD93D),
-                  Color(0xFF6BCB77),
-                  Color(0xFF4D96FF),
-                  Color(0xFF7C3AED),
-                  Color(0xFFFF6B6B),
-                ],
-              ),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.18)
+                  : cs.primary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.track_changes_rounded,
-              color: Colors.white,
+              color: isDark ? Colors.white : cs.primary,
               size: 18,
             ),
           ),
-          // 앱 이름 (그라디언트 텍스트)
+          // 앱 이름
           Expanded(
-            child: ShaderMask(
-              shaderCallback: (bounds) => logoGradient.createShader(bounds),
-              blendMode: BlendMode.srcIn,
-              child: Text(
-                AppLocalizations.of(context)!.homeTitle,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.5,
-                    ),
-              ),
+            child: Text(
+              AppLocalizations.of(context)!.homeTitle,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                    color: fgColor,
+                  ),
             ),
           ),
           // 설정 버튼
           IconButton(
-            icon: Icon(
-              Icons.settings_rounded,
-              color: cs.onSurfaceVariant,
-            ),
+            icon: Icon(Icons.settings_rounded, color: fgColor),
             onPressed: () =>
                 Navigator.of(context).pushNamed(AppRoutes.settings),
             tooltip: AppLocalizations.of(context)!.settingsTooltip,
@@ -316,48 +321,21 @@ class _HomeScreenState extends State<HomeScreen> {
     _showCreateBottomSheet(context);
   }
 
-  /// [이동] 기존 홈 AppBar 템플릿 버튼 → FAB 바텀시트로 통합
   void _showCreateBottomSheet(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet<void>(
       context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 8),
-            Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Theme.of(ctx).colorScheme.outlineVariant,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 8),
-            ListTile(
-              leading: const Icon(Icons.add_circle_outline_rounded),
-              title: Text(l10n.createManualTitle),
-              subtitle: Text(l10n.createManualSubtitle),
-              onTap: () {
-                Navigator.of(ctx).pop();
-                _navigateToEditor(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.auto_awesome_motion_rounded),
-              title: Text(l10n.createTemplateTitle),
-              subtitle: Text(l10n.createTemplateSubtitleNew),
-              onTap: () {
-                Navigator.of(ctx).pop();
-                Navigator.of(context)
-                    .pushNamed(AppRoutes.templates)
-                    .then((_) => _notifier.load());
-              },
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _CreateSheet(
+        onCreateManual: () {
+          Navigator.of(ctx).pop();
+          _navigateToEditor(context);
+        },
+        onCreateTemplate: () {
+          Navigator.of(ctx).pop();
+          Navigator.of(context)
+              .pushNamed(AppRoutes.templates)
+              .then((_) => _notifier.load());
+        },
       ),
     );
   }
@@ -619,4 +597,172 @@ class _SimpleWheelPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_SimpleWheelPainter old) => false;
+}
+
+// ── 새 룰렛 만들기 선택 시트 ──────────────────────────────────
+
+class _CreateSheet extends StatelessWidget {
+  final VoidCallback onCreateManual;
+  final VoidCallback onCreateTemplate;
+
+  const _CreateSheet({
+    required this.onCreateManual,
+    required this.onCreateTemplate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 핸들 바
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: cs.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                l10n.fabCreateNew,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _CreateOptionCard(
+                      icon: Icons.edit_rounded,
+                      color: cs.primary,
+                      title: l10n.createManualTitle,
+                      subtitle: l10n.createManualSubtitle,
+                      onTap: onCreateManual,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _CreateOptionCard(
+                      icon: Icons.auto_awesome_rounded,
+                      color: cs.tertiary,
+                      title: l10n.createTemplateTitle,
+                      subtitle: l10n.createTemplateSubtitleNew,
+                      onTap: onCreateTemplate,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── 생성 옵션 카드 ─────────────────────────────────────────────
+
+class _CreateOptionCard extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _CreateOptionCard({
+    required this.icon,
+    required this.color,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return SizedBox(
+      height: 164,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: cs.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: color.withValues(alpha: isDark ? 0.50 : 0.35),
+                width: 1.5,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(18.5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 컬러 아이콘 블록 (고정 높이)
+                  Container(
+                    height: 96,
+                    color: color.withValues(alpha: isDark ? 0.25 : 0.15),
+                    child: Center(
+                      child: Icon(icon, color: color, size: 48),
+                    ),
+                  ),
+                  // 텍스트 영역
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            title,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            subtitle,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: cs.onSurfaceVariant,
+                                ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

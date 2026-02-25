@@ -15,6 +15,8 @@ class Settings {
   final AppThemeMode appThemeMode;
   /// 'system' | 'en' | 'ko' | 'es' | 'pt-BR' | 'ja' | 'zh-Hans'
   final String localeCode;
+  /// 룰렛 휠 테마 ID (RouletteWheelThemes 참조)
+  final String wheelThemeId;
 
   const Settings({
     this.soundEnabled = true,
@@ -25,6 +27,7 @@ class Settings {
     this.themeId = 'indigo',
     this.appThemeMode = AppThemeMode.system,
     this.localeCode = 'system',
+    this.wheelThemeId = 'classic',
   });
 
   Settings copyWith({
@@ -37,6 +40,7 @@ class Settings {
     AppThemeMode? appThemeMode,
     bool clearLastUsed = false,
     String? localeCode,
+    String? wheelThemeId,
   }) {
     return Settings(
       soundEnabled: soundEnabled ?? this.soundEnabled,
@@ -48,6 +52,7 @@ class Settings {
       themeId: themeId ?? this.themeId,
       appThemeMode: appThemeMode ?? this.appThemeMode,
       localeCode: localeCode ?? this.localeCode,
+      wheelThemeId: wheelThemeId ?? this.wheelThemeId,
     );
   }
 
@@ -61,6 +66,7 @@ class Settings {
       'themeId': themeId,
       'appThemeMode': appThemeMode.name,
       'localeCode': localeCode,
+      'wheelThemeId': wheelThemeId,
       'schemaVersion': 2,
     };
   }
@@ -75,6 +81,7 @@ class Settings {
       themeId: json['themeId'] as String? ?? 'indigo',
       appThemeMode: _parseAppThemeMode(json['appThemeMode'] as String?),
       localeCode: json['localeCode'] as String? ?? 'system',
+      wheelThemeId: json['wheelThemeId'] as String? ?? 'classic',
     );
   }
 

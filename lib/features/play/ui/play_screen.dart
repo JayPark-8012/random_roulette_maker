@@ -6,6 +6,7 @@ import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants.dart';
+import '../../../core/roulette_wheel_themes.dart';
 import '../../../core/utils.dart';
 import '../../../domain/item.dart';
 import '../../../domain/settings.dart';
@@ -15,6 +16,7 @@ import '../widgets/roulette_wheel.dart';
 import '../widgets/stats_sheet.dart';
 import '../../../core/widgets/app_background.dart';
 import '../../../data/ad_service.dart';
+import '../../settings/state/settings_notifier.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -30,6 +32,11 @@ class _PlayScreenState extends State<PlayScreen>
   late Animation<double> _rotationAnim;
   double _currentAngle = 0;
   final GlobalKey _wheelKey = GlobalKey();
+
+  // 결과 오버레이 상태
+  Item? _resultWinner;
+  late AnimationController _resultSlideCtrl;
+  late Animation<Offset> _resultSlideAnim;
 
   // 인터랙티브 드래그 상태
   bool _isDragging = false;
@@ -54,6 +61,18 @@ class _PlayScreenState extends State<PlayScreen>
       vsync: this,
       duration: const Duration(milliseconds: 200),
     );
+
+    _resultSlideCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _resultSlideAnim = Tween<Offset>(
+      begin: const Offset(0, 1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _resultSlideCtrl,
+      curve: Curves.easeOutCubic,
+    ));
     // 꺾임(0→1) → 스프링 반동(1→-0.2) → 안정(-0.2→0)
     _pointerAnim = TweenSequence<double>([
       TweenSequenceItem(
@@ -101,6 +120,7 @@ class _PlayScreenState extends State<PlayScreen>
     _animController.removeListener(_onWheelTick);
     _animController.dispose();
     _pointerController.dispose();
+    _resultSlideCtrl.dispose();
     _notifier.dispose();
     super.dispose();
   }
@@ -328,7 +348,7 @@ class _PlayScreenState extends State<PlayScreen>
     }
   }
 
-  void _showShareOptions(BuildContext sheetCtx, Item winner) {
+  void _showShareOptions(Item winner) {
     final l10n = AppLocalizations.of(context)!;
     showDialog<void>(
       context: context,
@@ -363,37 +383,41 @@ class _PlayScreenState extends State<PlayScreen>
   }
 
   void _showResultSheet(Item winner) {
+    setState(() => _resultWinner = winner);
+    _resultSlideCtrl.forward(from: 0);
+  }
+
+  void _onResultClose() {
+    _resultSlideCtrl.reverse().then((_) {
+      if (mounted) {
+        _notifier.resetSpin();
+        setState(() => _resultWinner = null);
+      }
+    });
+  }
+
+  void _onResultReSpin() {
+    _resultSlideCtrl.reverse().then((_) {
+      if (mounted) {
+        _notifier.resetSpin();
+        setState(() => _resultWinner = null);
+        Future.microtask(_spin);
+      }
+    });
+  }
+
+  Future<void> _onResultCopy() async {
+    if (_resultWinner == null) return;
+    final text = AppUtils.buildShareText(
+      _notifier.roulette?.name ?? '',
+      _resultWinner!.label,
+    );
+    final messenger = ScaffoldMessenger.of(context);
     final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet(
-      context: context,
-      isDismissible: true,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) => _ResultSheet(
-        winner: winner,
-        rouletteName: _notifier.roulette?.name ?? '',
-        onReSpin: () {
-          Navigator.of(ctx).pop();
-          _notifier.resetSpin();
-          Future.microtask(_spin);
-        },
-        onClose: () => Navigator.of(ctx).pop(),
-        onCopy: () async {
-          final text = AppUtils.buildShareText(
-            _notifier.roulette?.name ?? '',
-            winner.label,
-          );
-          final navigator = Navigator.of(ctx);
-          final messenger = ScaffoldMessenger.of(context);
-          await Clipboard.setData(ClipboardData(text: text));
-          navigator.pop();
-          messenger.showSnackBar(
-            SnackBar(content: Text(l10n.copiedMessage)),
-          );
-        },
-        onShare: () => _showShareOptions(ctx, winner),
-      ),
-    ).then((_) => _notifier.resetSpin());
+    await Clipboard.setData(ClipboardData(text: text));
+    if (!mounted) return;
+    _onResultClose();
+    messenger.showSnackBar(SnackBar(content: Text(l10n.copiedMessage)));
   }
 
   void _showStats() {
@@ -471,12 +495,19 @@ class _PlayScreenState extends State<PlayScreen>
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
 
-    return AppBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: SafeArea(
-          bottom: false,
-          child: Column(
+    return PopScope(
+      canPop: _resultWinner == null,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _resultWinner != null) _onResultClose();
+      },
+      child: AppBackground(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Stack(
+            children: [
+              SafeArea(
+                bottom: false,
+                child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // ── 슬림 커스텀 헤더 ──
@@ -563,6 +594,9 @@ class _PlayScreenState extends State<PlayScreen>
                                                     ? _dragAngle
                                                     : _rotationAnim.value,
                                                 primaryColor: colorScheme.primary,
+                                                wheelTheme: findWheelThemeById(
+                                                  SettingsNotifier.instance.wheelThemeId,
+                                                ),
                                               ),
                                               size: Size.square(
                                                 MediaQuery.of(context).size.width * 0.92,
@@ -746,14 +780,30 @@ class _PlayScreenState extends State<PlayScreen>
             ],
           ),
         ),
+        // ── 결과 전체화면 오버레이 ──
+        if (_resultWinner != null)
+          SlideTransition(
+            position: _resultSlideAnim,
+            child: _ResultOverlay(
+              winner: _resultWinner!,
+              rouletteName: _notifier.roulette?.name ?? '',
+              onReSpin: _onResultReSpin,
+              onClose: _onResultClose,
+              onCopy: _onResultCopy,
+              onShare: () => _showShareOptions(_resultWinner!),
+            ),
+          ),
+      ],
+    ),
+        ),
       ),
     );
   }
 }
 
-// ── 개선된 ResultSheet ──────────────────────────────────────
+// ── 전체화면 결과 오버레이 ────────────────────────────────────
 
-class _ResultSheet extends StatefulWidget {
+class _ResultOverlay extends StatefulWidget {
   final Item winner;
   final String rouletteName;
   final VoidCallback onReSpin;
@@ -761,7 +811,7 @@ class _ResultSheet extends StatefulWidget {
   final VoidCallback onCopy;
   final VoidCallback onShare;
 
-  const _ResultSheet({
+  const _ResultOverlay({
     required this.winner,
     required this.rouletteName,
     required this.onReSpin,
@@ -771,10 +821,10 @@ class _ResultSheet extends StatefulWidget {
   });
 
   @override
-  State<_ResultSheet> createState() => _ResultSheetState();
+  State<_ResultOverlay> createState() => _ResultOverlayState();
 }
 
-class _ResultSheetState extends State<_ResultSheet>
+class _ResultOverlayState extends State<_ResultOverlay>
     with TickerProviderStateMixin {
   late final AnimationController _flashCtrl;
   late final AnimationController _confettiCtrl;
@@ -782,19 +832,14 @@ class _ResultSheetState extends State<_ResultSheet>
   @override
   void initState() {
     super.initState();
-    // 등장 시 당첨 색 Flash: 빠르게 사라짐
     _flashCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 550),
-    );
-    _flashCtrl.forward();
-
-    // Confetti: 2.5초간 낙하
+    )..forward();
     _confettiCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2500),
-    );
-    _confettiCtrl.forward();
+    )..forward();
   }
 
   @override
@@ -806,145 +851,200 @@ class _ResultSheetState extends State<_ResultSheet>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
     final winnerColor = widget.winner.color;
-    final isLight = winnerColor.computeLuminance() > 0.4;
-    final textColor = isLight ? Colors.black87 : Colors.white;
 
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-      child: Stack(
-        children: [
-          // ── 메인 시트 콘텐츠 ───────────────────────
-          Container(
-            color: colorScheme.surface,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // ── 핸들 바 ──
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Container(
-                    width: 36,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: colorScheme.outlineVariant,
-                      borderRadius: BorderRadius.circular(2),
+    return BackdropFilter(
+      filter: ui.ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+      child: Container(
+        color: Colors.black.withValues(alpha: 0.80),
+        child: Stack(
+          children: [
+            // ── 메인 콘텐츠 ───────────────────────────
+            SafeArea(
+              child: Column(
+                children: [
+                  // 상단 닫기 버튼
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(4, 4, 8, 0),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.close_rounded,
+                              color: Colors.white70),
+                          onPressed: widget.onClose,
+                        ),
+                      ],
                     ),
                   ),
-                )
-                    .animate()
-                    .fadeIn(duration: 300.ms)
-                    .scaleXY(begin: 0.8, end: 1.0, duration: 300.ms, curve: Curves.easeOut),
-                // ── 결과 요약 헤더 ──
-                Container(
-                  margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                  padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
-                  decoration: BoxDecoration(
-                    color: winnerColor,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: winnerColor.withValues(alpha: 0.30),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.emoji_events_rounded,
-                          size: 32,
-                          color: textColor,
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              l10n.resultLabel,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: textColor.withValues(alpha: 0.7),
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              widget.winner.label,
-                              style: TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -1.0,
-                                color: textColor,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-                    .animate()
-                    .scaleXY(begin: 0.85, end: 1.05, duration: 200.ms, curve: Curves.easeInOut)
-                    .then()
-                    .scaleXY(begin: 1.05, end: 1.0, duration: 100.ms, curve: Curves.easeInOut),
-                // ── 버튼 영역 ──
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-                  child: Column(
-                    children: [
-                      Row(
+                  // 당첨 표시 영역 (flex)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(32, 0, 32, 16),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              icon: const Icon(Icons.refresh_rounded),
-                              label: Text(l10n.actionReSpin),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 14),
-                                side: BorderSide(color: colorScheme.outlineVariant),
+                          // 트로피 원형 아이콘 (140px + 흰색 링 + 강한 glow)
+                          Container(
+                            width: 140,
+                            height: 140,
+                            decoration: BoxDecoration(
+                              color: winnerColor,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 3,
                               ),
-                              onPressed: widget.onReSpin,
-                            )
-                                .animate()
-                                .slideY(begin: 0.2, end: 0.0, duration: 300.ms, delay: 250.ms, curve: Curves.easeOut)
-                                .fadeIn(duration: 300.ms, delay: 250.ms),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: FilledButton(
-                              style: FilledButton.styleFrom(
-                                backgroundColor: winnerColor,
-                                foregroundColor: textColor,
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: winnerColor.withValues(alpha: 0.65),
+                                  blurRadius: 40,
+                                  spreadRadius: 8,
+                                ),
+                                BoxShadow(
+                                  color: winnerColor.withValues(alpha: 0.30),
+                                  blurRadius: 80,
+                                  spreadRadius: 16,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.emoji_events_rounded,
+                              size: 68,
+                              color: Colors.white,
+                            ),
+                          )
+                              .animate()
+                              .scale(
+                                begin: const Offset(0.4, 0.4),
+                                end: const Offset(1.0, 1.0),
+                                duration: 500.ms,
+                                curve: Curves.elasticOut,
                               ),
-                              onPressed: widget.onClose,
-                              child: Text(
-                                l10n.actionConfirm,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                          const SizedBox(height: 28),
+                          // "✨ 당첨 ✨" 배너
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text('✨',
+                                  style: TextStyle(fontSize: 16)),
+                              const SizedBox(width: 8),
+                              Text(
+                                l10n.resultLabel,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: winnerColor,
+                                  letterSpacing: 3.0,
+                                ),
                               ),
-                            )
-                                .animate()
-                                .slideY(begin: 0.2, end: 0.0, duration: 300.ms, delay: 300.ms, curve: Curves.easeOut)
-                                .fadeIn(duration: 300.ms, delay: 300.ms),
+                              const SizedBox(width: 8),
+                              const Text('✨',
+                                  style: TextStyle(fontSize: 16)),
+                            ],
+                          ).animate().fadeIn(duration: 300.ms, delay: 200.ms),
+                          const SizedBox(height: 12),
+                          // 당첨 항목 이름 (흰색 + winnerColor glow)
+                          Text(
+                            widget.winner.label,
+                            style: TextStyle(
+                              fontSize: 52,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -1.5,
+                              color: Colors.white,
+                              shadows: [
+                                Shadow(
+                                  color: winnerColor.withValues(alpha: 0.9),
+                                  blurRadius: 20,
+                                  offset: Offset.zero,
+                                ),
+                                Shadow(
+                                  color: winnerColor.withValues(alpha: 0.5),
+                                  blurRadius: 50,
+                                  offset: Offset.zero,
+                                ),
+                              ],
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          )
+                              .animate()
+                              .fadeIn(duration: 350.ms, delay: 150.ms)
+                              .slideY(
+                                begin: 0.25,
+                                end: 0.0,
+                                duration: 400.ms,
+                                delay: 150.ms,
+                                curve: Curves.easeOutCubic,
+                              ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // 하단 버튼 영역
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+                    child: Column(
+                      children: [
+                        // 다시 돌리기 + 확인
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                icon: const Icon(Icons.refresh_rounded),
+                                label: Text(l10n.actionReSpin),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 16),
+                                  side: const BorderSide(
+                                    color: Colors.white38,
+                                    width: 1.2,
+                                  ),
+                                ),
+                                onPressed: widget.onReSpin,
+                              )
+                                  .animate()
+                                  .slideY(
+                                    begin: 0.2,
+                                    end: 0.0,
+                                    duration: 300.ms,
+                                    delay: 300.ms,
+                                    curve: Curves.easeOut,
+                                  )
+                                  .fadeIn(duration: 300.ms, delay: 300.ms),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: FilledButton(
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: winnerColor,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 16),
+                                ),
+                                onPressed: widget.onClose,
+                                child: Text(
+                                  l10n.actionConfirm,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              )
+                                  .animate()
+                                  .slideY(
+                                    begin: 0.2,
+                                    end: 0.0,
+                                    duration: 300.ms,
+                                    delay: 350.ms,
+                                  curve: Curves.easeOut,
+                                )
+                                .fadeIn(duration: 300.ms, delay: 350.ms),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 8),
+                      // 복사 + 공유
                       Row(
                         children: [
                           Expanded(
@@ -952,26 +1052,39 @@ class _ResultSheetState extends State<_ResultSheet>
                               icon: const Icon(Icons.copy_rounded, size: 18),
                               label: Text(l10n.actionCopy),
                               style: TextButton.styleFrom(
-                                foregroundColor: colorScheme.onSurfaceVariant,
+                                foregroundColor: Colors.white60,
                               ),
                               onPressed: widget.onCopy,
                             )
                                 .animate()
-                                .slideY(begin: 0.1, end: 0.0, duration: 300.ms, delay: 350.ms, curve: Curves.easeOut)
-                                .fadeIn(duration: 300.ms, delay: 350.ms),
+                                .slideY(
+                                  begin: 0.1,
+                                  end: 0.0,
+                                  duration: 300.ms,
+                                  delay: 400.ms,
+                                  curve: Curves.easeOut,
+                                )
+                                .fadeIn(duration: 300.ms, delay: 400.ms),
                           ),
                           Expanded(
                             child: TextButton.icon(
-                              icon: const Icon(Icons.ios_share_rounded, size: 18),
+                              icon: const Icon(Icons.ios_share_rounded,
+                                  size: 18),
                               label: Text(l10n.shareTitle),
                               style: TextButton.styleFrom(
-                                foregroundColor: colorScheme.onSurfaceVariant,
+                                foregroundColor: Colors.white60,
                               ),
                               onPressed: widget.onShare,
                             )
                                 .animate()
-                                .slideY(begin: 0.1, end: 0.0, duration: 300.ms, delay: 400.ms, curve: Curves.easeOut)
-                                .fadeIn(duration: 300.ms, delay: 400.ms),
+                                .slideY(
+                                  begin: 0.1,
+                                  end: 0.0,
+                                  duration: 300.ms,
+                                  delay: 450.ms,
+                                  curve: Curves.easeOut,
+                                )
+                                .fadeIn(duration: 300.ms, delay: 450.ms),
                           ),
                         ],
                       ),
@@ -1011,6 +1124,7 @@ class _ResultSheetState extends State<_ResultSheet>
             ),
           ),
         ],
+      ),
       ),
     );
   }

@@ -266,6 +266,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get colorPaletteLabel => '颜色方案';
 
   @override
+  String get wheelThemeLabel => '轉盤主題';
+
+  @override
   String get premiumThemeTitle => '高级主题';
 
   @override
@@ -942,6 +945,9 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get colorPaletteLabel => '颜色方案';
+
+  @override
+  String get wheelThemeLabel => '转盘主题';
 
   @override
   String get premiumThemeTitle => '高级主题';

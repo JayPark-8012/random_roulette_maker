@@ -594,6 +594,12 @@ abstract class AppLocalizations {
   /// **'Color Palette'**
   String get colorPaletteLabel;
 
+  /// No description provided for @wheelThemeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Wheel Theme'**
+  String get wheelThemeLabel;
+
   /// No description provided for @premiumThemeTitle.
   ///
   /// In en, this message translates to:

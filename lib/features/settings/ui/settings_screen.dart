@@ -1,8 +1,11 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../../core/app_themes.dart';
 import '../../../core/constants.dart';
+import '../../../core/roulette_wheel_themes.dart';
 import '../../../data/premium_service.dart';
 import '../../../domain/premium_state.dart';
+import '../../../domain/roulette_wheel_theme.dart';
 import '../../../domain/settings.dart';
 import '../../../l10n/app_localizations.dart';
 import '../state/settings_notifier.dart';
@@ -42,6 +45,63 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     _notifier.setThemeId(theme.id);
+  }
+
+  void _selectWheelTheme(BuildContext context, RouletteWheelTheme wt) {
+    if (!PremiumService.instance.canUseWheelTheme(wt.id)) {
+      _showWheelThemeLockDialog(context, wt);
+      return;
+    }
+    _notifier.setWheelThemeId(wt.id);
+  }
+
+  void _showWheelThemeLockDialog(BuildContext context, RouletteWheelTheme wt) {
+    final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        icon: Icon(Icons.lock_rounded, size: 40, color: cs.primary),
+        title: Text(l10n.paywallPaletteLockTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              l10n.paywallPaletteLockContent(wt.name),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            // 휠 테마 색상 스와치 미리보기
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: wt.palette.take(6).map((c) {
+                return Container(
+                  width: 24,
+                  height: 24,
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  decoration:
+                      BoxDecoration(color: c, shape: BoxShape.circle),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).pushNamed(AppRoutes.paywall);
+            },
+            child: Text(l10n.paywallUnlockButton),
+          ),
+        ],
+      ),
+    );
   }
 
   /// 팔레트 잠금 다이얼로그
@@ -237,6 +297,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           // 프리미엄이면 잠금 없음, 무료면 정적 플래그로 판단
                           isLocked: !ps.isPremium && theme.isLocked,
                           onTap: () => _selectTheme(context, theme),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Divider(height: 1),
+                  const SizedBox(height: 16),
+                  // ── 룰렛 휠 테마 ─────────────────────────────
+                  Text(
+                    l10n.wheelThemeLabel,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  ValueListenableBuilder<PremiumState>(
+                    valueListenable: PremiumService.instance.stateNotifier,
+                    builder: (ctx, ps, child) => GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 4,
+                        childAspectRatio: 0.82,
+                        crossAxisSpacing: 8,
+                        mainAxisSpacing: 8,
+                      ),
+                      itemCount: kRouletteWheelThemes.length,
+                      itemBuilder: (ctx, i) {
+                        final wt = kRouletteWheelThemes[i];
+                        return _WheelThemePreviewCard(
+                          wheelTheme: wt,
+                          isSelected: wt.id == _notifier.wheelThemeId,
+                          isLocked: !ps.isPremium && wt.isLocked,
+                          onTap: () => _selectWheelTheme(context, wt),
                         );
                       },
                     ),
@@ -482,6 +577,160 @@ class _ThemePreviewCard extends StatelessWidget {
       ),
     );
   }
+}
+
+// ── 룰렛 휠 테마 프리뷰 카드 ─────────────────────────────
+class _WheelThemePreviewCard extends StatelessWidget {
+  final RouletteWheelTheme wheelTheme;
+  final bool isSelected;
+  final bool isLocked;
+  final VoidCallback onTap;
+
+  const _WheelThemePreviewCard({
+    required this.wheelTheme,
+    required this.isSelected,
+    required this.isLocked,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? cs.primary : cs.outlineVariant,
+            width: isSelected ? 2.5 : 1,
+          ),
+          color: isSelected
+              ? cs.primary.withValues(alpha: 0.06)
+              : cs.surfaceContainerLowest,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CustomPaint(
+              painter: _MiniWheelPreviewPainter(
+                palette: wheelTheme.palette,
+                style: wheelTheme.style,
+              ),
+              size: const Size(44, 44),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              wheelTheme.name,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? cs.primary : cs.onSurface,
+                  ),
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (isLocked)
+              Icon(Icons.lock_outline, size: 11, color: cs.onSurfaceVariant)
+            else if (isSelected)
+              Icon(Icons.check_circle_rounded, size: 11, color: cs.primary)
+            else
+              const SizedBox(height: 11),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── 미니 휠 프리뷰 페인터 (설정 화면용) ───────────────────
+class _MiniWheelPreviewPainter extends CustomPainter {
+  final List<Color> palette;
+  final WheelStyle style;
+
+  const _MiniWheelPreviewPainter({
+    required this.palette,
+    required this.style,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 1;
+    const count = 6;
+    final sectorAngle = 2 * pi / count;
+
+    for (int i = 0; i < count; i++) {
+      final color = palette[i % palette.length];
+      final start = -pi / 2 + i * sectorAngle;
+      final rect = Rect.fromCircle(center: center, radius: radius);
+
+      switch (style) {
+        case WheelStyle.gradient:
+          final lighter = Color.lerp(color, Colors.white, 0.4)!;
+          canvas.drawArc(
+            rect, start, sectorAngle, true,
+            Paint()
+              ..shader = RadialGradient(
+                colors: [lighter, color],
+              ).createShader(rect),
+          );
+        case WheelStyle.neonGlow:
+          canvas.drawArc(rect, start, sectorAngle, true,
+              Paint()..color = Color.lerp(color, Colors.black, 0.15)!);
+          canvas.drawArc(rect, start, sectorAngle, true,
+              Paint()
+                ..color = color.withValues(alpha: 0.9)
+                ..style = PaintingStyle.stroke
+                ..strokeWidth = 2
+                ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3));
+        case WheelStyle.metallic:
+          canvas.drawArc(rect, start, sectorAngle, true,
+              Paint()..color = color);
+          canvas.drawArc(rect, start, sectorAngle, true,
+              Paint()
+                ..shader = LinearGradient(
+                  colors: [
+                    Colors.white.withValues(alpha: 0.30),
+                    Colors.transparent,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ).createShader(rect));
+        case WheelStyle.crystal:
+          canvas.drawArc(rect, start, sectorAngle, true,
+              Paint()..color = color);
+          canvas.drawArc(rect, start, sectorAngle, true,
+              Paint()..color = Colors.white.withValues(alpha: 0.18));
+        case WheelStyle.classic:
+          canvas.drawArc(rect, start, sectorAngle, true,
+              Paint()..color = color);
+      }
+
+      // 섹터 구분선
+      canvas.drawArc(rect, start, sectorAngle, true,
+          Paint()
+            ..color = Colors.white.withValues(alpha: 0.6)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 0.8);
+    }
+
+    // 외곽 링
+    canvas.drawCircle(
+      center, radius,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.7)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+
+    // 중앙 허브
+    canvas.drawCircle(center, radius * 0.18, Paint()..color = Colors.white);
+  }
+
+  @override
+  bool shouldRepaint(_MiniWheelPreviewPainter old) =>
+      old.palette != palette || old.style != style;
 }
 
 // ── 섹션 헤더 ────────────────────────────────────────────

@@ -230,36 +230,69 @@ class _CoinCard extends StatefulWidget {
 
 class _CoinCardState extends State<_CoinCard>
     with SingleTickerProviderStateMixin {
-  late AnimationController _flipCtrl;
-  late Animation<double> _flipAnim;
-  bool? _prevCoin;
+  // 5바퀴 = 10 반회전 / easeOutCubic으로 자연 감속
+  static const int _totalHalfTurns = 10;
+  static const Duration _spinDuration = Duration(milliseconds: 2200);
+
+  late AnimationController _spinCtrl;
+  late Animation<double> _spinAnim;
+
+  bool _isFlipping = false;
+  int _flipDoneCount = 0;
+  List<bool?> _halfTurnFaces = []; // 각 반회전에서 보여줄 면
 
   @override
   void initState() {
     super.initState();
-    _prevCoin = widget.coin;
-    _flipCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _flipAnim = Tween(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _flipCtrl, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void didUpdateWidget(_CoinCard old) {
-    super.didUpdateWidget(old);
-    if (old.coin != widget.coin && widget.coin != null) {
-      _prevCoin = old.coin;
-      _flipCtrl.forward(from: 0);
-    }
+    _spinCtrl = AnimationController(vsync: this, duration: _spinDuration);
+    _spinAnim =
+        CurvedAnimation(parent: _spinCtrl, curve: Curves.easeOutCubic);
+    _spinCtrl.addStatusListener((status) {
+      if (status == AnimationStatus.completed && mounted) {
+        setState(() {
+          _isFlipping = false;
+          _flipDoneCount++; // → _ResultBounce 바운스 트리거
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
-    _flipCtrl.dispose();
+    _spinCtrl.dispose();
     super.dispose();
+  }
+
+  /// 각 반회전에서 보여줄 앞/뒷면 미리 계산
+  ///
+  /// 짝수 반회전: 수축 (현재 면 유지)
+  /// 홀수 반회전: 팽창 (새 면 공개)
+  /// 마지막(9번): null → 빌더에서 widget.coin으로 대체
+  List<bool?> _computeHalfTurnFaces(bool? initialFace) {
+    final faces = <bool?>[];
+    bool? current = initialFace;
+    for (int i = 0; i < _totalHalfTurns; i++) {
+      if (i.isEven) {
+        faces.add(current);
+      } else {
+        if (i == _totalHalfTurns - 1) {
+          faces.add(null); // 실제 결과는 빌더에서 처리
+        } else {
+          current = Random().nextBool();
+          faces.add(current);
+        }
+      }
+    }
+    return faces;
+  }
+
+  void _startFlip() {
+    if (_isFlipping) return;
+    final initialFace = widget.coin; // 뒤집기 전 현재 면 보존
+    widget.onFlip(); // 부모에서 결과 결정 및 히스토리 기록
+    _halfTurnFaces = _computeHalfTurnFaces(initialFace);
+    setState(() => _isFlipping = true);
+    _spinCtrl.forward(from: 0.0);
   }
 
   Widget _buildCoinFace(bool? isHeads, ColorScheme cs, AppLocalizations l10n) {
@@ -372,32 +405,53 @@ class _CoinCardState extends State<_CoinCard>
             _cardHeader(context, Icons.monetization_on_outlined,
                 l10n.coinFlipTitle, accentColor, isDark),
             const SizedBox(height: 24),
-            // ── 코인 (3D 플립 애니메이션) ──
-            AnimatedBuilder(
-              animation: _flipAnim,
-              builder: (_, _) {
-                final t = _flipAnim.value;
-                final double scaleX;
-                final bool? displayCoin;
-                if (t < 0.5) {
-                  scaleX = 1.0 - t * 2;
-                  displayCoin = _prevCoin;
-                } else {
-                  scaleX = (t - 0.5) * 2;
-                  displayCoin = widget.coin;
-                }
-                return Transform.scale(
-                  scaleX: scaleX.clamp(0.0, 1.0),
-                  child: _buildCoinFace(displayCoin, cs, l10n),
-                );
-              },
+            // ── 코인 (스핀 애니메이션) ──
+            // _ResultBounce는 항상 트리에 유지 → 완료 시 didUpdateWidget으로 바운스
+            SizedBox(
+              width: 114,
+              height: 114,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // 결과 표시 (스핀 중 숨김, 완료 후 바운스)
+                  Opacity(
+                    opacity: _isFlipping ? 0.0 : 1.0,
+                    child: _ResultBounce(
+                      resultKey: _flipDoneCount > 0 ? _flipDoneCount : null,
+                      child: _buildCoinFace(widget.coin, cs, l10n),
+                    ),
+                  ),
+                  // 스핀 중 실시간 3D 회전 렌더링
+                  if (_isFlipping)
+                    AnimatedBuilder(
+                      animation: _spinAnim,
+                      builder: (_, _) {
+                        final t = _spinAnim.value * _totalHalfTurns;
+                        final halfTurn =
+                            t.floor().clamp(0, _totalHalfTurns - 1);
+                        final phase = t - t.floor();
+                        // 짝수: 수축 1→0 / 홀수: 팽창 0→1
+                        final scaleX =
+                            halfTurn.isEven ? (1.0 - phase) : phase;
+                        // 마지막 홀수 반회전에서 실제 결과 표시
+                        final face = (halfTurn == _totalHalfTurns - 1)
+                            ? widget.coin
+                            : _halfTurnFaces[halfTurn];
+                        return Transform.scale(
+                          scaleX: scaleX.clamp(0.0, 1.0),
+                          child: _buildCoinFace(face, cs, l10n),
+                        );
+                      },
+                    ),
+                ],
+              ),
             ),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               height: 54,
               child: _PremiumButton(
-                onPressed: widget.onFlip,
+                onPressed: _isFlipping ? null : _startFlip,
                 icon: Icons.flip,
                 label: l10n.actionFlip,
                 color: accentColor,
