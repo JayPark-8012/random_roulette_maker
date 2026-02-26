@@ -1,9 +1,13 @@
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../../core/app_themes.dart';
 import '../../../core/atmosphere_presets.dart';
 import '../../../core/constants.dart';
+import '../../../core/design_tokens.dart';
 import '../../../core/widgets/app_background.dart';
+import '../../../core/widgets/glass_card.dart';
+import '../../../core/widgets/section_label.dart';
 import '../../../core/roulette_wheel_themes.dart';
 import '../../../data/premium_service.dart';
 import '../../../domain/premium_state.dart';
@@ -280,230 +284,270 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── 프리미엄 데모 위젯 ────────────────────────
           const PremiumDemoWidget(),
 
-          // ── 테마 ──────────────────────────────────────
-          _SectionHeader(title: l10n.sectionTheme),
-          Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
+          // ── Atmosphere 배경 ──────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: SectionLabel(text: l10n.atmosphereLabel),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ValueListenableBuilder<PremiumState>(
+              valueListenable: PremiumService.instance.stateNotifier,
+              builder: (ctx, ps, child) => GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 2.2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                ),
+                itemCount: kAtmospherePresets.length,
+                itemBuilder: (ctx, i) {
+                  final atm = kAtmospherePresets[i];
+                  return _AtmospherePreviewCard(
+                    atmosphere: atm,
+                    isSelected: atm.id == _notifier.atmosphereId,
+                    isLocked: !ps.isPremium && atm.isLocked,
+                    onTap: () => _selectAtmosphere(context, atm),
+                  );
+                },
+              ),
+            ),
+          ),
+
+          // ── 섹션 구분선 ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Divider(height: 1, color: Colors.white.withValues(alpha: 0.06)),
+          ),
+          // ── 색상 팔레트 ──────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: SectionLabel(text: l10n.colorPaletteLabel),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ValueListenableBuilder<PremiumState>(
+              valueListenable: PremiumService.instance.stateNotifier,
+              builder: (ctx, ps, child) => GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  childAspectRatio: 2.1,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                ),
+                itemCount: AppThemes.all.length,
+                itemBuilder: (ctx, i) {
+                  final theme = AppThemes.all[i];
+                  return _ThemePreviewCard(
+                    themeData: theme,
+                    isSelected: theme.id == _notifier.themeId,
+                    isLocked: !ps.isPremium && theme.isLocked,
+                    onTap: () => _selectTheme(context, theme),
+                  );
+                },
+              ),
+            ),
+          ),
+
+          // ── 섹션 구분선 ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Divider(height: 1, color: Colors.white.withValues(alpha: 0.06)),
+          ),
+          // ── 룰렛 휠 테마 ─────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: SectionLabel(text: l10n.wheelThemeLabel),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ValueListenableBuilder<PremiumState>(
+              valueListenable: PremiumService.instance.stateNotifier,
+              builder: (ctx, ps, child) => GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  childAspectRatio: 0.65,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                itemCount: kRouletteWheelThemes.length,
+                itemBuilder: (ctx, i) {
+                  final wt = kRouletteWheelThemes[i];
+                  return _WheelThemePreviewCard(
+                    wheelTheme: wt,
+                    isSelected: wt.id == _notifier.wheelThemeId,
+                    isLocked: !ps.isPremium && wt.isLocked,
+                    onTap: () => _selectWheelTheme(context, wt),
+                  );
+                },
+              ),
+            ),
+          ),
+
+          // ── 섹션 구분선 ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Divider(height: 1, color: Colors.white.withValues(alpha: 0.06)),
+          ),
+          // ── 언어 ──────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: SectionLabel(text: l10n.sectionLanguage),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: GlassCard(
+              padding: EdgeInsets.zero,
+              child: ListTile(
+                leading: const Icon(Icons.language_rounded,
+                    color: AppColors.textPrimary),
+                title: Text(l10n.sectionLanguage,
+                    style: const TextStyle(color: AppColors.textPrimary)),
+                subtitle: Text(_currentLanguageName(l10n),
+                    style: TextStyle(color: AppColors.textSecondary)),
+                trailing: Icon(Icons.chevron_right,
+                    color: AppColors.textSecondary),
+                onTap: () => _showLanguagePicker(context),
+              ),
+            ),
+          ),
+
+          // ── 섹션 구분선 ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Divider(height: 1, color: Colors.white.withValues(alpha: 0.06)),
+          ),
+          // ── 피드백 ──────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: SectionLabel(text: l10n.sectionFeedback),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: GlassCard(
+              padding: EdgeInsets.zero,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Atmosphere 배경 ──────────────────────────
-                  Text(
-                    l10n.atmosphereLabel,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  ValueListenableBuilder<PremiumState>(
-                    valueListenable: PremiumService.instance.stateNotifier,
-                    builder: (ctx, ps, child) => GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 2.2,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
-                      itemCount: kAtmospherePresets.length,
-                      itemBuilder: (ctx, i) {
-                        final atm = kAtmospherePresets[i];
-                        return _AtmospherePreviewCard(
-                          atmosphere: atm,
-                          isSelected: atm.id == _notifier.atmosphereId,
-                          isLocked: !ps.isPremium && atm.isLocked,
-                          onTap: () => _selectAtmosphere(context, atm),
-                        );
-                      },
+                  SwitchListTile(
+                    title: Text(l10n.soundLabel,
+                        style: const TextStyle(color: AppColors.textPrimary)),
+                    subtitle: Text(l10n.soundSubtitle,
+                        style: TextStyle(color: AppColors.textSecondary)),
+                    secondary: Icon(
+                      _notifier.soundEnabled
+                          ? Icons.volume_up_outlined
+                          : Icons.volume_off_outlined,
+                      color: AppColors.textPrimary,
                     ),
+                    value: _notifier.soundEnabled,
+                    onChanged: _notifier.setSoundEnabled,
                   ),
-                  const SizedBox(height: 16),
-                  const Divider(height: 1),
-                  const SizedBox(height: 16),
-                  // ── 색상 팔레트 ──────────────────────────────
-                  Text(
-                    l10n.colorPaletteLabel,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  // 프리미엄 전환 직후 즉시 갱신을 위해 ValueListenableBuilder 사용
-                  ValueListenableBuilder<PremiumState>(
-                    valueListenable: PremiumService.instance.stateNotifier,
-                    builder: (ctx, ps, child) => GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        childAspectRatio: 2.5,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
+                  if (_notifier.soundEnabled) ...[
+                    Divider(
+                        indent: 20,
+                        endIndent: 20,
+                        color: AppColors.surfaceBorder),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.soundPackLabel,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          SegmentedButton<SoundPack>(
+                            expandedInsets: EdgeInsets.zero,
+                            segments: [
+                              ButtonSegment(
+                                value: SoundPack.basic,
+                                label: Text(l10n.packBasic),
+                              ),
+                              ButtonSegment(
+                                value: SoundPack.clicky,
+                                label: Text(l10n.packClicky),
+                              ),
+                              ButtonSegment(
+                                value: SoundPack.party,
+                                label: Text(l10n.packParty),
+                              ),
+                            ],
+                            selected: {_notifier.soundPack},
+                            onSelectionChanged: (set) =>
+                                _notifier.setSoundPack(set.first),
+                            showSelectedIcon: false,
+                          ),
+                        ],
                       ),
-                      itemCount: AppThemes.all.length,
-                      itemBuilder: (ctx, i) {
-                        final theme = AppThemes.all[i];
-                        return _ThemePreviewCard(
-                          themeData: theme,
-                          isSelected: theme.id == _notifier.themeId,
-                          // 프리미엄이면 잠금 없음, 무료면 정적 플래그로 판단
-                          isLocked: !ps.isPremium && theme.isLocked,
-                          onTap: () => _selectTheme(context, theme),
-                        );
-                      },
                     ),
+                  ],
+                  Divider(
+                      indent: 20,
+                      endIndent: 20,
+                      color: AppColors.surfaceBorder),
+                  ListTile(
+                    leading: const Icon(Icons.vibration,
+                        color: AppColors.textPrimary),
+                    title: Text(l10n.vibrationLabel,
+                        style: const TextStyle(color: AppColors.textPrimary)),
+                    subtitle: Text(l10n.vibrationSubtitle,
+                        style: TextStyle(color: AppColors.textSecondary)),
                   ),
-                  const SizedBox(height: 16),
-                  const Divider(height: 1),
-                  const SizedBox(height: 16),
-                  // ── 룰렛 휠 테마 ─────────────────────────────
-                  Text(
-                    l10n.wheelThemeLabel,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: SegmentedButton<HapticStrength>(
+                      expandedInsets: EdgeInsets.zero,
+                      segments: [
+                        ButtonSegment(
+                          value: HapticStrength.off,
+                          label: Text(l10n.hapticOff),
                         ),
-                  ),
-                  const SizedBox(height: 8),
-                  ValueListenableBuilder<PremiumState>(
-                    valueListenable: PremiumService.instance.stateNotifier,
-                    builder: (ctx, ps, child) => GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        childAspectRatio: 0.82,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
-                      ),
-                      itemCount: kRouletteWheelThemes.length,
-                      itemBuilder: (ctx, i) {
-                        final wt = kRouletteWheelThemes[i];
-                        return _WheelThemePreviewCard(
-                          wheelTheme: wt,
-                          isSelected: wt.id == _notifier.wheelThemeId,
-                          isLocked: !ps.isPremium && wt.isLocked,
-                          onTap: () => _selectWheelTheme(context, wt),
-                        );
-                      },
+                        ButtonSegment(
+                          value: HapticStrength.light,
+                          label: Text(l10n.hapticLight),
+                        ),
+                        ButtonSegment(
+                          value: HapticStrength.strong,
+                          label: Text(l10n.hapticStrong),
+                        ),
+                      ],
+                      selected: {_notifier.hapticStrength},
+                      onSelectionChanged: (set) =>
+                          _notifier.setHapticStrength(set.first),
+                      showSelectedIcon: false,
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          // ── 언어 ──────────────────────────────────────
-          _SectionHeader(title: l10n.sectionLanguage),
-          Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: ListTile(
-              leading: const Icon(Icons.language_rounded),
-              title: Text(l10n.sectionLanguage),
-              subtitle: Text(_currentLanguageName(l10n)),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _showLanguagePicker(context),
-            ),
-          ),
-          // ── 피드백 ──────────────────────────────────
-          _SectionHeader(title: l10n.sectionFeedback),
-          Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Column(
-              children: [
-                SwitchListTile(
-                  title: Text(l10n.soundLabel),
-                  subtitle: Text(l10n.soundSubtitle),
-                  secondary: Icon(
-                    _notifier.soundEnabled
-                        ? Icons.volume_up_outlined
-                        : Icons.volume_off_outlined,
-                  ),
-                  value: _notifier.soundEnabled,
-                  onChanged: _notifier.setSoundEnabled,
-                ),
-                if (_notifier.soundEnabled) ...[
-                  const Divider(indent: 20, endIndent: 20),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.soundPackLabel,
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        SegmentedButton<SoundPack>(
-                          expandedInsets: EdgeInsets.zero,
-                          segments: [
-                            ButtonSegment(
-                              value: SoundPack.basic,
-                              label: Text(l10n.packBasic),
-                            ),
-                            ButtonSegment(
-                              value: SoundPack.clicky,
-                              label: Text(l10n.packClicky),
-                            ),
-                            ButtonSegment(
-                              value: SoundPack.party,
-                              label: Text(l10n.packParty),
-                            ),
-                          ],
-                          selected: {_notifier.soundPack},
-                          onSelectionChanged: (set) =>
-                              _notifier.setSoundPack(set.first),
-                          showSelectedIcon: false,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-                const Divider(indent: 20, endIndent: 20),
-                ListTile(
-                  leading: const Icon(Icons.vibration),
-                  title: Text(l10n.vibrationLabel),
-                  subtitle: Text(l10n.vibrationSubtitle),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                  child: SegmentedButton<HapticStrength>(
-                    expandedInsets: EdgeInsets.zero,
-                    segments: [
-                      ButtonSegment(
-                        value: HapticStrength.off,
-                        label: Text(l10n.hapticOff),
-                      ),
-                      ButtonSegment(
-                        value: HapticStrength.light,
-                        label: Text(l10n.hapticLight),
-                      ),
-                      ButtonSegment(
-                        value: HapticStrength.strong,
-                        label: Text(l10n.hapticStrong),
-                      ),
-                    ],
-                    selected: {_notifier.hapticStrength},
-                    onSelectionChanged: (set) =>
-                        _notifier.setHapticStrength(set.first),
-                    showSelectedIcon: false,
-                  ),
-                ),
-              ],
-            ),
+
+          // ── 섹션 구분선 ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Divider(height: 1, color: Colors.white.withValues(alpha: 0.06)),
           ),
           // ── 스핀 시간 ────────────────────────────────
-          _SectionHeader(title: l10n.sectionSpinTime),
-          Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: SectionLabel(text: l10n.sectionSpinTime),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: GlassCard(
               child: SegmentedButton<SpinDuration>(
                 expandedInsets: EdgeInsets.zero,
                 segments: [
@@ -524,49 +568,74 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
                 selected: {_notifier.spinDuration},
-                onSelectionChanged: (set) => _notifier.setSpinDuration(set.first),
+                onSelectionChanged: (set) =>
+                    _notifier.setSpinDuration(set.first),
                 showSelectedIcon: false,
               ),
             ),
           ),
+
+          // ── 섹션 구분선 ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            child: Divider(height: 1, color: Colors.white.withValues(alpha: 0.06)),
+          ),
           // ── 앱 정보 ──────────────────────────────────
-          _SectionHeader(title: l10n.sectionAppInfo),
-          Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.info_outline),
-                  title: Text(l10n.versionLabel),
-                  trailing: Text(
-                    '1.0.0 (MVP)',
-                    style: TextStyle(
-                        color:
-                            Theme.of(context).colorScheme.onSurfaceVariant),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: SectionLabel(text: l10n.sectionAppInfo),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: GlassCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.info_outline,
+                        color: AppColors.textPrimary),
+                    title: Text(l10n.versionLabel,
+                        style: const TextStyle(color: AppColors.textPrimary)),
+                    trailing: Text(
+                      '1.0.0 (MVP)',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
                   ),
-                ),
-                const Divider(indent: 20, endIndent: 20),
-                ListTile(
-                  leading: const Icon(Icons.article_outlined),
-                  title: Text(l10n.openSourceLabel),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => showLicensePage(
-                    context: context,
-                    applicationName: '랜덤 룰렛 메이커',
-                    applicationVersion: '1.0.0',
+                  Divider(
+                      indent: 20,
+                      endIndent: 20,
+                      color: AppColors.surfaceBorder),
+                  ListTile(
+                    leading: const Icon(Icons.article_outlined,
+                        color: AppColors.textPrimary),
+                    title: Text(l10n.openSourceLabel,
+                        style: const TextStyle(color: AppColors.textPrimary)),
+                    trailing: Icon(Icons.chevron_right,
+                        color: AppColors.textSecondary),
+                    onTap: () => showLicensePage(
+                      context: context,
+                      applicationName: '랜덤 룰렛 메이커',
+                      applicationVersion: '1.0.0',
+                    ),
                   ),
-                ),
-                const Divider(indent: 20, endIndent: 20),
-                ListTile(
-                  leading: const Icon(Icons.mail_outline),
-                  title: Text(l10n.contactLabel),
-                  trailing: const Icon(Icons.chevron_right),
-                  // TODO(Phase3): url_launcher로 이메일 앱 실행
-                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.comingSoon)),
+                  Divider(
+                      indent: 20,
+                      endIndent: 20,
+                      color: AppColors.surfaceBorder),
+                  ListTile(
+                    leading: const Icon(Icons.mail_outline,
+                        color: AppColors.textPrimary),
+                    title: Text(l10n.contactLabel,
+                        style: const TextStyle(color: AppColors.textPrimary)),
+                    trailing: Icon(Icons.chevron_right,
+                        color: AppColors.textSecondary),
+                    // TODO(Phase3): url_launcher로 이메일 앱 실행
+                    onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(l10n.comingSoon)),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -592,7 +661,6 @@ class _AtmospherePreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -602,37 +670,78 @@ class _AtmospherePreviewCard extends StatelessWidget {
           gradient: atmosphere.gradient,
           color: atmosphere.gradient == null ? atmosphere.solidColor : null,
           border: Border.all(
-            color: isSelected ? cs.primary : Colors.white.withValues(alpha: 0.15),
-            width: isSelected ? 2.5 : 1,
+            color: isSelected
+                ? AppColors.primary
+                : Colors.white.withValues(alpha: 0.15),
+            width: isSelected ? 2 : 1,
           ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.35),
+                    blurRadius: 12,
+                    spreadRadius: 1,
+                  ),
+                ]
+              : null,
         ),
-        child: Stack(
-          children: [
-            // 이름 + 상태 아이콘
-            Positioned(
-              left: 10,
-              bottom: 8,
-              child: Text(
-                atmosphere.name,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.85),
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.normal,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(11),
+          child: Stack(
+            children: [
+              // ── Locked overlay: 50% black + blur + lock icon ──
+              if (isLocked) ...[
+                Positioned.fill(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.50),
                     ),
+                  ),
+                ),
+                const Center(
+                  child: Icon(Icons.lock_rounded,
+                      size: 20, color: Colors.white70),
+                ),
+              ],
+              // ── Name label ──
+              Positioned(
+                left: 10,
+                bottom: 8,
+                child: Text(
+                  atmosphere.name,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.white.withValues(alpha: 0.85),
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
               ),
-            ),
-            Positioned(
-              right: 8,
-              top: 8,
-              child: isLocked
-                  ? Icon(Icons.lock_outline,
-                      size: 14, color: Colors.white.withValues(alpha: 0.5))
-                  : isSelected
-                      ? Icon(Icons.check_circle_rounded,
-                          size: 14, color: cs.primary)
-                      : const SizedBox.shrink(),
-            ),
-          ],
+              // ── Selected check badge ──
+              if (isSelected)
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.4),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.check_rounded,
+                        size: 13, color: Colors.white),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -643,7 +752,6 @@ class _AtmospherePreviewCard extends StatelessWidget {
 class _ThemePreviewCard extends StatelessWidget {
   final AppThemeData themeData;
   final bool isSelected;
-  /// 동적 잠금 여부: !isPremium && theme.isLocked 로 caller가 전달
   final bool isLocked;
   final VoidCallback onTap;
 
@@ -656,45 +764,109 @@ class _ThemePreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? cs.primary : cs.outlineVariant,
-            width: isSelected ? 2.5 : 1,
-          ),
-          color: isSelected
-              ? cs.primary.withValues(alpha: 0.06)
-              : cs.surfaceContainerLowest,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // 색상 스와치 (팔레트 앞 5개)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: themeData.palette.take(5).map((c) {
-                return Container(
-                  width: 12,
-                  height: 12,
-                  margin: const EdgeInsets.symmetric(horizontal: 1.5),
-                  decoration: BoxDecoration(color: c, shape: BoxShape.circle),
-                );
-              }).toList(),
+      child: Column(
+        children: [
+          // ── Card ──
+          Expanded(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected
+                      ? AppColors.primary
+                      : Colors.white.withValues(alpha: 0.12),
+                  width: isSelected ? 2 : 1,
+                ),
+                color: Colors.white.withValues(alpha: 0.055),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.35),
+                          blurRadius: 12,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(11),
+                child: Stack(
+                  children: [
+                    // 색상 스와치 (팔레트 앞 5개)
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: themeData.palette.take(5).map((c) {
+                          return Container(
+                            width: 14,
+                            height: 14,
+                            margin:
+                                const EdgeInsets.symmetric(horizontal: 1.5),
+                            decoration: BoxDecoration(
+                                color: c, shape: BoxShape.circle),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    // ── Locked overlay ──
+                    if (isLocked) ...[
+                      Positioned.fill(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
+                          child: Container(
+                            color: Colors.black.withValues(alpha: 0.50),
+                          ),
+                        ),
+                      ),
+                      const Center(
+                        child: Icon(Icons.lock_rounded,
+                            size: 18, color: Colors.white70),
+                      ),
+                    ],
+                    // ── Selected check badge ──
+                    if (isSelected)
+                      Positioned(
+                        right: 4,
+                        top: 4,
+                        child: Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    AppColors.primary.withValues(alpha: 0.4),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(Icons.check_rounded,
+                              size: 13, color: Colors.white),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 6),
-            if (isLocked)
-              Icon(Icons.lock_outline, size: 13, color: cs.onSurfaceVariant)
-            else if (isSelected)
-              Icon(Icons.check_circle_rounded, size: 13, color: cs.primary)
-            else
-              const SizedBox(height: 13),
-          ],
-        ),
+          ),
+          // ── Label below card ──
+          const SizedBox(height: 4),
+          Text(
+            themeData.name,
+            style: TextStyle(
+              fontSize: 11,
+              color: AppColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
@@ -716,49 +888,102 @@ class _WheelThemePreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? cs.primary : cs.outlineVariant,
-            width: isSelected ? 2.5 : 1,
-          ),
-          color: isSelected
-              ? cs.primary.withValues(alpha: 0.06)
-              : cs.surfaceContainerLowest,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CustomPaint(
-              painter: _MiniWheelPreviewPainter(
-                palette: wheelTheme.palette,
-                style: wheelTheme.style,
+      child: Column(
+        children: [
+          // ── Card ──
+          Expanded(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected
+                      ? AppColors.primary
+                      : Colors.white.withValues(alpha: 0.12),
+                  width: isSelected ? 2 : 1,
+                ),
+                color: Colors.white.withValues(alpha: 0.055),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.35),
+                          blurRadius: 12,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : null,
               ),
-              size: const Size(44, 44),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(11),
+                child: Stack(
+                  children: [
+                    Center(
+                      child: CustomPaint(
+                        painter: _MiniWheelPreviewPainter(
+                          palette: wheelTheme.palette,
+                          style: wheelTheme.style,
+                        ),
+                        size: const Size(44, 44),
+                      ),
+                    ),
+                    // ── Locked overlay ──
+                    if (isLocked) ...[
+                      Positioned.fill(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
+                          child: Container(
+                            color: Colors.black.withValues(alpha: 0.50),
+                          ),
+                        ),
+                      ),
+                      const Center(
+                        child: Icon(Icons.lock_rounded,
+                            size: 18, color: Colors.white70),
+                      ),
+                    ],
+                    // ── Selected check badge ──
+                    if (isSelected)
+                      Positioned(
+                        right: 4,
+                        top: 4,
+                        child: Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    AppColors.primary.withValues(alpha: 0.4),
+                                blurRadius: 6,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(Icons.check_rounded,
+                              size: 13, color: Colors.white),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              wheelTheme.name,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? cs.primary : cs.onSurface,
-                  ),
-              overflow: TextOverflow.ellipsis,
+          ),
+          // ── Label below card ──
+          const SizedBox(height: 4),
+          Text(
+            wheelTheme.name,
+            style: TextStyle(
+              fontSize: 11,
+              color: AppColors.textSecondary,
             ),
-            if (isLocked)
-              Icon(Icons.lock_outline, size: 11, color: cs.onSurfaceVariant)
-            else if (isSelected)
-              Icon(Icons.check_circle_rounded, size: 11, color: cs.primary)
-            else
-              const SizedBox(height: 11),
-          ],
-        ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
@@ -854,21 +1079,3 @@ class _MiniWheelPreviewPainter extends CustomPainter {
       old.palette != palette || old.style != style;
 }
 
-// ── 섹션 헤더 ────────────────────────────────────────────
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-      ),
-    );
-  }
-}

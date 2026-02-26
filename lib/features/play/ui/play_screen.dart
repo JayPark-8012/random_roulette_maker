@@ -6,6 +6,7 @@ import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants.dart';
+import '../../../core/design_tokens.dart';
 import '../../../core/roulette_wheel_themes.dart';
 import '../../../core/utils.dart';
 import '../../../domain/item.dart';
@@ -15,6 +16,7 @@ import '../state/play_notifier.dart';
 import '../widgets/roulette_wheel.dart';
 import '../widgets/stats_sheet.dart';
 import '../../../core/widgets/app_background.dart';
+import '../../../core/widgets/gradient_button.dart';
 import '../../../data/ad_service.dart';
 import '../../settings/state/settings_notifier.dart';
 
@@ -348,40 +350,6 @@ class _PlayScreenState extends State<PlayScreen>
     }
   }
 
-  void _showShareOptions(Item winner) {
-    final l10n = AppLocalizations.of(context)!;
-    showDialog<void>(
-      context: context,
-      builder: (dCtx) => SimpleDialog(
-        title: Text(l10n.shareTitle),
-        children: [
-          SimpleDialogOption(
-            onPressed: () {
-              Navigator.of(dCtx).pop();
-              _shareText(winner);
-            },
-            child: ListTile(
-              leading: const Icon(Icons.text_fields_outlined),
-              title: Text(l10n.shareTextTitle),
-              subtitle: Text(l10n.shareTextSubtitle),
-            ),
-          ),
-          SimpleDialogOption(
-            onPressed: () {
-              Navigator.of(dCtx).pop();
-              _shareImage(winner);
-            },
-            child: ListTile(
-              leading: const Icon(Icons.image_outlined),
-              title: Text(l10n.shareImageTitle),
-              subtitle: Text(l10n.shareImageSubtitle),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showResultSheet(Item winner) {
     setState(() => _resultWinner = winner);
     _resultSlideCtrl.forward(from: 0);
@@ -416,7 +384,6 @@ class _PlayScreenState extends State<PlayScreen>
     final l10n = AppLocalizations.of(context)!;
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
-    _onResultClose();
     messenger.showSnackBar(SnackBar(content: Text(l10n.copiedMessage)));
   }
 
@@ -514,13 +481,14 @@ class _PlayScreenState extends State<PlayScreen>
               AnimatedBuilder(
                 animation: _notifier,
                 builder: (_, _) => Padding(
-                  padding: const EdgeInsets.fromLTRB(4, 4, 8, 0),
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
                   child: Row(
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                      _NavIconButton(
+                        icon: Icons.arrow_back_ios_new_rounded,
                         onPressed: () => Navigator.of(context).pop(),
                       ),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           _notifier.roulette?.name ?? l10n.playFallbackTitle,
@@ -528,21 +496,22 @@ class _PlayScreenState extends State<PlayScreen>
                             fontWeight: FontWeight.w800,
                             letterSpacing: -0.8,
                             fontSize: 17,
+                            color: AppColors.textPrimary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.bar_chart_rounded),
-                        tooltip: l10n.statsTooltip,
+                      const SizedBox(width: 8),
+                      _NavIconButton(
+                        icon: Icons.bar_chart_rounded,
                         onPressed: () {
                           if (_notifier.roulette != null) _showStats();
                         },
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.history_rounded),
-                        tooltip: l10n.historyTooltip,
+                      const SizedBox(width: 8),
+                      _NavIconButton(
+                        icon: Icons.history_rounded,
                         onPressed: _showHistory,
                       ),
                     ],
@@ -584,22 +553,45 @@ class _PlayScreenState extends State<PlayScreen>
                                       children: [
                                         // ① 휠: 포인터 높이 절반(24px)만큼 아래로 → 50% 중첩
                                         Padding(
-                                          padding: const EdgeInsets.only(top: 24),
-                                          child: AnimatedBuilder(
-                                            animation: _animController,
-                                            builder: (_, _) => CustomPaint(
-                                              painter: RouletteWheelPainter(
-                                                items: _notifier.availableItems,
-                                                rotationAngle: _isDragging
-                                                    ? _dragAngle
-                                                    : _rotationAnim.value,
-                                                primaryColor: colorScheme.primary,
-                                                wheelTheme: findWheelThemeById(
-                                                  SettingsNotifier.instance.wheelThemeId,
-                                                ),
+                                          padding: const EdgeInsets.only(top: 28),
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: Colors.white.withValues(alpha: 0.12),
+                                                width: 3,
                                               ),
-                                              size: Size.square(
-                                                MediaQuery.of(context).size.width * 0.92,
+                                              boxShadow: [
+                                                // 안쪽 글로우: Primary 20%, blur 20
+                                                BoxShadow(
+                                                  color: AppColors.primary.withValues(alpha: 0.20),
+                                                  blurRadius: 20,
+                                                  spreadRadius: 4,
+                                                ),
+                                                // 바깥쪽 글로우: Primary 10%, blur 40
+                                                BoxShadow(
+                                                  color: AppColors.primary.withValues(alpha: 0.10),
+                                                  blurRadius: 40,
+                                                  spreadRadius: 0,
+                                                ),
+                                              ],
+                                            ),
+                                            child: AnimatedBuilder(
+                                              animation: _animController,
+                                              builder: (_, _) => CustomPaint(
+                                                painter: RouletteWheelPainter(
+                                                  items: _notifier.availableItems,
+                                                  rotationAngle: _isDragging
+                                                      ? _dragAngle
+                                                      : _rotationAnim.value,
+                                                  primaryColor: AppColors.primary,
+                                                  wheelTheme: findWheelThemeById(
+                                                    SettingsNotifier.instance.wheelThemeId,
+                                                  ),
+                                                ),
+                                                size: Size.square(
+                                                  MediaQuery.of(context).size.width * 0.92,
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -790,7 +782,16 @@ class _PlayScreenState extends State<PlayScreen>
               onReSpin: _onResultReSpin,
               onClose: _onResultClose,
               onCopy: _onResultCopy,
-              onShare: () => _showShareOptions(_resultWinner!),
+              onShareText: () => _shareText(_resultWinner!),
+              onShareImage: () => _shareImage(_resultWinner!),
+              spinMode: _notifier.spinMode,
+              remainingCount: _notifier.remainingCount,
+              totalCount: _notifier.roulette?.items.length ?? 0,
+              allPicked: _notifier.allPicked,
+              onReset: () {
+                _notifier.resetExcluded();
+                _onResultClose();
+              },
             ),
           ),
       ],
@@ -809,7 +810,13 @@ class _ResultOverlay extends StatefulWidget {
   final VoidCallback onReSpin;
   final VoidCallback onClose;
   final VoidCallback onCopy;
-  final VoidCallback onShare;
+  final VoidCallback onShareText;
+  final VoidCallback onShareImage;
+  final SpinMode spinMode;
+  final int remainingCount;
+  final int totalCount;
+  final bool allPicked;
+  final VoidCallback onReset;
 
   const _ResultOverlay({
     required this.winner,
@@ -817,7 +824,13 @@ class _ResultOverlay extends StatefulWidget {
     required this.onReSpin,
     required this.onClose,
     required this.onCopy,
-    required this.onShare,
+    required this.onShareText,
+    required this.onShareImage,
+    required this.spinMode,
+    required this.remainingCount,
+    required this.totalCount,
+    required this.allPicked,
+    required this.onReset,
   });
 
   @override
@@ -828,6 +841,7 @@ class _ResultOverlayState extends State<_ResultOverlay>
     with TickerProviderStateMixin {
   late final AnimationController _flashCtrl;
   late final AnimationController _confettiCtrl;
+  late final AnimationController _bounceCtrl;
 
   @override
   void initState() {
@@ -840,12 +854,17 @@ class _ResultOverlayState extends State<_ResultOverlay>
       vsync: this,
       duration: const Duration(milliseconds: 2500),
     )..forward();
+    _bounceCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
     _flashCtrl.dispose();
     _confettiCtrl.dispose();
+    _bounceCtrl.dispose();
     super.dispose();
   }
 
@@ -884,34 +903,85 @@ class _ResultOverlayState extends State<_ResultOverlay>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // 트로피 원형 아이콘 (140px + 흰색 링 + 강한 glow)
-                          Container(
-                            width: 140,
-                            height: 140,
-                            decoration: BoxDecoration(
-                              color: winnerColor,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 3,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: winnerColor.withValues(alpha: 0.65),
-                                  blurRadius: 40,
-                                  spreadRadius: 8,
-                                ),
-                                BoxShadow(
-                                  color: winnerColor.withValues(alpha: 0.30),
-                                  blurRadius: 80,
-                                  spreadRadius: 16,
-                                ),
-                              ],
+                          // 트로피 원형 아이콘 (140px + 그라데이션 원 + 펄스 링 + 바운스)
+                          AnimatedBuilder(
+                            animation: _bounceCtrl,
+                            builder: (_, child) => Transform.translate(
+                              offset: Offset(
+                                  0,
+                                  -8 *
+                                      Curves.easeInOut
+                                          .transform(_bounceCtrl.value)),
+                              child: child,
                             ),
-                            child: const Icon(
-                              Icons.emoji_events_rounded,
-                              size: 68,
-                              color: Colors.white,
+                            child: SizedBox(
+                              width: 170,
+                              height: 170,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  // 펄스 링 애니메이션 (Primary 25%)
+                                  AnimatedBuilder(
+                                    animation: _bounceCtrl,
+                                    builder: (_, _) {
+                                      final scale = 1.0 + _bounceCtrl.value * 0.15;
+                                      final opacity = (1.0 - _bounceCtrl.value) * 0.25;
+                                      return Transform.scale(
+                                        scale: scale,
+                                        child: Container(
+                                          width: 160,
+                                          height: 160,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: winnerColor.withValues(alpha: opacity),
+                                              width: 2,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  // 트로피 원
+                                  Container(
+                                    width: 140,
+                                    height: 140,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          Color.lerp(winnerColor, Colors.white, 0.2)!,
+                                          winnerColor,
+                                          Color.lerp(winnerColor, Colors.black, 0.2)!,
+                                        ],
+                                      ),
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 3,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: winnerColor.withValues(alpha: 0.65),
+                                          blurRadius: 40,
+                                          spreadRadius: 8,
+                                        ),
+                                        BoxShadow(
+                                          color: winnerColor.withValues(alpha: 0.30),
+                                          blurRadius: 80,
+                                          spreadRadius: 16,
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                      Icons.emoji_events_rounded,
+                                      size: 68,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           )
                               .animate()
@@ -921,7 +991,32 @@ class _ResultOverlayState extends State<_ResultOverlay>
                                 duration: 500.ms,
                                 curve: Curves.elasticOut,
                               ),
-                          const SizedBox(height: 28),
+                          const SizedBox(height: 24),
+                          // 컬러 도트
+                          Container(
+                            width: 14,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: winnerColor,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      winnerColor.withValues(alpha: 0.6),
+                                  blurRadius: 8,
+                                ),
+                              ],
+                            ),
+                          )
+                              .animate()
+                              .scale(
+                                begin: const Offset(0, 0),
+                                end: const Offset(1, 1),
+                                duration: 300.ms,
+                                delay: 100.ms,
+                                curve: Curves.easeOut,
+                              ),
+                          const SizedBox(height: 8),
                           // "✨ 당첨 ✨" 배너
                           Row(
                             mainAxisSize: MainAxisSize.min,
@@ -944,30 +1039,49 @@ class _ResultOverlayState extends State<_ResultOverlay>
                             ],
                           ).animate().fadeIn(duration: 300.ms, delay: 200.ms),
                           const SizedBox(height: 12),
-                          // 당첨 항목 이름 (흰색 + winnerColor glow)
-                          Text(
-                            widget.winner.label,
-                            style: TextStyle(
-                              fontSize: 52,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -1.5,
-                              color: Colors.white,
-                              shadows: [
-                                Shadow(
-                                  color: winnerColor.withValues(alpha: 0.9),
-                                  blurRadius: 20,
-                                  offset: Offset.zero,
+                          // 당첨 항목 이름 (세그먼트 색상 + 빛나는 blur 원형 배경)
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // 텍스트 뒤 빛나는 원형 배경
+                              Container(
+                                width: 180,
+                                height: 180,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: RadialGradient(
+                                    colors: [
+                                      winnerColor.withValues(alpha: 0.15),
+                                      Colors.transparent,
+                                    ],
+                                  ),
                                 ),
-                                Shadow(
-                                  color: winnerColor.withValues(alpha: 0.5),
-                                  blurRadius: 50,
-                                  offset: Offset.zero,
+                              ),
+                              Text(
+                                widget.winner.label,
+                                style: TextStyle(
+                                  fontSize: 68,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -1.5,
+                                  color: winnerColor,
+                                  shadows: [
+                                    Shadow(
+                                      color: winnerColor.withValues(alpha: 0.9),
+                                      blurRadius: 20,
+                                      offset: Offset.zero,
+                                    ),
+                                    Shadow(
+                                      color: winnerColor.withValues(alpha: 0.5),
+                                      blurRadius: 50,
+                                      offset: Offset.zero,
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           )
                               .animate()
                               .fadeIn(duration: 350.ms, delay: 150.ms)
@@ -978,6 +1092,89 @@ class _ResultOverlayState extends State<_ResultOverlay>
                                 delay: 150.ms,
                                 curve: Curves.easeOutCubic,
                               ),
+                          // ── 라운드/커스텀 모드 진행 바 ──
+                          if (widget.spinMode == SpinMode.round ||
+                              widget.remainingCount <
+                                  widget.totalCount) ...[
+                            const SizedBox(height: 24),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    widget.spinMode == SpinMode.round
+                                        ? l10n.roundStatus(
+                                            widget.totalCount -
+                                                widget.remainingCount,
+                                            widget.totalCount)
+                                        : l10n.remainingItems(
+                                            widget.remainingCount),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.white
+                                          .withValues(alpha: 0.6),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ClipRRect(
+                                    borderRadius:
+                                        BorderRadius.circular(3),
+                                    child: SizedBox(
+                                      height: 6,
+                                      child: Stack(
+                                        children: [
+                                          Positioned.fill(
+                                            child: ColoredBox(
+                                              color: Colors.white
+                                                  .withValues(
+                                                      alpha: 0.1),
+                                            ),
+                                          ),
+                                          Align(
+                                            alignment:
+                                                Alignment.centerLeft,
+                                            child:
+                                                FractionallySizedBox(
+                                              widthFactor: widget
+                                                          .totalCount >
+                                                      0
+                                                  ? ((widget.totalCount -
+                                                              widget
+                                                                  .remainingCount) /
+                                                          widget
+                                                              .totalCount)
+                                                      .clamp(0.0, 1.0)
+                                                  : 0,
+                                              heightFactor: 1.0,
+                                              child: Container(
+                                                decoration:
+                                                    const BoxDecoration(
+                                                  gradient: AppColors
+                                                      .primaryGradient,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                                .animate()
+                                .fadeIn(
+                                    duration: 300.ms, delay: 250.ms)
+                                .slideY(
+                                  begin: 0.15,
+                                  end: 0,
+                                  duration: 300.ms,
+                                  delay: 250.ms,
+                                  curve: Curves.easeOut,
+                                ),
+                          ],
                         ],
                       ),
                     ),
@@ -987,110 +1184,73 @@ class _ResultOverlayState extends State<_ResultOverlay>
                     padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
                     child: Column(
                       children: [
-                        // 다시 돌리기 + 확인
+                        // Row 1: Ghost re-spin/reset + Gradient confirm
                         Row(
                           children: [
                             Expanded(
-                              child: OutlinedButton.icon(
-                                icon: const Icon(Icons.refresh_rounded),
-                                label: Text(l10n.actionReSpin),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 16),
-                                  side: const BorderSide(
-                                    color: Colors.white38,
-                                    width: 1.2,
-                                  ),
-                                ),
-                                onPressed: widget.onReSpin,
-                              )
-                                  .animate()
-                                  .slideY(
-                                    begin: 0.2,
-                                    end: 0.0,
-                                    duration: 300.ms,
-                                    delay: 300.ms,
-                                    curve: Curves.easeOut,
-                                  )
-                                  .fadeIn(duration: 300.ms, delay: 300.ms),
+                              child: _GhostButton(
+                                icon: widget.allPicked
+                                    ? Icons.refresh_rounded
+                                    : Icons.refresh_rounded,
+                                label: widget.allPicked
+                                    ? l10n.actionReset
+                                    : l10n.actionReSpin,
+                                onTap: widget.allPicked
+                                    ? widget.onReset
+                                    : widget.onReSpin,
+                              ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
-                              child: FilledButton(
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: winnerColor,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 16),
-                                ),
+                              child: GradientButton(
+                                text: l10n.actionConfirm,
                                 onPressed: widget.onClose,
-                                child: Text(
-                                  l10n.actionConfirm,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              )
-                                  .animate()
-                                  .slideY(
-                                    begin: 0.2,
-                                    end: 0.0,
-                                    duration: 300.ms,
-                                    delay: 350.ms,
-                                  curve: Curves.easeOut,
-                                )
-                                .fadeIn(duration: 300.ms, delay: 350.ms),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      // 복사 + 공유
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextButton.icon(
-                              icon: const Icon(Icons.copy_rounded, size: 18),
-                              label: Text(l10n.actionCopy),
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.white60,
                               ),
-                              onPressed: widget.onCopy,
+                            ),
+                          ],
+                        )
+                            .animate()
+                            .slideY(
+                              begin: 0.2,
+                              end: 0,
+                              duration: 300.ms,
+                              delay: 300.ms,
+                              curve: Curves.easeOut,
                             )
-                                .animate()
-                                .slideY(
-                                  begin: 0.1,
-                                  end: 0.0,
-                                  duration: 300.ms,
-                                  delay: 400.ms,
-                                  curve: Curves.easeOut,
-                                )
-                                .fadeIn(duration: 300.ms, delay: 400.ms),
-                          ),
-                          Expanded(
-                            child: TextButton.icon(
-                              icon: const Icon(Icons.ios_share_rounded,
-                                  size: 18),
-                              label: Text(l10n.shareTitle),
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.white60,
-                              ),
-                              onPressed: widget.onShare,
+                            .fadeIn(duration: 300.ms, delay: 300.ms),
+                        const SizedBox(height: 16),
+                        // Row 2: 3 sub-action icon circles
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _SubActionCircle(
+                              icon: Icons.copy_rounded,
+                              onTap: widget.onCopy,
+                            ),
+                            const SizedBox(width: 20),
+                            _SubActionCircle(
+                              icon: Icons.ios_share_rounded,
+                              onTap: widget.onShareText,
+                            ),
+                            const SizedBox(width: 20),
+                            _SubActionCircle(
+                              icon: Icons.push_pin_outlined,
+                              onTap: widget.onShareImage,
+                            ),
+                          ],
+                        )
+                            .animate()
+                            .slideY(
+                              begin: 0.15,
+                              end: 0,
+                              duration: 300.ms,
+                              delay: 400.ms,
+                              curve: Curves.easeOut,
                             )
-                                .animate()
-                                .slideY(
-                                  begin: 0.1,
-                                  end: 0.0,
-                                  duration: 300.ms,
-                                  delay: 450.ms,
-                                  curve: Curves.easeOut,
-                                )
-                                .fadeIn(duration: 300.ms, delay: 450.ms),
-                          ),
-                        ],
-                      ),
-                    ],
+                            .fadeIn(duration: 300.ms, delay: 400.ms),
+                      ],
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -1210,7 +1370,7 @@ class _ConfettiPainter extends CustomPainter {
   bool shouldRepaint(_ConfettiPainter old) => old.progress != progress;
 }
 
-// ── 모드 세그먼트 ─────────────────────────────────────────
+// ── Pill 세그먼트 컨트롤 ─────────────────────────────────────
 
 class _SpinModeSegment extends StatelessWidget {
   final SpinMode currentMode;
@@ -1223,16 +1383,8 @@ class _SpinModeSegment extends StatelessWidget {
     required this.onModeSelected,
   });
 
-  static Color _modeColor(SpinMode mode) => switch (mode) {
-        SpinMode.lottery => const Color(0xFF22C55E), // 초록
-        SpinMode.round   => const Color(0xFF3B82F6), // 파랑
-        SpinMode.custom  => const Color(0xFFF59E0B), // 주황
-        _                => const Color(0xFF7C3AED),
-      };
-
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
     final modes = [
       (SpinMode.lottery, l10n.modeLottery),
@@ -1241,53 +1393,37 @@ class _SpinModeSegment extends StatelessWidget {
     ];
 
     return Container(
-      height: 42,
+      height: 44,
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(14),
+        color: Colors.white.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(100),
       ),
       child: Row(
         children: modes.map((entry) {
           final (mode, label) = entry;
           final isSelected = currentMode == mode;
           final canTap = !isDisabled;
-          final modeColor = _modeColor(mode);
 
           return Expanded(
             child: GestureDetector(
               onTap: canTap ? () => onModeSelected(mode) : null,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? modeColor.withValues(alpha: 0.20)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(11),
-                  border: isSelected
-                      ? Border.all(
-                          color: modeColor.withValues(alpha: 0.45),
-                          width: 1)
-                      : null,
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: modeColor.withValues(alpha: 0.22),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          )
-                        ]
-                      : [],
+                  color: isSelected ? AppColors.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(100),
                 ),
                 child: Center(
                   child: Text(
                     label,
                     style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                      fontSize: 13,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w400,
                       color: isSelected
-                          ? modeColor
-                          : cs.onSurfaceVariant.withValues(alpha: 0.65),
+                          ? Colors.white
+                          : AppColors.textSecondary,
                     ),
                   ),
                 ),
@@ -1300,7 +1436,7 @@ class _SpinModeSegment extends StatelessWidget {
   }
 }
 
-// ── 개선된 SPIN 버튼 ──────────────────────────────────────
+// ── SPIN / STOP 버튼 ──────────────────────────────────────
 
 class _SpinButton extends StatelessWidget {
   final bool isSpinning;
@@ -1313,139 +1449,216 @@ class _SpinButton extends StatelessWidget {
     required this.onSpin,
   });
 
+  static const _stopGradient = LinearGradient(
+    begin: Alignment(-1, -1),
+    end: Alignment(1, 1),
+    colors: [Color(0xFFFC5C7D), Color(0xFFFF8C69)],
+  );
+
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
-    final isDisabled = isSpinning || allPicked;
+    final isDisabled = allPicked && !isSpinning;
 
-    return SizedBox(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
       width: double.infinity,
-      height: 64,
-      child: _PremiumSpinButton(
-        onPressed: isDisabled ? null : onSpin,
-        isSpinning: isSpinning,
-        label: allPicked ? l10n.allPicked : l10n.spinLabel,
-        color: cs.primary,
+      height: AppDimens.buttonHeight,
+      decoration: BoxDecoration(
+        gradient: isSpinning ? _stopGradient : AppColors.primaryGradient,
+        borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
+        // 하단 2px primaryDeep 테두리 (입체감)
+        border: Border(
+          bottom: BorderSide(
+            color: isSpinning
+                ? const Color(0xFFC2185B)
+                : AppColors.primaryDeep,
+            width: 2,
+          ),
+        ),
+        boxShadow: isDisabled
+            ? []
+            : [
+                BoxShadow(
+                  color: (isSpinning
+                          ? const Color(0xFFFC5C7D)
+                          : AppColors.primary)
+                      .withValues(alpha: 0.45),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+      ),
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: isDisabled ? 0.45 : 1.0,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
+          child: Stack(
+            children: [
+              // 상단 절반 흰색 12% 오버레이
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: AppDimens.buttonHeight / 2,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.12),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: isDisabled ? null : onSpin,
+                  borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
+                  splashColor: Colors.white.withValues(alpha: 0.15),
+                  child: Center(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: isSpinning
+                          ? const Text(
+                              'STOP',
+                              key: ValueKey('stop'),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 3.0,
+                              ),
+                            )
+                          : Text(
+                              allPicked ? l10n.allPicked : 'SPIN',
+                              key: const ValueKey('spin'),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 3.0,
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
-class _PremiumSpinButton extends StatefulWidget {
-  final VoidCallback? onPressed;
-  final bool isSpinning;
-  final String label;
-  final Color color;
+// ── 상단 네비게이션 아이콘 버튼 ─────────────────────────────
 
-  const _PremiumSpinButton({
-    required this.onPressed,
-    required this.isSpinning,
-    required this.label,
-    required this.color,
-  });
+class _NavIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
 
-  @override
-  State<_PremiumSpinButton> createState() => _PremiumSpinButtonState();
-}
-
-/// 3D 아케이드 버튼: top-highlight → base → bottom-shadow 그라데이션
-/// + 크리스프 바텀 에지 섀도우. 누름 시 4px 아래로 sink.
-class _PremiumSpinButtonState extends State<_PremiumSpinButton> {
-  bool _isPressed = false;
+  const _NavIconButton({required this.icon, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
-    final isDisabled = widget.onPressed == null;
-    final color = isDisabled
-        ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.25)
-        : widget.color;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: AppColors.textPrimary, size: 18),
+        ),
+      ),
+    );
+  }
+}
 
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
-      onTap: widget.onPressed,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 80),
-        curve: Curves.easeOut,
-        transform: Matrix4.translationValues(0, _isPressed ? 4.0 : 0.0, 0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          gradient: LinearGradient(
-            colors: [
-              Color.lerp(color, Colors.white, isDisabled ? 0.0 : 0.22)!,
-              color,
-              Color.lerp(color, Colors.black, isDisabled ? 0.0 : 0.30)!,
+// ── Ghost 아웃라인 버튼 ──────────────────────────────────────
+
+class _GhostButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _GhostButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: AppDimens.buttonHeight,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.2),
+          width: 1.2,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
+          splashColor: Colors.white.withValues(alpha: 0.08),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
             ],
-            stops: const [0.0, 0.42, 1.0],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-          boxShadow: isDisabled
-              ? []
-              : [
-                  // 크리스프 바텀 에지 — 3D 깊이감
-                  BoxShadow(
-                    color: Color.lerp(color, Colors.black, 0.55)!
-                        .withValues(alpha: 0.75),
-                    blurRadius: 0,
-                    offset: Offset(0, _isPressed ? 1.0 : 5.0),
-                    spreadRadius: 0,
-                  ),
-                  // 소프트 앰비언트 — 입체감 보조
-                  BoxShadow(
-                    color: color.withValues(alpha: 0.20),
-                    blurRadius: 10,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-        ),
-        child: Center(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: widget.isSpinning
-                ? Row(
-                    key: const ValueKey('spinning'),
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Text(
-                        AppLocalizations.of(context)!.spinningLabel,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ],
-                  )
-                : Text(
-                    widget.label,
-                    key: const ValueKey('idle'),
-                    style: TextStyle(
-                      color: isDisabled
-                          ? Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.4)
-                          : Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2,
-                    ),
-                  ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ── 서브 액션 글래스 원형 버튼 ────────────────────────────────
+
+class _SubActionCircle extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _SubActionCircle({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          color: AppColors.surfaceFill,
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.surfaceBorder, width: 1),
+          boxShadow: [AppShadows.card],
+        ),
+        child: Icon(icon, color: Colors.white70, size: 22),
       ),
     );
   }

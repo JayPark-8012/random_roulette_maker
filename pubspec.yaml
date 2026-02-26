@@ -38,6 +38,7 @@ dependencies:
   share_plus: ^10.1.0
   lottie: ^2.4.0
   flutter_animate: ^4.5.0
+  google_fonts: ^6.1.0
   # 광고 SDK — 출시 전 AdMob 콘솔에서 실제 App ID / Unit ID로 교체 필수
   google_mobile_ads: ^5.1.0
 

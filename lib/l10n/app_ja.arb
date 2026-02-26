@@ -193,5 +193,22 @@
 
   "atmosphereLabel": "背景",
   "paywallAtmosphereLockTitle": "背景がロックされています",
-  "paywallAtmosphereLockContent": "{atmosphereName}の背景はプレミアムでのみ利用可能です。\n今すぐすべての背景をアンロックしましょう！"
+  "paywallAtmosphereLockContent": "{atmosphereName}の背景はプレミアムでのみ利用可能です。\n今すぐすべての背景をアンロックしましょう！",
+
+  "firstRunWelcomeTitle": "ようこそ！",
+  "firstRunWelcomeSubtitle": "スターターセットを今すぐ回してみましょう",
+  "firstRunCreateManual": "自分で作る",
+  "firstRunViewMore": "スターターセット一覧",
+  "firstRunSaveTitle": "このルーレットを保存しますか？",
+  "firstRunSaveMessage": "マイセットに保存すると、いつでも使えます。",
+  "firstRunSaveButton": "保存",
+  "firstRunSkipButton": "スキップ",
+
+  "sectionQuickLaunch": "クイック起動",
+  "quickLaunchSpin": "スピン",
+  "lastResultWithDate": "前回: {result} · {date}",
+  "recentResult": "前回: {result}",
+  "sectionRecommend": "こんなルーレットはいかが？",
+  "showMore": "もっと見る",
+  "showLess": "閉じる"
 }

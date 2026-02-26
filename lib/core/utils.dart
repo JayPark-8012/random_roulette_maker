@@ -41,6 +41,6 @@ class AppUtils {
 
   // 결과 공유용 텍스트 생성
   static String buildShareText(String rouletteName, String resultLabel) {
-    return '[$rouletteName] 결과: $resultLabel';
+    return '[$rouletteName]의 결과: $resultLabel\nSpin Wheel 앱으로 결정했어요 🎡';
   }
 }

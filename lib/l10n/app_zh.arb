@@ -194,5 +194,22 @@
 
   "atmosphereLabel": "背景",
   "paywallAtmosphereLockTitle": "背景已锁定",
-  "paywallAtmosphereLockContent": "{atmosphereName}背景仅限高级版使用。\n立即解锁所有背景！"
+  "paywallAtmosphereLockContent": "{atmosphereName}背景仅限高级版使用。\n立即解锁所有背景！",
+
+  "firstRunWelcomeTitle": "歡迎！",
+  "firstRunWelcomeSubtitle": "現在就試試轉動入門套裝",
+  "firstRunCreateManual": "自訂建立",
+  "firstRunViewMore": "查看所有入門套裝",
+  "firstRunSaveTitle": "儲存這個輪盤？",
+  "firstRunSaveMessage": "儲存到我的套裝後，可以隨時使用。",
+  "firstRunSaveButton": "儲存",
+  "firstRunSkipButton": "略過",
+
+  "sectionQuickLaunch": "快速啟動",
+  "quickLaunchSpin": "轉動",
+  "lastResultWithDate": "上次: {result} · {date}",
+  "recentResult": "上次: {result}",
+  "sectionRecommend": "試試這些輪盤",
+  "showMore": "展開更多",
+  "showLess": "收起"
 }

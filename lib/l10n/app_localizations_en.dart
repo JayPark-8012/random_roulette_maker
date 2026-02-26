@@ -388,6 +388,29 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diceD4Name => 'Tetrahedron';
+
+  @override
+  String get diceD6Name => 'Cube';
+
+  @override
+  String get diceD8Name => 'Octahedron';
+
+  @override
+  String get diceD10Name => 'Decahedron';
+
+  @override
+  String get diceD12Name => 'Dodecahedron';
+
+  @override
+  String get diceD20Name => 'Icosahedron';
+
+  @override
+  String diceRange(int max) {
+    return '1 ~ $max';
+  }
+
+  @override
   String get randomNumberTitle => 'Random Number';
 
   @override
@@ -697,4 +720,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String paywallAtmosphereLockContent(String atmosphereName) {
     return 'The $atmosphereName background is only available in Premium.\nUnlock all backgrounds today!';
   }
+
+  @override
+  String get firstRunWelcomeTitle => 'Welcome!';
+
+  @override
+  String get firstRunWelcomeSubtitle => 'Try spinning a starter set right now';
+
+  @override
+  String get firstRunCreateManual => 'Create Your Own';
+
+  @override
+  String get firstRunViewMore => 'Browse All Starter Sets';
+
+  @override
+  String get firstRunSaveTitle => 'Save this roulette?';
+
+  @override
+  String get firstRunSaveMessage =>
+      'Save it to My Sets so you can use it anytime.';
+
+  @override
+  String get firstRunSaveButton => 'Save';
+
+  @override
+  String get firstRunSkipButton => 'Skip';
+
+  @override
+  String get sectionQuickLaunch => 'Quick Launch';
+
+  @override
+  String get quickLaunchSpin => 'Spin';
+
+  @override
+  String lastResultWithDate(String result, String date) {
+    return 'Last: $result · $date';
+  }
+
+  @override
+  String recentResult(String result) {
+    return 'Last: $result';
+  }
+
+  @override
+  String get sectionRecommend => 'Try These Roulettes';
+
+  @override
+  String get showMore => 'Show More';
+
+  @override
+  String get showLess => 'Show Less';
 }

@@ -1,6 +1,7 @@
-import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
+import '../../../core/design_tokens.dart';
 import '../../../core/utils.dart';
+import '../../../core/widgets/glass_card.dart';
 import '../../../domain/roulette.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -13,6 +14,7 @@ class RouletteCard extends StatelessWidget {
   final VoidCallback onDuplicate;
   final Future<void> Function(String newName) onRename;
   final VoidCallback onDelete;
+  final String? lastResult;
 
   const RouletteCard({
     super.key,
@@ -22,6 +24,7 @@ class RouletteCard extends StatelessWidget {
     required this.onDuplicate,
     required this.onRename,
     required this.onDelete,
+    this.lastResult,
   });
 
   @override
@@ -30,7 +33,8 @@ class RouletteCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final tintColor = roulette.items.isNotEmpty
         ? roulette.items.first.color
-        : colorScheme.primary;
+        : AppColors.primary;
+
     return Dismissible(
       key: Key(roulette.id),
       direction: DismissDirection.endToStart,
@@ -39,52 +43,51 @@ class RouletteCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 24),
         decoration: BoxDecoration(
           color: colorScheme.error,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(AppDimens.cardRadius),
         ),
         child: Icon(Icons.delete_rounded, color: colorScheme.onError),
       ),
       confirmDismiss: (_) async => _showDeleteConfirm(context),
       onDismissed: (_) => onDelete(),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: tintColor.withValues(alpha: 0.55),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: tintColor.withValues(alpha: 0.15),
-                  blurRadius: 8,
-                ),
-              ],
-            ),
-            child: InkWell(
-              onTap: onTap,
-              splashColor: tintColor.withValues(alpha: 0.1),
-              highlightColor: tintColor.withValues(alpha: 0.05),
-              child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
+      child: GlassCard(
+        padding: EdgeInsets.zero,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(AppDimens.cardRadius),
+            splashColor: AppColors.primary.withValues(alpha: 0.08),
+            highlightColor: AppColors.primary.withValues(alpha: 0.04),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 14, 12, 14),
               child: Row(
                 children: [
+                  // ── 3px 세로 액센트 바 ──
+                  Container(
+                    width: 3,
+                    height: 48,
+                    margin: const EdgeInsets.only(right: 12),
+                    decoration: BoxDecoration(
+                      color: tintColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  // ── 미니 휠 프리뷰 + 퍼플 글로우 ──
                   _ColorPreview(roulette: roulette),
                   const SizedBox(width: 14),
+                  // ── 텍스트 영역 ──
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           roulette.name,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.8,
-                                color: colorScheme.onSurface,
-                              ),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.5,
+                            color: AppColors.textPrimary,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -93,11 +96,11 @@ class RouletteCard extends StatelessWidget {
                           children: [
                             Text(
                               l10n.itemCount(roulette.items.length),
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant
-                                        .withValues(alpha: 0.7),
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textSecondary,
+                              ),
                             ),
                             if (roulette.lastPlayedAt != null) ...[
                               Padding(
@@ -106,61 +109,82 @@ class RouletteCard extends StatelessWidget {
                                 child: Text(
                                   '·',
                                   style: TextStyle(
-                                    color: colorScheme.onSurfaceVariant
-                                        .withValues(alpha: 0.4),
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                               ),
                               Text(
                                 AppUtils.formatRelativeDate(
                                     roulette.lastPlayedAt!),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: colorScheme.onSurfaceVariant
-                                          .withValues(alpha: 0.5),
-                                    ),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color:
+                                      Colors.white.withValues(alpha: 0.4),
+                                ),
                               ),
                             ],
                           ],
                         ),
+                        if (lastResult != null) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            lastResult!,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.white.withValues(alpha: 0.4),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ],
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // 컬러 플레이 버튼
+                  // ── 재생 버튼: Primary 원형 + 글로우 ──
                   Container(
-                    width: 38,
-                    height: 38,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      color: tintColor.withValues(alpha: 0.25),
+                      color: AppColors.primary,
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.45),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.play_arrow_rounded,
-                      color: tintColor,
+                      color: Colors.white,
                       size: 22,
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  // 메뉴 버튼
-                  Material(
-                    color: Colors.transparent,
-                    child: IconButton(
-                      icon: const Icon(Icons.more_horiz_rounded),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      splashRadius: 20,
-                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                      onPressed: () => _showMenu(context, l10n),
+                  const SizedBox(width: 8),
+                  // ── 더보기 버튼: 흰색 10% bg, 8px radius ──
+                  InkWell(
+                    onTap: () => _showMenu(context, l10n),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.more_horiz_rounded,
+                        color: AppColors.textSecondary,
+                        size: 18,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
           ),
-        ),
         ),
       ),
     );
@@ -324,38 +348,41 @@ class _ColorPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = roulette.items.map((e) => e.color).toList();
-    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      width: 68,
-      height: 68,
+      width: 56,
+      height: 56,
       decoration: BoxDecoration(
-        color: colorScheme.surface,
         shape: BoxShape.circle,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(2.5),
-        child: Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: SweepGradient(
-              colors: colors.length >= 2 ? colors : [...colors, colors.first],
-            ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.40),
+            blurRadius: 16,
           ),
-          child: Center(
-            child: Container(
-              width: 18,
-              height: 18,
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 3,
-                  ),
-                ],
-              ),
+        ],
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: SweepGradient(
+            colors: colors.length >= 2
+                ? colors
+                : [...colors, colors.first],
+          ),
+        ),
+        child: Center(
+          child: Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 4,
+                ),
+              ],
             ),
           ),
         ),

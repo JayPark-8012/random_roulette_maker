@@ -121,6 +121,13 @@
   "recent10": "최근 10회",
   "diceTitle": "주사위",
   "rollDice": "D{type} 굴리기",
+  "diceD4Name": "정사면체",
+  "diceD6Name": "정육면체",
+  "diceD8Name": "정팔면체",
+  "diceD10Name": "정십면체",
+  "diceD12Name": "정십이면체",
+  "diceD20Name": "정이십면체",
+  "diceRange": "1 ~ {max} 사이",
   "randomNumberTitle": "랜덤 숫자",
   "minLabel": "최솟값",
   "maxLabel": "최댓값",
@@ -218,5 +225,22 @@
 
   "atmosphereLabel": "배경",
   "paywallAtmosphereLockTitle": "배경 잠금",
-  "paywallAtmosphereLockContent": "{atmosphereName} 배경은 프리미엄에서만 사용할 수 있습니다.\n지금 바로 모든 배경을 잠금 해제하세요!"
+  "paywallAtmosphereLockContent": "{atmosphereName} 배경은 프리미엄에서만 사용할 수 있습니다.\n지금 바로 모든 배경을 잠금 해제하세요!",
+
+  "firstRunWelcomeTitle": "어서오세요!",
+  "firstRunWelcomeSubtitle": "스타터 세트를 바로 돌려보세요",
+  "firstRunCreateManual": "직접 만들기",
+  "firstRunViewMore": "스타터 세트 더 보기",
+  "firstRunSaveTitle": "이 룰렛을 저장할까요?",
+  "firstRunSaveMessage": "내 세트에 저장하면 언제든 다시 사용할 수 있어요.",
+  "firstRunSaveButton": "저장하기",
+  "firstRunSkipButton": "건너뛰기",
+
+  "sectionQuickLaunch": "빠른 실행",
+  "quickLaunchSpin": "스핀",
+  "lastResultWithDate": "마지막 결과: {result} · {date}",
+  "recentResult": "최근: {result}",
+  "sectionRecommend": "이런 룰렛 어때요?",
+  "showMore": "더 보기",
+  "showLess": "접기"
 }

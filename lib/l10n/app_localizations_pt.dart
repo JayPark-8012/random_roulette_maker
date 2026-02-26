@@ -388,6 +388,29 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get diceD4Name => 'Tetrahedron';
+
+  @override
+  String get diceD6Name => 'Cube';
+
+  @override
+  String get diceD8Name => 'Octahedron';
+
+  @override
+  String get diceD10Name => 'Decahedron';
+
+  @override
+  String get diceD12Name => 'Dodecahedron';
+
+  @override
+  String get diceD20Name => 'Icosahedron';
+
+  @override
+  String diceRange(int max) {
+    return '1 ~ $max';
+  }
+
+  @override
   String get randomNumberTitle => 'Número Aleatório';
 
   @override
@@ -697,6 +720,57 @@ class AppLocalizationsPt extends AppLocalizations {
   String paywallAtmosphereLockContent(String atmosphereName) {
     return 'O fundo $atmosphereName está disponível apenas no Premium.\nDesbloqueie todos os fundos agora!';
   }
+
+  @override
+  String get firstRunWelcomeTitle => 'Bem-vindo!';
+
+  @override
+  String get firstRunWelcomeSubtitle =>
+      'Experimente girar um set inicial agora';
+
+  @override
+  String get firstRunCreateManual => 'Criar o seu';
+
+  @override
+  String get firstRunViewMore => 'Ver todos os sets';
+
+  @override
+  String get firstRunSaveTitle => 'Guardar esta roleta?';
+
+  @override
+  String get firstRunSaveMessage =>
+      'Guarde em Os Meus Sets para usar quando quiser.';
+
+  @override
+  String get firstRunSaveButton => 'Guardar';
+
+  @override
+  String get firstRunSkipButton => 'Saltar';
+
+  @override
+  String get sectionQuickLaunch => 'Acesso Rápido';
+
+  @override
+  String get quickLaunchSpin => 'Girar';
+
+  @override
+  String lastResultWithDate(String result, String date) {
+    return 'Último: $result · $date';
+  }
+
+  @override
+  String recentResult(String result) {
+    return 'Último: $result';
+  }
+
+  @override
+  String get sectionRecommend => 'Experimente estas roletas';
+
+  @override
+  String get showMore => 'Ver mais';
+
+  @override
+  String get showLess => 'Ver menos';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -1266,4 +1340,55 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String paywallAtmosphereLockContent(String atmosphereName) {
     return 'O fundo $atmosphereName está disponível apenas no Premium.\nDesbloqueie todos os fundos agora!';
   }
+
+  @override
+  String get firstRunWelcomeTitle => 'Bem-vindo!';
+
+  @override
+  String get firstRunWelcomeSubtitle =>
+      'Experimente girar um set inicial agora';
+
+  @override
+  String get firstRunCreateManual => 'Criar o seu';
+
+  @override
+  String get firstRunViewMore => 'Ver todos os sets';
+
+  @override
+  String get firstRunSaveTitle => 'Salvar esta roleta?';
+
+  @override
+  String get firstRunSaveMessage =>
+      'Salve em Meus Sets para usar quando quiser.';
+
+  @override
+  String get firstRunSaveButton => 'Salvar';
+
+  @override
+  String get firstRunSkipButton => 'Pular';
+
+  @override
+  String get sectionQuickLaunch => 'Acesso Rápido';
+
+  @override
+  String get quickLaunchSpin => 'Girar';
+
+  @override
+  String lastResultWithDate(String result, String date) {
+    return 'Último: $result · $date';
+  }
+
+  @override
+  String recentResult(String result) {
+    return 'Último: $result';
+  }
+
+  @override
+  String get sectionRecommend => 'Experimente estas roletas';
+
+  @override
+  String get showMore => 'Ver mais';
+
+  @override
+  String get showLess => 'Ver menos';
 }

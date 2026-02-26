@@ -393,6 +393,25 @@
     }
   },
 
+  "diceD4Name": "Tetrahedron",
+  "@diceD4Name": {},
+  "diceD6Name": "Cube",
+  "@diceD6Name": {},
+  "diceD8Name": "Octahedron",
+  "@diceD8Name": {},
+  "diceD10Name": "Decahedron",
+  "@diceD10Name": {},
+  "diceD12Name": "Dodecahedron",
+  "@diceD12Name": {},
+  "diceD20Name": "Icosahedron",
+  "@diceD20Name": {},
+  "diceRange": "1 ~ {max}",
+  "@diceRange": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
+
   "randomNumberTitle": "Random Number",
   "@randomNumberTitle": {},
 
@@ -709,5 +728,46 @@
         "example": "Aurora"
       }
     }
-  }
+  },
+
+  "firstRunWelcomeTitle": "Welcome!",
+  "@firstRunWelcomeTitle": {},
+  "firstRunWelcomeSubtitle": "Try spinning a starter set right now",
+  "@firstRunWelcomeSubtitle": {},
+  "firstRunCreateManual": "Create Your Own",
+  "@firstRunCreateManual": {},
+  "firstRunViewMore": "Browse All Starter Sets",
+  "@firstRunViewMore": {},
+  "firstRunSaveTitle": "Save this roulette?",
+  "@firstRunSaveTitle": {},
+  "firstRunSaveMessage": "Save it to My Sets so you can use it anytime.",
+  "@firstRunSaveMessage": {},
+  "firstRunSaveButton": "Save",
+  "@firstRunSaveButton": {},
+  "firstRunSkipButton": "Skip",
+  "@firstRunSkipButton": {},
+
+  "sectionQuickLaunch": "Quick Launch",
+  "@sectionQuickLaunch": {},
+  "quickLaunchSpin": "Spin",
+  "@quickLaunchSpin": {},
+  "lastResultWithDate": "Last: {result} · {date}",
+  "@lastResultWithDate": {
+    "placeholders": {
+      "result": {"type": "String"},
+      "date": {"type": "String"}
+    }
+  },
+  "recentResult": "Last: {result}",
+  "@recentResult": {
+    "placeholders": {
+      "result": {"type": "String"}
+    }
+  },
+  "sectionRecommend": "Try These Roulettes",
+  "@sectionRecommend": {},
+  "showMore": "Show More",
+  "@showMore": {},
+  "showLess": "Show Less",
+  "@showLess": {}
 }

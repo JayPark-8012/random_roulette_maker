@@ -385,6 +385,29 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diceD4Name => 'Tetrahedron';
+
+  @override
+  String get diceD6Name => 'Cube';
+
+  @override
+  String get diceD8Name => 'Octahedron';
+
+  @override
+  String get diceD10Name => 'Decahedron';
+
+  @override
+  String get diceD12Name => 'Dodecahedron';
+
+  @override
+  String get diceD20Name => 'Icosahedron';
+
+  @override
+  String diceRange(int max) {
+    return '1 ~ $max';
+  }
+
+  @override
   String get randomNumberTitle => '随机数字';
 
   @override
@@ -694,6 +717,55 @@ class AppLocalizationsZh extends AppLocalizations {
   String paywallAtmosphereLockContent(String atmosphereName) {
     return '$atmosphereName背景仅限高级版使用。\n立即解锁所有背景！';
   }
+
+  @override
+  String get firstRunWelcomeTitle => '歡迎！';
+
+  @override
+  String get firstRunWelcomeSubtitle => '現在就試試轉動入門套裝';
+
+  @override
+  String get firstRunCreateManual => '自訂建立';
+
+  @override
+  String get firstRunViewMore => '查看所有入門套裝';
+
+  @override
+  String get firstRunSaveTitle => '儲存這個輪盤？';
+
+  @override
+  String get firstRunSaveMessage => '儲存到我的套裝後，可以隨時使用。';
+
+  @override
+  String get firstRunSaveButton => '儲存';
+
+  @override
+  String get firstRunSkipButton => '略過';
+
+  @override
+  String get sectionQuickLaunch => '快速啟動';
+
+  @override
+  String get quickLaunchSpin => '轉動';
+
+  @override
+  String lastResultWithDate(String result, String date) {
+    return '上次: $result · $date';
+  }
+
+  @override
+  String recentResult(String result) {
+    return '上次: $result';
+  }
+
+  @override
+  String get sectionRecommend => '試試這些輪盤';
+
+  @override
+  String get showMore => '展開更多';
+
+  @override
+  String get showLess => '收起';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1260,4 +1332,53 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String paywallAtmosphereLockContent(String atmosphereName) {
     return '$atmosphereName背景仅限高级版使用。\n立即解锁所有背景！';
   }
+
+  @override
+  String get firstRunWelcomeTitle => '欢迎！';
+
+  @override
+  String get firstRunWelcomeSubtitle => '立即试试转动初始套装';
+
+  @override
+  String get firstRunCreateManual => '自定义创建';
+
+  @override
+  String get firstRunViewMore => '查看所有初始套装';
+
+  @override
+  String get firstRunSaveTitle => '保存这个轮盘？';
+
+  @override
+  String get firstRunSaveMessage => '保存到我的套装后，可以随时使用。';
+
+  @override
+  String get firstRunSaveButton => '保存';
+
+  @override
+  String get firstRunSkipButton => '跳过';
+
+  @override
+  String get sectionQuickLaunch => '快速启动';
+
+  @override
+  String get quickLaunchSpin => '转动';
+
+  @override
+  String lastResultWithDate(String result, String date) {
+    return '上次: $result · $date';
+  }
+
+  @override
+  String recentResult(String result) {
+    return '上次: $result';
+  }
+
+  @override
+  String get sectionRecommend => '试试这些轮盘';
+
+  @override
+  String get showMore => '展开更多';
+
+  @override
+  String get showLess => '收起';
 }

@@ -194,5 +194,22 @@
 
   "atmosphereLabel": "Fondo",
   "paywallAtmosphereLockTitle": "Fondo Bloqueado",
-  "paywallAtmosphereLockContent": "El fondo {atmosphereName} solo está disponible en Premium.\n¡Desbloquea todos los fondos hoy!"
+  "paywallAtmosphereLockContent": "El fondo {atmosphereName} solo está disponible en Premium.\n¡Desbloquea todos los fondos hoy!",
+
+  "firstRunWelcomeTitle": "¡Bienvenido!",
+  "firstRunWelcomeSubtitle": "Prueba a girar un set de inicio ahora",
+  "firstRunCreateManual": "Crear el tuyo",
+  "firstRunViewMore": "Ver todos los sets",
+  "firstRunSaveTitle": "¿Guardar esta ruleta?",
+  "firstRunSaveMessage": "Guárdala en Mis Sets para usarla cuando quieras.",
+  "firstRunSaveButton": "Guardar",
+  "firstRunSkipButton": "Omitir",
+
+  "sectionQuickLaunch": "Acceso Rápido",
+  "quickLaunchSpin": "Girar",
+  "lastResultWithDate": "Último: {result} · {date}",
+  "recentResult": "Último: {result}",
+  "sectionRecommend": "Prueba estas ruletas",
+  "showMore": "Ver más",
+  "showLess": "Ver menos"
 }

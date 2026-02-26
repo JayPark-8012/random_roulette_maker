@@ -330,21 +330,30 @@ class RouletteWheelPainter extends CustomPainter {
     final maxWidth = (radius * sweepAngle).clamp(40.0, 150.0);
     final label = text.length > 8 ? '${text.substring(0, 7)}…' : text;
 
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: label,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: (18.0 - items.length * 0.2).clamp(10.0, 18.0),
-          fontWeight: FontWeight.bold,
-          shadows: const [
-            Shadow(color: Colors.black54, blurRadius: 2, offset: Offset(1, 1)),
-          ],
+    // 기본 폰트 크기 → 넘치면 자동 축소
+    var fontSize = (18.0 - items.length * 0.2).clamp(10.0, 18.0);
+
+    TextPainter textPainter;
+    for (;;) {
+      textPainter = TextPainter(
+        text: TextSpan(
+          text: label,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: fontSize,
+            fontWeight: FontWeight.bold,
+            shadows: const [
+              Shadow(color: Colors.black54, blurRadius: 2, offset: Offset(1, 1)),
+            ],
+          ),
         ),
-      ),
-      textDirection: TextDirection.ltr,
-      maxLines: 1,
-    )..layout(maxWidth: maxWidth);
+        textDirection: TextDirection.ltr,
+        maxLines: 1,
+      )..layout(maxWidth: maxWidth);
+      if (!textPainter.didExceedMaxLines && textPainter.width <= maxWidth) break;
+      fontSize -= 1;
+      if (fontSize < 8) break;
+    }
 
     canvas.save();
     canvas.translate(textX, textY);
@@ -371,13 +380,37 @@ class RoulettePointer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      // 22×36 → 30×48 (더 크고 눈에 띄게)
-      size: const Size(30, 48),
-      painter: _PointerPainter(
-        color: const Color(0xFFFFBF00), // 앰버 골드 — 게임 느낌
-        shadowColor: Theme.of(context).colorScheme.shadow,
-      ),
+    // 20% 확대: 30×48 → 36×58 + 골드 halo
+    return Stack(
+      alignment: Alignment.topCenter,
+      clipBehavior: Clip.none,
+      children: [
+        // 포인터 아래쪽 골드 빛 번짐 halo
+        Positioned(
+          top: 30,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFFB800).withValues(alpha: 0.35),
+                  blurRadius: 16,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+          ),
+        ),
+        CustomPaint(
+          size: const Size(36, 58),
+          painter: _PointerPainter(
+            color: const Color(0xFFFFBF00),
+            shadowColor: const Color(0xFFFFB800),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -400,16 +433,26 @@ class _PointerPainter extends CustomPainter {
       ..cubicTo(w, 0, w, h * 0.55, w / 2, h) // 우측 곡선
       ..close();
 
-    // 그림자 (더 강하고 부드럽게)
+    // 골드 드롭 섀도우 — 강화 (#FFB800 70%, blur 12)
     canvas.drawPath(
-      path.shift(const Offset(0, 3)),
+      path.shift(const Offset(0, 5)),
       Paint()
-        ..color = shadowColor.withValues(alpha: 0.45)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+        ..color = shadowColor.withValues(alpha: 0.70)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
     );
 
-    // 본체
-    canvas.drawPath(path, Paint()..color = color);
+    // 본체 — 골드 그라데이션 (상→하: 밝은 골드→짙은 골드)
+    final bodyRect = Rect.fromLTWH(0, 0, w, h);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFFD54F), Color(0xFFFFB800), Color(0xFFFF8C00)],
+          stops: [0.0, 0.5, 1.0],
+        ).createShader(bodyRect),
+    );
 
     // 외곽 어두운 테두리 (입체감)
     canvas.drawPath(

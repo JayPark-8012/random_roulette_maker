@@ -828,6 +828,48 @@ abstract class AppLocalizations {
   /// **'Roll D{type}'**
   String rollDice(int type);
 
+  /// No description provided for @diceD4Name.
+  ///
+  /// In en, this message translates to:
+  /// **'Tetrahedron'**
+  String get diceD4Name;
+
+  /// No description provided for @diceD6Name.
+  ///
+  /// In en, this message translates to:
+  /// **'Cube'**
+  String get diceD6Name;
+
+  /// No description provided for @diceD8Name.
+  ///
+  /// In en, this message translates to:
+  /// **'Octahedron'**
+  String get diceD8Name;
+
+  /// No description provided for @diceD10Name.
+  ///
+  /// In en, this message translates to:
+  /// **'Decahedron'**
+  String get diceD10Name;
+
+  /// No description provided for @diceD12Name.
+  ///
+  /// In en, this message translates to:
+  /// **'Dodecahedron'**
+  String get diceD12Name;
+
+  /// No description provided for @diceD20Name.
+  ///
+  /// In en, this message translates to:
+  /// **'Icosahedron'**
+  String get diceD20Name;
+
+  /// No description provided for @diceRange.
+  ///
+  /// In en, this message translates to:
+  /// **'1 ~ {max}'**
+  String diceRange(int max);
+
   /// No description provided for @randomNumberTitle.
   ///
   /// In en, this message translates to:
@@ -1409,6 +1451,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The {atmosphereName} background is only available in Premium.\nUnlock all backgrounds today!'**
   String paywallAtmosphereLockContent(String atmosphereName);
+
+  /// No description provided for @firstRunWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome!'**
+  String get firstRunWelcomeTitle;
+
+  /// No description provided for @firstRunWelcomeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Try spinning a starter set right now'**
+  String get firstRunWelcomeSubtitle;
+
+  /// No description provided for @firstRunCreateManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Your Own'**
+  String get firstRunCreateManual;
+
+  /// No description provided for @firstRunViewMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse All Starter Sets'**
+  String get firstRunViewMore;
+
+  /// No description provided for @firstRunSaveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save this roulette?'**
+  String get firstRunSaveTitle;
+
+  /// No description provided for @firstRunSaveMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Save it to My Sets so you can use it anytime.'**
+  String get firstRunSaveMessage;
+
+  /// No description provided for @firstRunSaveButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get firstRunSaveButton;
+
+  /// No description provided for @firstRunSkipButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get firstRunSkipButton;
+
+  /// No description provided for @sectionQuickLaunch.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Launch'**
+  String get sectionQuickLaunch;
+
+  /// No description provided for @quickLaunchSpin.
+  ///
+  /// In en, this message translates to:
+  /// **'Spin'**
+  String get quickLaunchSpin;
+
+  /// No description provided for @lastResultWithDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Last: {result} · {date}'**
+  String lastResultWithDate(String result, String date);
+
+  /// No description provided for @recentResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Last: {result}'**
+  String recentResult(String result);
+
+  /// No description provided for @sectionRecommend.
+  ///
+  /// In en, this message translates to:
+  /// **'Try These Roulettes'**
+  String get sectionRecommend;
+
+  /// No description provided for @showMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Show More'**
+  String get showMore;
+
+  /// No description provided for @showLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Less'**
+  String get showLess;
 }
 
 class _AppLocalizationsDelegate

@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../core/constants.dart';
+import '../../core/design_tokens.dart';
+import '../../core/widgets/glass_card.dart';
+import '../../core/widgets/section_label.dart';
 import '../../data/local_storage.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -23,7 +26,8 @@ class _ToolsTabState extends State<ToolsTab>
   bool? _coin; // null=미실행
   final List<bool> _coinHistory = [];
 
-  // ── 주사위 상태 (D6 고정) ─────────────────────────────
+  // ── 주사위 상태 ──────────────────────────────────────
+  int _selectedDiceType = 6;
   int? _diceResult;
   final List<Map<String, int>> _diceHistory = [];
 
@@ -94,10 +98,10 @@ class _ToolsTabState extends State<ToolsTab>
   }
 
   void _rollDice() {
-    final r = Random().nextInt(6) + 1;
+    final r = Random().nextInt(_selectedDiceType) + 1;
     setState(() {
       _diceResult = r;
-      _diceHistory.insert(0, {'type': 6, 'result': r});
+      _diceHistory.insert(0, {'type': _selectedDiceType, 'result': r});
       if (_diceHistory.length > 10) _diceHistory.removeLast();
     });
     _save();
@@ -140,6 +144,11 @@ class _ToolsTabState extends State<ToolsTab>
             result: _diceResult,
             history: _diceHistory,
             onRoll: _rollDice,
+            selectedType: _selectedDiceType,
+            onTypeChanged: (t) => setState(() {
+              _selectedDiceType = t;
+              _diceResult = null;
+            }),
             fullscreen: true),
         _ => _NumberCard(
             minCtrl: _minCtrl,
@@ -165,6 +174,11 @@ class _ToolsTabState extends State<ToolsTab>
           result: _diceResult,
           history: _diceHistory,
           onRoll: _rollDice,
+          selectedType: _selectedDiceType,
+          onTypeChanged: (t) => setState(() {
+            _selectedDiceType = t;
+            _diceResult = null;
+          }),
         ),
         const SizedBox(height: 14),
         _NumberCard(
@@ -265,17 +279,22 @@ class _CoinCard extends StatefulWidget {
 }
 
 class _CoinCardState extends State<_CoinCard>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   // 5바퀴 = 10 반회전 / easeOutCubic으로 자연 감속
   static const int _totalHalfTurns = 10;
   static const Duration _spinDuration = Duration(milliseconds: 2200);
+  static const double _coinSize = 169.0; // 30% larger than 130
 
   late AnimationController _spinCtrl;
   late Animation<double> _spinAnim;
 
+  // ── Idle glow pulse (2.5s cycle) ──
+  late AnimationController _glowCtrl;
+  late Animation<double> _glowAnim;
+
   bool _isFlipping = false;
   int _flipDoneCount = 0;
-  List<bool?> _halfTurnFaces = []; // 각 반회전에서 보여줄 면
+  List<bool?> _halfTurnFaces = [];
 
   @override
   void initState() {
@@ -287,23 +306,27 @@ class _CoinCardState extends State<_CoinCard>
       if (status == AnimationStatus.completed && mounted) {
         setState(() {
           _isFlipping = false;
-          _flipDoneCount++; // → _ResultBounce 바운스 트리거
+          _flipDoneCount++;
         });
       }
     });
+
+    _glowCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2500),
+    )..repeat(reverse: true);
+    _glowAnim = Tween<double>(begin: 0.15, end: 0.45).animate(
+      CurvedAnimation(parent: _glowCtrl, curve: Curves.easeInOut),
+    );
   }
 
   @override
   void dispose() {
     _spinCtrl.dispose();
+    _glowCtrl.dispose();
     super.dispose();
   }
 
-  /// 각 반회전에서 보여줄 앞/뒷면 미리 계산
-  ///
-  /// 짝수 반회전: 수축 (현재 면 유지)
-  /// 홀수 반회전: 팽창 (새 면 공개)
-  /// 마지막(9번): null → 빌더에서 widget.coin으로 대체
   List<bool?> _computeHalfTurnFaces(bool? initialFace) {
     final faces = <bool?>[];
     bool? current = initialFace;
@@ -312,7 +335,7 @@ class _CoinCardState extends State<_CoinCard>
         faces.add(current);
       } else {
         if (i == _totalHalfTurns - 1) {
-          faces.add(null); // 실제 결과는 빌더에서 처리
+          faces.add(null);
         } else {
           current = Random().nextBool();
           faces.add(current);
@@ -324,24 +347,24 @@ class _CoinCardState extends State<_CoinCard>
 
   void _startFlip() {
     if (_isFlipping) return;
-    final initialFace = widget.coin; // 뒤집기 전 현재 면 보존
-    widget.onFlip(); // 부모에서 결과 결정 및 히스토리 기록
+    final initialFace = widget.coin;
+    widget.onFlip();
     _halfTurnFaces = _computeHalfTurnFaces(initialFace);
     setState(() => _isFlipping = true);
     _spinCtrl.forward(from: 0.0);
   }
 
-  Widget _buildCoinFace(bool? isHeads, ColorScheme cs, AppLocalizations l10n) {
+  Widget _buildCoinFace(bool? isHeads) {
     // 미실행 상태: ? 물음표
     if (isHeads == null) {
       return Container(
-        width: 130,
-        height: 130,
+        width: _coinSize,
+        height: _coinSize,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: cs.surfaceContainerHighest,
+          color: Colors.white.withValues(alpha: 0.07),
           border: Border.all(
-            color: cs.outlineVariant.withValues(alpha: 0.8),
+            color: Colors.white.withValues(alpha: 0.15),
             width: 2.5,
           ),
         ),
@@ -349,35 +372,108 @@ class _CoinCardState extends State<_CoinCard>
           child: Text(
             '?',
             style: TextStyle(
-              fontSize: 40,
+              fontSize: 52,
               fontWeight: FontWeight.w900,
-              color: cs.onSurfaceVariant.withValues(alpha: 0.45),
+              color: Colors.white.withValues(alpha: 0.25),
             ),
           ),
         ),
       );
     }
 
-    // 앞면: flat 골드 / 뒷면: flat 스틸 그레이
     final isH = isHeads;
-    final faceColor =
-        isH ? const Color(0xFFFFD700) : const Color(0xFF8A9BB0);
+    // 앞면: gold gradient / 뒷면: silver gradient
+    final gradient = isH
+        ? const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFFFB800), Color(0xFFFF8C00)],
+          )
+        : const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFC8D0DC), Color(0xFF8B9DB0)],
+          );
     final borderColor =
-        isH ? const Color(0xFFB8860B) : const Color(0xFF4A5568);
+        isH ? const Color(0xFFCC9400) : const Color(0xFF6B7D90);
 
     return Container(
-      width: 130,
-      height: 130,
+      width: _coinSize,
+      height: _coinSize,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: faceColor,         // 단색 flat — 그라데이션/그림자 없음
+        gradient: gradient,
         border: Border.all(color: borderColor, width: 3.5),
       ),
       child: Center(
         child: Icon(
           isH ? Icons.wb_sunny_rounded : Icons.nightlight_round,
-          size: 44,
-          color: Colors.white.withValues(alpha: 0.88),
+          size: 56,
+          color: Colors.white.withValues(alpha: 0.9),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFlipButton(AppLocalizations l10n) {
+    const darkGold = Color(0xFF7A4F00);
+
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 200),
+      opacity: _isFlipping ? 0.65 : 1.0,
+      child: Container(
+        height: AppDimens.buttonHeight,
+        decoration: BoxDecoration(
+          gradient: AppColors.goldGradient,
+          borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
+          boxShadow: !_isFlipping
+              ? [
+                  BoxShadow(
+                    color: AppColors.gold.withValues(alpha: 0.45),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ]
+              : null,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _isFlipping ? null : _startFlip,
+            borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
+            splashColor: Colors.white.withValues(alpha: 0.15),
+            highlightColor: Colors.white.withValues(alpha: 0.05),
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_isFlipping)
+                    AnimatedBuilder(
+                      animation: _spinAnim,
+                      builder: (_, child) => Transform.rotate(
+                        angle: _spinAnim.value * 2 * pi * 5,
+                        child: child,
+                      ),
+                      child: const Icon(Icons.refresh_rounded,
+                          color: darkGold, size: 20),
+                    )
+                  else
+                    const Icon(Icons.refresh_rounded,
+                        color: darkGold, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    l10n.actionFlip,
+                    style: const TextStyle(
+                      color: darkGold,
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -385,39 +481,82 @@ class _CoinCardState extends State<_CoinCard>
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
-    const accentColor = Color(0xFFF5C04A);
+    final headsCount = widget.history.where((h) => h).length;
+    final tailsCount = widget.history.where((h) => !h).length;
 
-    return Container(
-      decoration: _cardDecoration(accentColor, cs.surface),
+    return GlassCard(
+      padding: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── 헤더 ──
-            _cardHeader(context, Icons.monetization_on_outlined,
-                l10n.coinFlipTitle, accentColor),
+            // ── GlassCard label header ──
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.gold.withValues(alpha: 0.22),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.monetization_on_outlined,
+                      size: 18, color: AppColors.gold),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  l10n.coinFlipTitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.gold,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 20),
-            // ── 코인 (스핀 애니메이션) ──
-            // ── 코인 뷰잉 (항상 고정 144px) ──
+            // ── Coin with glow pulse ──
             SizedBox(
-              height: 144,
+              height: 190,
               child: Center(
                 child: SizedBox(
-                  width: 130,
-                  height: 130,
+                  width: _coinSize,
+                  height: _coinSize,
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
+                      // Idle glow pulse
+                      if (!_isFlipping)
+                        AnimatedBuilder(
+                          animation: _glowAnim,
+                          builder: (_, _) => Container(
+                            width: _coinSize,
+                            height: _coinSize,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.gold
+                                      .withValues(alpha: _glowAnim.value),
+                                  blurRadius: 28,
+                                  spreadRadius: 4,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      // Static coin (not flipping)
                       Opacity(
                         opacity: _isFlipping ? 0.0 : 1.0,
                         child: _ResultBounce(
-                          resultKey: _flipDoneCount > 0 ? _flipDoneCount : null,
-                          child: _buildCoinFace(widget.coin, cs, l10n),
+                          resultKey:
+                              _flipDoneCount > 0 ? _flipDoneCount : null,
+                          child: _buildCoinFace(widget.coin),
                         ),
                       ),
+                      // Flipping coin animation
                       if (_isFlipping)
                         AnimatedBuilder(
                           animation: _spinAnim,
@@ -433,7 +572,7 @@ class _CoinCardState extends State<_CoinCard>
                                 : _halfTurnFaces[halfTurn];
                             return Transform.scale(
                               scaleX: scaleX.clamp(0.0, 1.0),
-                              child: _buildCoinFace(face, cs, l10n),
+                              child: _buildCoinFace(face),
                             );
                           },
                         ),
@@ -442,53 +581,63 @@ class _CoinCardState extends State<_CoinCard>
                 ),
               ),
             ),
-            // ── 히스토리 (뷰잉과 버튼 사이) ──
+            // ── Recent results ──
             if (widget.history.isNotEmpty) ...[
               const SizedBox(height: 16),
-              Divider(color: accentColor.withValues(alpha: 0.2)),
-              const SizedBox(height: 8),
-              _historyRow(
-                widget.history.map((h) {
-                  final hColor = h
-                      ? const Color(0xFFFFD700)
-                      : const Color(0xFFB0B0C0);
-                  return Container(
-                    margin: const EdgeInsets.only(right: 6),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: hColor.withValues(alpha: 0.22),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                          color: hColor.withValues(alpha: 0.45), width: 1),
-                    ),
-                    child: Text(
-                      h ? l10n.coinHeads : l10n.coinTails,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: hColor.withValues(alpha: 0.9),
+              SectionLabel(text: l10n.statsRecentResults),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: widget.history.map((h) {
+                    final chipColor =
+                        h ? AppColors.gold : const Color(0xFF8B9DB0);
+                    return Container(
+                      width: 30,
+                      height: 30,
+                      margin: const EdgeInsets.only(right: 6),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: chipColor.withValues(alpha: 0.25),
+                        border: Border.all(
+                          color: chipColor.withValues(alpha: 0.55),
+                          width: 1.5,
+                        ),
                       ),
-                    ),
-                  );
-                }).toList(),
-                l10n.recent10,
-                context,
+                      child: Center(
+                        child: Text(
+                          h ? l10n.coinHeads : l10n.coinTails,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: chipColor,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Stats summary
+              Text(
+                '${l10n.coinHeads} $headsCount · ${l10n.coinTails} $tailsCount · ${widget.history.length}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textSecondary,
+                ),
               ),
               const SizedBox(height: 8),
             ],
-            // fullscreen: 버튼을 하단으로 밀기 / 일반: 고정 간격
-            if (widget.fullscreen) const Spacer() else const SizedBox(height: 20),
-            // ── 버튼 (항상 최하단) ──
+            if (widget.fullscreen)
+              const Spacer()
+            else
+              const SizedBox(height: 20),
+            // ── Flip button (gold gradient + spinning icon) ──
             SizedBox(
               width: double.infinity,
-              height: 54,
-              child: _PremiumButton(
-                onPressed: _isFlipping ? null : _startFlip,
-                icon: Icons.flip,
-                label: l10n.actionFlip,
-                color: accentColor,
-              ),
+              height: AppDimens.buttonHeight,
+              child: _buildFlipButton(l10n),
             ),
           ],
         ),
@@ -502,12 +651,16 @@ class _DiceCard extends StatefulWidget {
   final int? result;
   final List<Map<String, int>> history;
   final VoidCallback onRoll;
+  final int selectedType;
+  final ValueChanged<int> onTypeChanged;
   final bool fullscreen;
 
   const _DiceCard({
     required this.result,
     required this.history,
     required this.onRoll,
+    required this.selectedType,
+    required this.onTypeChanged,
     this.fullscreen = false,
   });
 
@@ -534,7 +687,7 @@ class _DiceCardState extends State<_DiceCard> {
     widget.onRoll();
     setState(() {
       _isRolling = true;
-      _displayResult = Random().nextInt(6) + 1;
+      _displayResult = Random().nextInt(widget.selectedType) + 1;
     });
     _scheduleRollTick(0);
   }
@@ -543,7 +696,7 @@ class _DiceCardState extends State<_DiceCard> {
     if (_disposed) return;
     Timer(Duration(milliseconds: _rollDelays[tick]), () {
       if (_disposed) return;
-      final nextVal = Random().nextInt(6) + 1;
+      final nextVal = Random().nextInt(widget.selectedType) + 1;
       if (tick + 1 < _rollDelays.length) {
         setState(() => _displayResult = nextVal);
         _scheduleRollTick(tick + 1);
@@ -557,50 +710,136 @@ class _DiceCardState extends State<_DiceCard> {
     });
   }
 
+  // ── 다면체 이름 매핑 ──
+  static const _polyhedraTypes = [4, 6, 8, 10, 12, 20];
+
+  String _polyhedraName(AppLocalizations l10n, int type) {
+    return switch (type) {
+      4 => l10n.diceD4Name,
+      6 => l10n.diceD6Name,
+      8 => l10n.diceD8Name,
+      10 => l10n.diceD10Name,
+      12 => l10n.diceD12Name,
+      20 => l10n.diceD20Name,
+      _ => 'D$type',
+    };
+  }
+
   Widget _buildDiceFace(int? result, Color accentColor, ColorScheme cs,
       {bool rolling = false}) {
+    final isD6 = widget.selectedType == 6;
+
     if (result == null) {
+      // ── 빈 상태 ──
+      if (isD6) {
+        return Container(
+          width: 130,
+          height: 130,
+          decoration: BoxDecoration(
+            color: cs.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: cs.outlineVariant.withValues(alpha: 0.70),
+              width: 2.0,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              '?',
+              style: TextStyle(
+                fontSize: 44,
+                fontWeight: FontWeight.w900,
+                color: cs.onSurfaceVariant.withValues(alpha: 0.45),
+              ),
+            ),
+          ),
+        );
+      }
+      // 비-D6 빈 상태: 원형 GlassCard
+      return _buildNonD6Visual(null, accentColor, cs, rolling: false);
+    }
+
+    // ── D6: CustomPainter (기존) ──
+    if (isD6) {
       return Container(
         width: 130,
         height: 130,
         decoration: BoxDecoration(
-          color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: cs.outlineVariant.withValues(alpha: 0.70),
-            width: 2.0,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            '?',
-            style: TextStyle(
-              fontSize: 44,
-              fontWeight: FontWeight.w900,
-              color: cs.onSurfaceVariant.withValues(alpha: 0.45),
+          boxShadow: [
+            BoxShadow(
+              color: accentColor.withValues(alpha: rolling ? 0.10 : 0.25),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
             ),
-          ),
+          ],
+        ),
+        child: CustomPaint(
+          size: const Size(130, 130),
+          painter: _DiceFacePainter(
+              value: result, color: accentColor, rolling: rolling),
         ),
       );
     }
 
+    // ── 비-D6: 원형 GlassCard 숫자 표시 ──
+    return _buildNonD6Visual(result, accentColor, cs, rolling: rolling);
+  }
+
+  Widget _buildNonD6Visual(int? result, Color accentColor, ColorScheme cs,
+      {bool rolling = false}) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: 130,
       height: 130,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: accentColor.withValues(alpha: rolling ? 0.10 : 0.25),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+        shape: BoxShape.circle,
+        color: accentColor.withValues(alpha: rolling ? 0.14 : 0.22),
+        border: Border.all(
+          color: accentColor.withValues(alpha: rolling ? 0.45 : 0.80),
+          width: 2.5,
+        ),
+        boxShadow: result != null && !rolling
+            ? [
+                BoxShadow(
+                  color: accentColor.withValues(alpha: 0.25),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ]
+            : [],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            result != null ? '$result' : '?',
+            style: TextStyle(
+              fontSize: result != null ? 48 : 44,
+              fontWeight: FontWeight.w900,
+              color: result != null
+                  ? accentColor.withValues(alpha: rolling ? 0.50 : 1.0)
+                  : cs.onSurfaceVariant.withValues(alpha: 0.45),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'D${widget.selectedType}',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: accentColor.withValues(alpha: 0.6),
+              letterSpacing: 0.5,
+            ),
+          ),
+          Text(
+            _polyhedraName(l10n, widget.selectedType),
+            style: TextStyle(
+              fontSize: 9,
+              color: cs.onSurfaceVariant.withValues(alpha: 0.5),
+            ),
           ),
         ],
-      ),
-      child: CustomPaint(
-        size: const Size(130, 130),
-        painter: _DiceFacePainter(
-            value: result, color: accentColor, rolling: rolling),
       ),
     );
   }
@@ -621,25 +860,97 @@ class _DiceCardState extends State<_DiceCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── 헤더 ──
-            _cardHeader(context, Icons.casino_outlined,
-                l10n.diceTitle, accentColor),
-            const SizedBox(height: 20),
-            // ── 주사위 뷰잉 (항상 고정 144px) ──
+            _cardHeader(
+                context, Icons.casino_outlined, l10n.diceTitle, accentColor),
+            const SizedBox(height: 12),
+
+            // ── 다면체 선택 칩 행 ──
             SizedBox(
-              height: 144,
+              height: 36,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _polyhedraTypes.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final type = _polyhedraTypes[index];
+                  final selected = type == widget.selectedType;
+                  return GestureDetector(
+                    onTap: _isRolling
+                        ? null
+                        : () => widget.onTypeChanged(type),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: 48,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        gradient: selected
+                            ? const LinearGradient(
+                                colors: [Color(0xFFAB47BC), Color(0xFF8E24AA)],
+                              )
+                            : null,
+                        color: selected
+                            ? null
+                            : Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(100),
+                        border: Border.all(
+                          color: selected
+                              ? Colors.transparent
+                              : Colors.white.withValues(alpha: 0.15),
+                          width: 1,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'D$type',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight:
+                                selected ? FontWeight.bold : FontWeight.w500,
+                            color: selected
+                                ? Colors.white
+                                : cs.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // ── 주사위 뷰잉 ──
+            SizedBox(
+              height: 160,
               child: Center(
-                child: _ResultBounce(
-                  resultKey: _rollDoneCount,
-                  child: _buildDiceFace(
-                    shownResult, accentColor, cs,
-                    rolling: _isRolling,
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _ResultBounce(
+                      resultKey: _rollDoneCount,
+                      child: _buildDiceFace(
+                        shownResult, accentColor, cs,
+                        rolling: _isRolling,
+                      ),
+                    ),
+                    if (!_isRolling && widget.result != null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        l10n.diceRange(widget.selectedType),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: cs.onSurfaceVariant.withValues(alpha: 0.55),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ),
+
             // ── 히스토리 (뷰잉과 버튼 사이) ──
             if (widget.history.isNotEmpty) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Divider(color: accentColor.withValues(alpha: 0.2)),
               const SizedBox(height: 8),
               _historyRow(
@@ -647,7 +958,7 @@ class _DiceCardState extends State<_DiceCard> {
                     .map((h) => Container(
                           margin: const EdgeInsets.only(right: 6),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 5),
+                              horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
                             color: accentColor.withValues(alpha: 0.18),
                             borderRadius: BorderRadius.circular(20),
@@ -655,12 +966,33 @@ class _DiceCardState extends State<_DiceCard> {
                                 color: accentColor.withValues(alpha: 0.35),
                                 width: 1),
                           ),
-                          child: Text(
-                            '${h['result']}',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: accentColor,
+                          child: RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'D${h['type']}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: accentColor.withValues(alpha: 0.65),
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: ' · ',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: accentColor.withValues(alpha: 0.4),
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: '${h['result']}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: accentColor,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ))
@@ -670,7 +1002,11 @@ class _DiceCardState extends State<_DiceCard> {
               ),
               const SizedBox(height: 8),
             ],
-            if (widget.fullscreen) const Spacer() else const SizedBox(height: 20),
+            if (widget.fullscreen)
+              const Spacer()
+            else
+              const SizedBox(height: 20),
+
             // ── 버튼 (항상 최하단) ──
             SizedBox(
               width: double.infinity,
@@ -678,7 +1014,7 @@ class _DiceCardState extends State<_DiceCard> {
               child: _PremiumButton(
                 onPressed: _isRolling ? null : _startRoll,
                 icon: Icons.casino_rounded,
-                label: l10n.rollDice(6),
+                label: l10n.rollDice(widget.selectedType),
                 color: accentColor,
               ),
             ),

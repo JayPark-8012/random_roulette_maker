@@ -385,6 +385,29 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String get diceD4Name => '정사면체';
+
+  @override
+  String get diceD6Name => '정육면체';
+
+  @override
+  String get diceD8Name => '정팔면체';
+
+  @override
+  String get diceD10Name => '정십면체';
+
+  @override
+  String get diceD12Name => '정십이면체';
+
+  @override
+  String get diceD20Name => '정이십면체';
+
+  @override
+  String diceRange(int max) {
+    return '1 ~ $max 사이';
+  }
+
+  @override
   String get randomNumberTitle => '랜덤 숫자';
 
   @override
@@ -693,4 +716,53 @@ class AppLocalizationsKo extends AppLocalizations {
   String paywallAtmosphereLockContent(String atmosphereName) {
     return '$atmosphereName 배경은 프리미엄에서만 사용할 수 있습니다.\n지금 바로 모든 배경을 잠금 해제하세요!';
   }
+
+  @override
+  String get firstRunWelcomeTitle => '어서오세요!';
+
+  @override
+  String get firstRunWelcomeSubtitle => '스타터 세트를 바로 돌려보세요';
+
+  @override
+  String get firstRunCreateManual => '직접 만들기';
+
+  @override
+  String get firstRunViewMore => '스타터 세트 더 보기';
+
+  @override
+  String get firstRunSaveTitle => '이 룰렛을 저장할까요?';
+
+  @override
+  String get firstRunSaveMessage => '내 세트에 저장하면 언제든 다시 사용할 수 있어요.';
+
+  @override
+  String get firstRunSaveButton => '저장하기';
+
+  @override
+  String get firstRunSkipButton => '건너뛰기';
+
+  @override
+  String get sectionQuickLaunch => '빠른 실행';
+
+  @override
+  String get quickLaunchSpin => '스핀';
+
+  @override
+  String lastResultWithDate(String result, String date) {
+    return '마지막 결과: $result · $date';
+  }
+
+  @override
+  String recentResult(String result) {
+    return '최근: $result';
+  }
+
+  @override
+  String get sectionRecommend => '이런 룰렛 어때요?';
+
+  @override
+  String get showMore => '더 보기';
+
+  @override
+  String get showLess => '접기';
 }

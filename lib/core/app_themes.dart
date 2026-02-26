@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'design_tokens.dart';
 
 // ── 팔레트 정의 ─────────────────────────────────────────
 const _indigoPalette = [
@@ -58,59 +60,123 @@ class AppThemeData {
       seedColor: seedColor,
       brightness: Brightness.dark,
       contrastLevel: 0.1,
+    ).copyWith(
+      primary: AppColors.primary,
+      surface: AppColors.background,
+      onSurface: AppColors.textPrimary,
+      onSurfaceVariant: AppColors.textSecondary,
     );
+
+    // ── Nunito 기반 TextTheme ──
+    final baseText = GoogleFonts.nunitoTextTheme(ThemeData.dark().textTheme);
+    final textTheme = baseText.copyWith(
+      displayLarge: baseText.displayLarge?.copyWith(fontWeight: FontWeight.w800),
+      displayMedium: baseText.displayMedium?.copyWith(fontWeight: FontWeight.w800),
+      displaySmall: baseText.displaySmall?.copyWith(fontWeight: FontWeight.w700),
+      headlineLarge: baseText.headlineLarge?.copyWith(fontWeight: FontWeight.w800),
+      headlineMedium: baseText.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
+      headlineSmall: baseText.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
+      titleLarge: baseText.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+      titleMedium: baseText.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+      titleSmall: baseText.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+      bodyLarge: baseText.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+      bodyMedium: baseText.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+      bodySmall: baseText.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+      labelLarge: baseText.labelLarge?.copyWith(fontWeight: FontWeight.w700),
+      labelMedium: baseText.labelMedium?.copyWith(fontWeight: FontWeight.w600),
+      labelSmall: baseText.labelSmall?.copyWith(
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.2,
+      ),
+    );
+
     return ThemeData(
       colorScheme: colorScheme,
       useMaterial3: true,
+      textTheme: textTheme,
       scaffoldBackgroundColor: Colors.transparent,
       appBarTheme: AppBarTheme(
         centerTitle: false,
         elevation: 0,
-        scrolledUnderElevation: 2,
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
-        titleTextStyle: TextStyle(
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: AppColors.textPrimary,
+        titleTextStyle: GoogleFonts.nunito(
           fontSize: 20,
-          fontWeight: FontWeight.w900, // Thicker for casual feel
-          color: colorScheme.onSurface,
+          fontWeight: FontWeight.w800,
+          color: AppColors.textPrimary,
+        ),
+        // 0.5px subtle separator at bottom
+        shape: Border(
+          bottom: BorderSide(
+            color: Colors.white.withValues(alpha: 0.06),
+            width: 0.5,
+          ),
+        ),
+        iconTheme: IconThemeData(
+          color: AppColors.textPrimary,
+        ),
+        actionsIconTheme: IconThemeData(
+          color: AppColors.textPrimary,
+        ),
+      ),
+      // Icon button tap states: Primary 15% bg
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          highlightColor: AppColors.primary.withValues(alpha: 0.15),
+          hoverColor: AppColors.primary.withValues(alpha: 0.08),
         ),
       ),
       cardTheme: CardThemeData(
-        elevation: 3,
-        color: colorScheme.surfaceContainerLow,
+        elevation: 0,
+        color: AppColors.surfaceFill,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(AppDimens.cardRadius),
+          side: BorderSide(color: AppColors.surfaceBorder),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size(64, 44),
+          minimumSize: const Size(64, AppDimens.buttonHeight),
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
           ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size(64, 44),
+          minimumSize: const Size(64, AppDimens.buttonHeight),
+          foregroundColor: AppColors.textPrimary,
+          side: BorderSide(color: AppColors.surfaceBorder),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
           ),
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppDimens.cardRadius),
+          borderSide: BorderSide(color: AppColors.surfaceBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppDimens.cardRadius),
+          borderSide: BorderSide(color: AppColors.surfaceBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppDimens.cardRadius),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
         filled: true,
-        fillColor: colorScheme.surfaceContainerLowest,
+        fillColor: AppColors.surfaceFill,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
@@ -118,7 +184,10 @@ class AppThemeData {
         contentPadding: EdgeInsets.symmetric(horizontal: 20),
         minVerticalPadding: 12,
       ),
-      dividerTheme: const DividerThemeData(space: 1),
+      dividerTheme: DividerThemeData(
+        space: 1,
+        color: AppColors.surfaceBorder,
+      ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         shape:

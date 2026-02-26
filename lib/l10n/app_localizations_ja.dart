@@ -385,6 +385,29 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get diceD4Name => 'Tetrahedron';
+
+  @override
+  String get diceD6Name => 'Cube';
+
+  @override
+  String get diceD8Name => 'Octahedron';
+
+  @override
+  String get diceD10Name => 'Decahedron';
+
+  @override
+  String get diceD12Name => 'Dodecahedron';
+
+  @override
+  String get diceD20Name => 'Icosahedron';
+
+  @override
+  String diceRange(int max) {
+    return '1 ~ $max';
+  }
+
+  @override
   String get randomNumberTitle => 'ランダム数字';
 
   @override
@@ -694,4 +717,53 @@ class AppLocalizationsJa extends AppLocalizations {
   String paywallAtmosphereLockContent(String atmosphereName) {
     return '$atmosphereNameの背景はプレミアムでのみ利用可能です。\n今すぐすべての背景をアンロックしましょう！';
   }
+
+  @override
+  String get firstRunWelcomeTitle => 'ようこそ！';
+
+  @override
+  String get firstRunWelcomeSubtitle => 'スターターセットを今すぐ回してみましょう';
+
+  @override
+  String get firstRunCreateManual => '自分で作る';
+
+  @override
+  String get firstRunViewMore => 'スターターセット一覧';
+
+  @override
+  String get firstRunSaveTitle => 'このルーレットを保存しますか？';
+
+  @override
+  String get firstRunSaveMessage => 'マイセットに保存すると、いつでも使えます。';
+
+  @override
+  String get firstRunSaveButton => '保存';
+
+  @override
+  String get firstRunSkipButton => 'スキップ';
+
+  @override
+  String get sectionQuickLaunch => 'クイック起動';
+
+  @override
+  String get quickLaunchSpin => 'スピン';
+
+  @override
+  String lastResultWithDate(String result, String date) {
+    return '前回: $result · $date';
+  }
+
+  @override
+  String recentResult(String result) {
+    return '前回: $result';
+  }
+
+  @override
+  String get sectionRecommend => 'こんなルーレットはいかが？';
+
+  @override
+  String get showMore => 'もっと見る';
+
+  @override
+  String get showLess => '閉じる';
 }

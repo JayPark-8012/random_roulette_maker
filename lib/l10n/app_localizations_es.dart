@@ -388,6 +388,29 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get diceD4Name => 'Tetrahedron';
+
+  @override
+  String get diceD6Name => 'Cube';
+
+  @override
+  String get diceD8Name => 'Octahedron';
+
+  @override
+  String get diceD10Name => 'Decahedron';
+
+  @override
+  String get diceD12Name => 'Dodecahedron';
+
+  @override
+  String get diceD20Name => 'Icosahedron';
+
+  @override
+  String diceRange(int max) {
+    return '1 ~ $max';
+  }
+
+  @override
   String get randomNumberTitle => 'Número Aleatorio';
 
   @override
@@ -698,4 +721,54 @@ class AppLocalizationsEs extends AppLocalizations {
   String paywallAtmosphereLockContent(String atmosphereName) {
     return 'El fondo $atmosphereName solo está disponible en Premium.\n¡Desbloquea todos los fondos hoy!';
   }
+
+  @override
+  String get firstRunWelcomeTitle => '¡Bienvenido!';
+
+  @override
+  String get firstRunWelcomeSubtitle => 'Prueba a girar un set de inicio ahora';
+
+  @override
+  String get firstRunCreateManual => 'Crear el tuyo';
+
+  @override
+  String get firstRunViewMore => 'Ver todos los sets';
+
+  @override
+  String get firstRunSaveTitle => '¿Guardar esta ruleta?';
+
+  @override
+  String get firstRunSaveMessage =>
+      'Guárdala en Mis Sets para usarla cuando quieras.';
+
+  @override
+  String get firstRunSaveButton => 'Guardar';
+
+  @override
+  String get firstRunSkipButton => 'Omitir';
+
+  @override
+  String get sectionQuickLaunch => 'Acceso Rápido';
+
+  @override
+  String get quickLaunchSpin => 'Girar';
+
+  @override
+  String lastResultWithDate(String result, String date) {
+    return 'Último: $result · $date';
+  }
+
+  @override
+  String recentResult(String result) {
+    return 'Último: $result';
+  }
+
+  @override
+  String get sectionRecommend => 'Prueba estas ruletas';
+
+  @override
+  String get showMore => 'Ver más';
+
+  @override
+  String get showLess => 'Ver menos';
 }
