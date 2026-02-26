@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants.dart';
+import '../../../core/widgets/app_background.dart';
 import '../../../domain/roulette.dart';
 import '../../../l10n/app_localizations.dart';
 import '../state/editor_notifier.dart';
@@ -64,8 +65,10 @@ class _EditorScreenState extends State<EditorScreen> {
         if (didPop) return;
         await _handleBack(context);
       },
-      child: Scaffold(
-        appBar: AppBar(
+      child: AppBackground(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
           centerTitle: false,
           title: AnimatedBuilder(
             animation: _notifier,
@@ -203,6 +206,7 @@ class _EditorScreenState extends State<EditorScreen> {
           tooltip: l10n.addItemTooltip,
           child: const Icon(Icons.add),
         ),
+      ),
       ),
     );
   }

@@ -683,4 +683,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get createTemplateSubtitleNew => 'テンプレートから開始します';
+
+  @override
+  String get atmosphereLabel => '背景';
+
+  @override
+  String get paywallAtmosphereLockTitle => '背景がロックされています';
+
+  @override
+  String paywallAtmosphereLockContent(String atmosphereName) {
+    return '$atmosphereNameの背景はプレミアムでのみ利用可能です。\n今すぐすべての背景をアンロックしましょう！';
+  }
 }

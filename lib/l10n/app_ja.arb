@@ -189,5 +189,9 @@
   "premiumRestoreEmpty": "❌ 履歴なし",
   "createManualTitle": "新しく作る",
   "createManualSubtitle": "項目を直接入力します",
-  "createTemplateSubtitleNew": "テンプレートから開始します"
+  "createTemplateSubtitleNew": "テンプレートから開始します",
+
+  "atmosphereLabel": "背景",
+  "paywallAtmosphereLockTitle": "背景がロックされています",
+  "paywallAtmosphereLockContent": "{atmosphereName}の背景はプレミアムでのみ利用可能です。\n今すぐすべての背景をアンロックしましょう！"
 }

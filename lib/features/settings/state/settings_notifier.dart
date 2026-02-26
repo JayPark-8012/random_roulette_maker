@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' show Locale, ThemeMode;
+import 'package:flutter/material.dart' show Locale;
 import '../../../core/app_themes.dart';
 import '../../../core/utils.dart';
 import '../../../data/settings_repository.dart';
@@ -20,16 +20,9 @@ class SettingsNotifier extends ChangeNotifier {
   SpinDuration get spinDuration => _settings.spinDuration;
   String? get lastUsedRouletteId => _settings.lastUsedRouletteId;
   String get themeId => _settings.themeId;
-  AppThemeMode get appThemeMode => _settings.appThemeMode;
   String get localeCode => _settings.localeCode;
   String get wheelThemeId => _settings.wheelThemeId;
-
-  /// AppThemeMode → Flutter ThemeMode 변환 (MaterialApp에서 사용)
-  ThemeMode get flutterThemeMode => switch (_settings.appThemeMode) {
-        AppThemeMode.light => ThemeMode.light,
-        AppThemeMode.dark => ThemeMode.dark,
-        AppThemeMode.system => ThemeMode.system,
-      };
+  String get atmosphereId => _settings.atmosphereId;
 
   /// localeCode → Flutter Locale 변환 (MaterialApp.locale에서 사용)
   /// null이면 시스템 언어를 따름
@@ -73,12 +66,6 @@ class SettingsNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setAppThemeMode(AppThemeMode value) async {
-    _settings = _settings.copyWith(appThemeMode: value);
-    await _repo.save(_settings);
-    notifyListeners();
-  }
-
   Future<void> setThemeId(String id) async {
     _settings = _settings.copyWith(themeId: id);
     _applyPalette();
@@ -94,6 +81,12 @@ class SettingsNotifier extends ChangeNotifier {
 
   Future<void> setWheelThemeId(String id) async {
     _settings = _settings.copyWith(wheelThemeId: id);
+    await _repo.save(_settings);
+    notifyListeners();
+  }
+
+  Future<void> setAtmosphereId(String id) async {
+    _settings = _settings.copyWith(atmosphereId: id);
     await _repo.save(_settings);
     notifyListeners();
   }

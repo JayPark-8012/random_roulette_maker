@@ -693,5 +693,21 @@
   "createManualSubtitle": "Enter items manually",
   "@createManualSubtitle": {},
   "createTemplateSubtitleNew": "Start with a template",
-  "@createTemplateSubtitleNew": {}
+  "@createTemplateSubtitleNew": {},
+
+  "atmosphereLabel": "Background",
+  "@atmosphereLabel": {},
+
+  "paywallAtmosphereLockTitle": "Background Locked",
+  "@paywallAtmosphereLockTitle": {},
+
+  "paywallAtmosphereLockContent": "The {atmosphereName} background is only available in Premium.\nUnlock all backgrounds today!",
+  "@paywallAtmosphereLockContent": {
+    "placeholders": {
+      "atmosphereName": {
+        "type": "String",
+        "example": "Aurora"
+      }
+    }
+  }
 }

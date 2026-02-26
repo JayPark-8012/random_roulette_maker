@@ -683,6 +683,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get createTemplateSubtitleNew => '从模板开始';
+
+  @override
+  String get atmosphereLabel => '背景';
+
+  @override
+  String get paywallAtmosphereLockTitle => '背景已锁定';
+
+  @override
+  String paywallAtmosphereLockContent(String atmosphereName) {
+    return '$atmosphereName背景仅限高级版使用。\n立即解锁所有背景！';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -1238,4 +1249,15 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get itemSushi => '寿司';
+
+  @override
+  String get atmosphereLabel => '背景';
+
+  @override
+  String get paywallAtmosphereLockTitle => '背景已锁定';
+
+  @override
+  String paywallAtmosphereLockContent(String atmosphereName) {
+    return '$atmosphereName背景仅限高级版使用。\n立即解锁所有背景！';
+  }
 }

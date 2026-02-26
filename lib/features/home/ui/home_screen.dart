@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback, SystemNavigator;
 import '../../../core/constants.dart';
@@ -63,8 +64,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (_, _) => SystemNavigator.pop(),
@@ -110,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black
-                        .withValues(alpha: isDark ? 0.35 : 0.12),
+                        .withValues(alpha: 0.35),
                     blurRadius: 24,
                     spreadRadius: 0,
                     offset: const Offset(0, 6),
@@ -119,14 +118,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(28),
-                child: NavigationBar(
-                  selectedIndex: _mode.index,
-                  onDestinationSelected: (i) {
-                    HapticFeedback.selectionClick();
-                    setState(() => _mode = _HomeMode.values[i]);
-                  },
-                  backgroundColor:
-                      isDark ? const Color(0xFF1A0F2E) : Colors.white,
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                  child: NavigationBar(
+                    selectedIndex: _mode.index,
+                    onDestinationSelected: (i) {
+                      HapticFeedback.selectionClick();
+                      setState(() => _mode = _HomeMode.values[i]);
+                    },
+                    backgroundColor: const Color(0xFF1A0F2E).withValues(alpha: 0.7),
                   surfaceTintColor: Colors.transparent,
                   elevation: 0,
                   height: 68,
@@ -157,6 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
+              ),
             ),
           ),
         ),
@@ -179,24 +180,25 @@ class _HomeScreenState extends State<HomeScreen> {
   // ── 헤더 ──────────────────────────────────────────────
 
   Widget _buildHeader(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cs = Theme.of(context).colorScheme;
-    final bgColor = isDark ? const Color(0xFF1A0F2E) : Colors.white;
-    final fgColor = isDark ? Colors.white : cs.onSurface;
+    const bgColor = Color(0xFF1A0F2E);
+    const fgColor = Colors.white;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: bgColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
-            blurRadius: 14,
-            offset: const Offset(0, 5),
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          decoration: BoxDecoration(
+            color: bgColor.withValues(alpha: 0.6),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.25),
+                blurRadius: 14,
+                offset: const Offset(0, 5),
+              ),
+            ],
           ),
-        ],
-      ),
-      padding: const EdgeInsets.fromLTRB(20, 14, 8, 12),
-      child: Row(
+          padding: const EdgeInsets.fromLTRB(20, 14, 8, 12),
+          child: Row(
         children: [
           // 로고 아이콘
           Container(
@@ -204,14 +206,12 @@ class _HomeScreenState extends State<HomeScreen> {
             height: 34,
             margin: const EdgeInsets.only(right: 10),
             decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.18)
-                  : cs.primary.withValues(alpha: 0.12),
+              color: Colors.white.withValues(alpha: 0.18),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.track_changes_rounded,
-              color: isDark ? Colors.white : cs.primary,
+              color: Colors.white,
               size: 18,
             ),
           ),
@@ -235,6 +235,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    ),
+    ),
     );
   }
 
@@ -695,7 +697,6 @@ class _CreateOptionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SizedBox(
       height: 164,
@@ -710,7 +711,7 @@ class _CreateOptionCard extends StatelessWidget {
               color: cs.surface,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: color.withValues(alpha: isDark ? 0.50 : 0.35),
+                color: color.withValues(alpha: 0.50),
                 width: 1.5,
               ),
             ),
@@ -722,7 +723,7 @@ class _CreateOptionCard extends StatelessWidget {
                   // 컬러 아이콘 블록 (고정 높이)
                   Container(
                     height: 96,
-                    color: color.withValues(alpha: isDark ? 0.25 : 0.15),
+                    color: color.withValues(alpha: 0.25),
                     child: Center(
                       child: Icon(icon, color: color, size: 48),
                     ),

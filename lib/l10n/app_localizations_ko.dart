@@ -682,4 +682,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get createTemplateSubtitleNew => '미리 만들어진 구성으로 시작합니다';
+
+  @override
+  String get atmosphereLabel => '배경';
+
+  @override
+  String get paywallAtmosphereLockTitle => '배경 잠금';
+
+  @override
+  String paywallAtmosphereLockContent(String atmosphereName) {
+    return '$atmosphereName 배경은 프리미엄에서만 사용할 수 있습니다.\n지금 바로 모든 배경을 잠금 해제하세요!';
+  }
 }

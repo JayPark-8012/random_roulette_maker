@@ -190,6 +190,53 @@ Blur/Glow 제거 + 게임 느낌 강화
 
 ---
 
+## Phase 5.7 ⏳ — Atmosphere 배경 프리셋 시스템
+
+### 목표
+라이트/다크 모드 제거 → 다크 베이스 단일 모드 + Atmosphere 배경 프리셋으로 UI 퀄리티 및 프리미엄 차별화 강화
+
+### 배경
+- 라이트/다크 이중 관리가 디자인 자유도를 제한
+- 룰렛 앱의 컬러풀한 휠은 다크 배경에서 훨씬 돋보임
+- 배경 프리셋 = 가장 직관적인 프리미엄 상품 (앱 열 때마다 보임)
+- 상세: `docs/DESIGN_DIRECTION.md` 참조
+
+### 체크리스트
+
+#### Atmosphere 시스템 구축
+- [ ] `AtmospherePreset` 모델 정의 (`lib/core/atmosphere_presets.dart`)
+- [ ] 10개 프리셋 데이터 (Free 2 + Premium 8): Deep Space, Charcoal, Aurora, Sunset Glow, Ocean Depth, Neon City, Forest Night, Rose Gold, Starfield, Lava
+- [ ] `AppBackground` 위젯 → 그래디언트/패턴 렌더링으로 교체
+- [ ] `AppThemeData.buildTheme()` → `Brightness.dark` 고정, `isDark` 파라미터 제거
+- [ ] `AppThemeMode` enum 제거 (`domain/settings.dart`)
+- [ ] Settings 모델에 `atmosphereId` 필드 추가
+- [ ] `SettingsNotifier`/`SettingsRepository`에 atmosphere 저장/로드 연동
+
+#### Settings 화면 변경
+- [ ] "테마 모드" SegmentedButton(System/Light/Dark) 섹션 제거
+- [ ] Atmosphere 프리셋 선택 그리드 추가 (2열, 그래디언트 미니 프리뷰)
+- [ ] 프리미엄 잠금 UI (잠금 아이콘 + "Premium" 배지)
+
+#### 프리미엄 연동
+- [ ] `PremiumService.canUseAtmosphere(String id)` 추가
+- [ ] 잠금된 Atmosphere 탭 시 잠금 다이얼로그 → 페이월 연동
+
+#### isDark 분기 정리
+- [ ] 전체 화면/위젯에서 `isDark` / `brightness == Brightness.dark` 분기 제거
+- [ ] 하드코딩 라이트 모드 색상 제거
+
+#### 글래스모피즘 적용
+- [ ] 카드 배경: 반투명 + `BackdropFilter(blur)`
+- [ ] 네비게이션 바: 반투명 + `BackdropFilter`
+- [ ] 바텀시트: `atmosphere.overlayColor` + blur
+- [ ] 룰렛 카드 보더: 미세 glow 효과 (`BoxShadow(blurRadius: 6~8)`)
+
+#### QA
+- [ ] 10개 Atmosphere 전환 시 전 화면 정상 렌더링 확인
+- [ ] WCAG AA 색상 대비 검수 (다크 베이스 기준)
+
+---
+
 ## Phase 6 ⏳ — 사운드 / 진동 / 결제 실제 연동
 
 ### 목표
@@ -240,7 +287,7 @@ Blur/Glow 제거 + 게임 느낌 강화
 
 #### 접근성
 - [ ] 주요 위젯 Semantics 레이블 추가
-- [ ] 색상 대비 검수 (WCAG AA)
+- [ ] 색상 대비 검수 — WCAG AA (다크 베이스 + 각 Atmosphere 배경 기준)
 - [ ] 폰트 크기 스케일 대응
 
 #### 성능

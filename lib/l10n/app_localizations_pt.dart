@@ -686,6 +686,17 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get createTemplateSubtitleNew => 'Começar com um modelo';
+
+  @override
+  String get atmosphereLabel => 'Fundo';
+
+  @override
+  String get paywallAtmosphereLockTitle => 'Fundo Bloqueado';
+
+  @override
+  String paywallAtmosphereLockContent(String atmosphereName) {
+    return 'O fundo $atmosphereName está disponível apenas no Premium.\nDesbloqueie todos os fundos agora!';
+  }
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).
@@ -1244,4 +1255,15 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get itemSushi => 'Sushi';
+
+  @override
+  String get atmosphereLabel => 'Fundo';
+
+  @override
+  String get paywallAtmosphereLockTitle => 'Fundo Bloqueado';
+
+  @override
+  String paywallAtmosphereLockContent(String atmosphereName) {
+    return 'O fundo $atmosphereName está disponível apenas no Premium.\nDesbloqueie todos os fundos agora!';
+  }
 }

@@ -174,5 +174,9 @@
   "itemBurger": "Hambúrguer",
   "itemPasta": "Massa",
   "itemSalad": "Salada",
-  "itemSushi": "Sushi"
+  "itemSushi": "Sushi",
+
+  "atmosphereLabel": "Fundo",
+  "paywallAtmosphereLockTitle": "Fundo Bloqueado",
+  "paywallAtmosphereLockContent": "O fundo {atmosphereName} está disponível apenas no Premium.\nDesbloqueie todos os fundos agora!"
 }

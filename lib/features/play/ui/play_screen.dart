@@ -1233,7 +1233,6 @@ class _SpinModeSegment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
     final modes = [
       (SpinMode.lottery, l10n.modeLottery),
@@ -1262,7 +1261,7 @@ class _SpinModeSegment extends StatelessWidget {
                 margin: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? modeColor.withValues(alpha: isDark ? 0.20 : 0.14)
+                      ? modeColor.withValues(alpha: 0.20)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(11),
                   border: isSelected

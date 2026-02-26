@@ -161,6 +161,17 @@ class PremiumService extends ChangeNotifier {
   bool canCreateRoulette(int currentRouletteCount) =>
       canCreateNewSet(currentRouletteCount);
 
+  // ── Atmosphere 제한 헬퍼 ─────────────────────────────────
+
+  /// Atmosphere 배경 프리셋 사용 가능 여부
+  ///
+  /// 프리미엄: 모든 프리셋 사용
+  /// 무료: 'deep_space', 'charcoal' 2개만 사용
+  bool canUseAtmosphere(String id) {
+    if (isPremium) return true;
+    return id == 'deep_space' || id == 'charcoal';
+  }
+
   // ── 팔레트 제한 헬퍼 ──────────────────────────────────────
 
   /// 팔레트 사용 가능 여부
@@ -186,5 +197,6 @@ class PremiumService extends ChangeNotifier {
     'maxRouletteSets': 3,
     'availablePalettes': ['indigo', 'emerald'],
     'availableWheelThemes': ['classic', 'candy'],
+    'availableAtmospheres': ['deep_space', 'charcoal'],
   };
 }

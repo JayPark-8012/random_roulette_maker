@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../atmosphere_presets.dart';
+import '../../features/settings/state/settings_notifier.dart';
 
 class AppBackground extends StatelessWidget {
   final Widget child;
@@ -7,13 +9,37 @@ class AppBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color bgColor =
-        isDark ? const Color(0xFF0D0818) : const Color(0xFFF4F4F8);
+    return ListenableBuilder(
+      listenable: SettingsNotifier.instance,
+      builder: (context, _) {
+        final atmosphere =
+            findAtmosphereById(SettingsNotifier.instance.atmosphereId);
 
-    return ColoredBox(
-      color: bgColor,
-      child: child,
+        Widget bg;
+        if (atmosphere.gradient != null) {
+          bg = DecoratedBox(
+            decoration: BoxDecoration(gradient: atmosphere.gradient),
+            child: child,
+          );
+        } else {
+          bg = ColoredBox(color: atmosphere.solidColor, child: child);
+        }
+
+        if (atmosphere.hasPattern) {
+          return Stack(
+            children: [
+              bg,
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(painter: StarfieldPainter()),
+                ),
+              ),
+            ],
+          );
+        }
+
+        return bg;
+      },
     );
   }
 }

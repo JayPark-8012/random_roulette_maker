@@ -190,5 +190,9 @@
   "premiumRestoreEmpty": "❌ Sem Histórico",
   "createManualTitle": "Em Branco",
   "createManualSubtitle": "Insira os itens você mesmo",
-  "createTemplateSubtitleNew": "Começar com um modelo"
+  "createTemplateSubtitleNew": "Começar com um modelo",
+
+  "atmosphereLabel": "Fundo",
+  "paywallAtmosphereLockTitle": "Fundo Bloqueado",
+  "paywallAtmosphereLockContent": "O fundo {atmosphereName} está disponível apenas no Premium.\nDesbloqueie todos os fundos agora!"
 }

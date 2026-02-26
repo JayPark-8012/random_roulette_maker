@@ -687,4 +687,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get createTemplateSubtitleNew => 'Empezar con una plantilla';
+
+  @override
+  String get atmosphereLabel => 'Fondo';
+
+  @override
+  String get paywallAtmosphereLockTitle => 'Fondo Bloqueado';
+
+  @override
+  String paywallAtmosphereLockContent(String atmosphereName) {
+    return 'El fondo $atmosphereName solo está disponible en Premium.\n¡Desbloquea todos los fondos hoy!';
+  }
 }

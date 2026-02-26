@@ -96,6 +96,9 @@ class Settings {
   final bool hapticEnabled;        // 진동(햅틱) ON/OFF (기본: true)
   final SpinSpeed spinSpeed;       // 스핀 속도 (기본: normal)
   final String? lastUsedRouletteId; // 마지막으로 플레이한 룰렛 ID
+  final String atmosphereId;       // Atmosphere 배경 프리셋 ID (기본: 'deep_space')
+  final String themeId;            // 앱 팔레트 테마 ID (기본: 'indigo')
+  final String wheelThemeId;       // 휠 렌더링 테마 ID (기본: 'classic')
 }
 ```
 
@@ -105,8 +108,41 @@ class Settings {
 | hapticEnabled | bool | true | 결과 발표 시 HapticFeedback.mediumImpact() 여부 |
 | spinSpeed | SpinSpeed | normal | normal(3~5초) / fast(1~2초) |
 | lastUsedRouletteId | String? | null | 마지막 플레이 룰렛 ID (홈 진입 시 활용 예정) |
+| atmosphereId | String | 'deep_space' | Atmosphere 배경 프리셋 ID. 유효하지 않은 값 시 기본값 fallback |
+| themeId | String | 'indigo' | 앱 색상 팔레트 ID |
+| wheelThemeId | String | 'classic' | 휠 렌더링 스타일 ID |
 
 > **이전 키 호환**: `vibrationEnabled` → `hapticEnabled`로 변경. `fromJson`에서 fallback 처리.
+> **테마 모드 제거**: `AppThemeMode`(system/light/dark) enum 삭제. 항상 다크 베이스 고정. 기존 `themeMode` 키는 fromJson에서 무시.
+
+---
+
+### 1.5 AtmospherePreset (배경 프리셋, 하드코딩)
+
+> 런타임 수정 없이 앱 내 Dart const로 정의. 저장소에 저장하지 않음.
+
+```dart
+class AtmospherePreset {
+  final String id;           // 'deep_space', 'aurora', ...
+  final String nameKey;      // i18n 키 (예: 'atmosphere_deep_space')
+  final bool isLocked;       // 프리미엄 전용 여부
+  final bool hasPattern;     // CustomPainter 오버레이 패턴 여부
+  // gradient, solidColor, surfaceColor, overlayColor는 런타임 생성
+}
+```
+
+| ID | 이름 | 스타일 | 프리미엄 |
+|---|---|---|---|
+| `deep_space` | Deep Space | 딥 네이비→블랙 리니어 그래디언트 | Free |
+| `charcoal` | Charcoal | 뉴트럴 다크 그레이 솔리드 | Free |
+| `aurora` | Aurora | 보라→틸→핑크 멀티 리니어 | Premium |
+| `sunset_glow` | Sunset Glow | 딥 오렌지→다크 퍼플 리니어 | Premium |
+| `ocean_depth` | Ocean Depth | 딥 블루→다크 시안 리니어 | Premium |
+| `neon_city` | Neon City | 다크 + 핑크/블루 엣지 래디얼 글로우 | Premium |
+| `forest_night` | Forest Night | 다크 그린→블랙 리니어 | Premium |
+| `rose_gold` | Rose Gold | 다크 로즈→골드 틴트 리니어 | Premium |
+| `starfield` | Starfield | 블랙 + 미세 도트 패턴 | Premium |
+| `lava` | Lava | 딥 레드→다크 오렌지 래디얼 | Premium |
 
 ---
 
@@ -157,10 +193,15 @@ class Settings {
   "hapticEnabled": true,
   "spinSpeed": "normal",
   "lastUsedRouletteId": "550e8400-e29b-41d4-a716-446655440000",
-  "schemaVersion": 1
+  "atmosphereId": "deep_space",
+  "themeId": "indigo",
+  "wheelThemeId": "classic",
+  "schemaVersion": 2
 }
 ```
 > `spinSpeed` 허용값: `"normal"` | `"fast"`
+> `atmosphereId`: 유효하지 않은 ID 시 `"deep_space"`로 fallback
+> **스키마 버전 2 마이그레이션**: `themeMode` 키 삭제, `atmosphereId` 기본값 추가
 
 ---
 
@@ -209,9 +250,13 @@ spin_mode_{rouletteId}   → String (JSON SpinMode — 중복 제외 상태, 재
 
 ### 3.4 스키마 버전 및 마이그레이션
 - `app_data_version` 키(int)로 버전 관리
-- 현재 버전: **1**
+- 현재 버전: **2**
 - `LocalStorage._ensureSchemaVersion()`에서 초기화
 - 향후 스키마 변경 시 `stored < currentVersion` 분기로 마이그레이션
+
+#### 버전 1 → 2 마이그레이션
+- `settings.themeMode` 키 무시 (삭제)
+- `settings.atmosphereId` 없으면 기본값 `"deep_space"` 추가
 
 ### 3.5 무료 제한 정책 (코드 적용 완료)
 | 제한 항목 | 값 | 위반 시 처리 |

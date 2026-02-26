@@ -97,9 +97,8 @@ class _AppState extends State<App> {
       locale: _settings.appLocale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      theme: themeData.buildTheme(Brightness.light),
-      darkTheme: themeData.buildTheme(Brightness.dark),
-      themeMode: _settings.flutterThemeMode,
+      theme: themeData.buildTheme(),
+      themeMode: ThemeMode.dark,
       initialRoute: AppRoutes.splash,
       onGenerateRoute: (settings) {
         Widget page;

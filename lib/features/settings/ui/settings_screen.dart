@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../../core/app_themes.dart';
+import '../../../core/atmosphere_presets.dart';
 import '../../../core/constants.dart';
+import '../../../core/widgets/app_background.dart';
 import '../../../core/roulette_wheel_themes.dart';
 import '../../../data/premium_service.dart';
 import '../../../domain/premium_state.dart';
@@ -53,6 +55,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return;
     }
     _notifier.setWheelThemeId(wt.id);
+  }
+
+  void _selectAtmosphere(BuildContext context, AtmospherePreset atm) {
+    if (!PremiumService.instance.canUseAtmosphere(atm.id)) {
+      _showAtmosphereLockDialog(context, atm);
+      return;
+    }
+    _notifier.setAtmosphereId(atm.id);
+  }
+
+  void _showAtmosphereLockDialog(BuildContext context, AtmospherePreset atm) {
+    final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        icon: Icon(Icons.lock_rounded, size: 40, color: cs.primary),
+        title: Text(l10n.paywallAtmosphereLockTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              l10n.paywallAtmosphereLockContent(atm.name),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            // 분위기 미리보기
+            Container(
+              height: 40,
+              decoration: BoxDecoration(
+                gradient: atm.gradient,
+                color: atm.gradient == null ? atm.solidColor : null,
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.actionCancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).pushNamed(AppRoutes.paywall);
+            },
+            child: Text(l10n.paywallUnlockButton),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showWheelThemeLockDialog(BuildContext context, RouletteWheelTheme wt) {
@@ -215,9 +270,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsTitle)),
-      body: ListView(
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(title: Text(l10n.settingsTitle)),
+        body: ListView(
         padding: const EdgeInsets.only(bottom: 24),
         children: [
           // ── 프리미엄 데모 위젯 ────────────────────────
@@ -232,37 +289,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── 화면 모드 (다크/라이트/시스템) ──────────
+                  // ── Atmosphere 배경 ──────────────────────────
                   Text(
-                    l10n.screenModeLabel,
+                    l10n.atmosphereLabel,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                   ),
                   const SizedBox(height: 8),
-                  SegmentedButton<AppThemeMode>(
-                    expandedInsets: EdgeInsets.zero,
-                    segments: [
-                      ButtonSegment(
-                        value: AppThemeMode.system,
-                        label: Text(l10n.themeModeSystem),
-                        icon: const Icon(Icons.brightness_auto_rounded),
+                  ValueListenableBuilder<PremiumState>(
+                    valueListenable: PremiumService.instance.stateNotifier,
+                    builder: (ctx, ps, child) => GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 2.2,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
                       ),
-                      ButtonSegment(
-                        value: AppThemeMode.light,
-                        label: Text(l10n.themeModeLight),
-                        icon: const Icon(Icons.light_mode_outlined),
-                      ),
-                      ButtonSegment(
-                        value: AppThemeMode.dark,
-                        label: Text(l10n.themeModeDark),
-                        icon: const Icon(Icons.dark_mode_outlined),
-                      ),
-                    ],
-                    selected: {_notifier.appThemeMode},
-                    onSelectionChanged: (set) =>
-                        _notifier.setAppThemeMode(set.first),
-                    showSelectedIcon: false,
+                      itemCount: kAtmospherePresets.length,
+                      itemBuilder: (ctx, i) {
+                        final atm = kAtmospherePresets[i];
+                        return _AtmospherePreviewCard(
+                          atmosphere: atm,
+                          isSelected: atm.id == _notifier.atmosphereId,
+                          isLocked: !ps.isPremium && atm.isLocked,
+                          onTap: () => _selectAtmosphere(context, atm),
+                        );
+                      },
+                    ),
                   ),
                   const SizedBox(height: 16),
                   const Divider(height: 1),
@@ -513,6 +570,70 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
         ],
+      ),
+    ),
+    );
+  }
+}
+
+// ── Atmosphere 프리뷰 카드 ────────────────────────────────
+class _AtmospherePreviewCard extends StatelessWidget {
+  final AtmospherePreset atmosphere;
+  final bool isSelected;
+  final bool isLocked;
+  final VoidCallback onTap;
+
+  const _AtmospherePreviewCard({
+    required this.atmosphere,
+    required this.isSelected,
+    required this.isLocked,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          gradient: atmosphere.gradient,
+          color: atmosphere.gradient == null ? atmosphere.solidColor : null,
+          border: Border.all(
+            color: isSelected ? cs.primary : Colors.white.withValues(alpha: 0.15),
+            width: isSelected ? 2.5 : 1,
+          ),
+        ),
+        child: Stack(
+          children: [
+            // 이름 + 상태 아이콘
+            Positioned(
+              left: 10,
+              bottom: 8,
+              child: Text(
+                atmosphere.name,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.85),
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+              ),
+            ),
+            Positioned(
+              right: 8,
+              top: 8,
+              child: isLocked
+                  ? Icon(Icons.lock_outline,
+                      size: 14, color: Colors.white.withValues(alpha: 0.5))
+                  : isSelected
+                      ? Icon(Icons.check_circle_rounded,
+                          size: 14, color: cs.primary)
+                      : const SizedBox.shrink(),
+            ),
+          ],
+        ),
       ),
     );
   }

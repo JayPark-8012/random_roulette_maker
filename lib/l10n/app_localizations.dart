@@ -1391,6 +1391,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start with a template'**
   String get createTemplateSubtitleNew;
+
+  /// No description provided for @atmosphereLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Background'**
+  String get atmosphereLabel;
+
+  /// No description provided for @paywallAtmosphereLockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Background Locked'**
+  String get paywallAtmosphereLockTitle;
+
+  /// No description provided for @paywallAtmosphereLockContent.
+  ///
+  /// In en, this message translates to:
+  /// **'The {atmosphereName} background is only available in Premium.\nUnlock all backgrounds today!'**
+  String paywallAtmosphereLockContent(String atmosphereName);
 }
 
 class _AppLocalizationsDelegate

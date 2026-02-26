@@ -686,4 +686,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get createTemplateSubtitleNew => 'Start with a template';
+
+  @override
+  String get atmosphereLabel => 'Background';
+
+  @override
+  String get paywallAtmosphereLockTitle => 'Background Locked';
+
+  @override
+  String paywallAtmosphereLockContent(String atmosphereName) {
+    return 'The $atmosphereName background is only available in Premium.\nUnlock all backgrounds today!';
+  }
 }

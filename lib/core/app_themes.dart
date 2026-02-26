@@ -53,17 +53,16 @@ class AppThemeData {
     this.isLocked = false,
   });
 
-  ThemeData buildTheme(Brightness brightness) {
+  ThemeData buildTheme() {
     final colorScheme = ColorScheme.fromSeed(
       seedColor: seedColor,
-      brightness: brightness,
-      contrastLevel: 0.1, // Slight contrast boost
+      brightness: Brightness.dark,
+      contrastLevel: 0.1,
     );
-    final isDark = brightness == Brightness.dark;
     return ThemeData(
       colorScheme: colorScheme,
       useMaterial3: true,
-      scaffoldBackgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFFAFAFA),
+      scaffoldBackgroundColor: Colors.transparent,
       appBarTheme: AppBarTheme(
         centerTitle: false,
         elevation: 0,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants.dart';
+import '../../../core/widgets/app_background.dart';
 import '../../../core/utils.dart';
 import '../../../data/roulette_repository.dart';
 import '../../../data/templates_data.dart';
@@ -79,9 +80,11 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.starterSetsTitle)),
-      body: Stack(
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(title: Text(l10n.starterSetsTitle)),
+        body: Stack(
         children: [
           GridView.builder(
             padding: const EdgeInsets.all(12),
@@ -117,6 +120,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
             ),
         ],
       ),
+    ),
     );
   }
 

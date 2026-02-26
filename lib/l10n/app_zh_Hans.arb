@@ -174,5 +174,9 @@
   "itemBurger": "汉堡",
   "itemPasta": "意面",
   "itemSalad": "沙拉",
-  "itemSushi": "寿司"
+  "itemSushi": "寿司",
+
+  "atmosphereLabel": "背景",
+  "paywallAtmosphereLockTitle": "背景已锁定",
+  "paywallAtmosphereLockContent": "{atmosphereName}背景仅限高级版使用。\n立即解锁所有背景！"
 }

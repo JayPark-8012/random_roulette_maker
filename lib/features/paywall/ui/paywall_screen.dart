@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/app_background.dart';
 import '../../../data/premium_service.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -117,10 +118,10 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final isLight = Theme.of(context).brightness == Brightness.light;
-
-    return Scaffold(
-      body: SafeArea(
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -158,9 +159,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                 // ── 비교 섹션 ────────────────────────────────────────
                 Container(
                   decoration: BoxDecoration(
-                    color: isLight
-                        ? colorScheme.surfaceContainerLowest
-                        : colorScheme.surfaceContainer,
+                    color: colorScheme.surfaceContainer,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: colorScheme.outlineVariant,
@@ -380,6 +379,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }

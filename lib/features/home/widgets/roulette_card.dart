@@ -1,3 +1,4 @@
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import '../../../core/utils.dart';
 import '../../../domain/roulette.dart';
@@ -30,8 +31,6 @@ class RouletteCard extends StatelessWidget {
     final tintColor = roulette.items.isNotEmpty
         ? roulette.items.first.color
         : colorScheme.primary;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Dismissible(
       key: Key(roulette.id),
       direction: DismissDirection.endToStart,
@@ -46,26 +45,30 @@ class RouletteCard extends StatelessWidget {
       ),
       confirmDismiss: (_) async => _showDeleteConfirm(context),
       onDismissed: (_) => onDelete(),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Color.lerp(
-            colorScheme.surface,
-            tintColor,
-            isDark ? 0.13 : 0.07,
-          ),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: tintColor.withValues(alpha: isDark ? 0.55 : 0.40),
-            width: 1.5,
-          ),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
-          child: InkWell(
-            onTap: onTap,
-            splashColor: tintColor.withValues(alpha: 0.1),
-            highlightColor: tintColor.withValues(alpha: 0.05),
-            child: Padding(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: tintColor.withValues(alpha: 0.55),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: tintColor.withValues(alpha: 0.15),
+                  blurRadius: 8,
+                ),
+              ],
+            ),
+            child: InkWell(
+              onTap: onTap,
+              splashColor: tintColor.withValues(alpha: 0.1),
+              highlightColor: tintColor.withValues(alpha: 0.05),
+              child: Padding(
               padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
               child: Row(
                 children: [
@@ -131,7 +134,7 @@ class RouletteCard extends StatelessWidget {
                     width: 38,
                     height: 38,
                     decoration: BoxDecoration(
-                      color: tintColor.withValues(alpha: isDark ? 0.25 : 0.18),
+                      color: tintColor.withValues(alpha: 0.25),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -157,6 +160,7 @@ class RouletteCard extends StatelessWidget {
               ),
             ),
           ),
+        ),
         ),
       ),
     );

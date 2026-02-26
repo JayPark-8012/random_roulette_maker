@@ -190,5 +190,9 @@
   "premiumRestoreEmpty": "❌ 无购买记录",
   "createManualTitle": "空白开始",
   "createManualSubtitle": "手动输入选项",
-  "createTemplateSubtitleNew": "从模板开始"
+  "createTemplateSubtitleNew": "从模板开始",
+
+  "atmosphereLabel": "背景",
+  "paywallAtmosphereLockTitle": "背景已锁定",
+  "paywallAtmosphereLockContent": "{atmosphereName}背景仅限高级版使用。\n立即解锁所有背景！"
 }
