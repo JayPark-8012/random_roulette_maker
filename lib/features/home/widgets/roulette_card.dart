@@ -1,7 +1,6 @@
+import 'dart:math' show pi;
 import 'package:flutter/material.dart';
 import '../../../core/design_tokens.dart';
-import '../../../core/utils.dart';
-import '../../../core/widgets/glass_card.dart';
 import '../../../domain/roulette.dart';
 import '../../../l10n/app_localizations.dart';
 
@@ -31,9 +30,6 @@ class RouletteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
-    final tintColor = roulette.items.isNotEmpty
-        ? roulette.items.first.color
-        : AppColors.primary;
 
     return Dismissible(
       key: Key(roulette.id),
@@ -49,32 +45,47 @@ class RouletteCard extends StatelessWidget {
       ),
       confirmDismiss: (_) async => _showDeleteConfirm(context),
       onDismissed: (_) => onDelete(),
-      child: GlassCard(
-        padding: EdgeInsets.zero,
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF0E1628),
+          borderRadius: BorderRadius.circular(11),
+          border: Border.all(color: const Color(0x0FFFFFFF), width: 1),
+        ),
         child: Material(
           color: Colors.transparent,
+          borderRadius: BorderRadius.circular(11),
           child: InkWell(
             onTap: onTap,
-            borderRadius: BorderRadius.circular(AppDimens.cardRadius),
+            borderRadius: BorderRadius.circular(11),
             splashColor: AppColors.primary.withValues(alpha: 0.08),
             highlightColor: AppColors.primary.withValues(alpha: 0.04),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(0, 14, 12, 14),
+              padding: const EdgeInsets.fromLTRB(15, 10, 11, 10),
               child: Row(
                 children: [
-                  // ── 3px 세로 액센트 바 ──
+                  // ── 액센트 바 (::before) ──
                   Container(
-                    width: 3,
-                    height: 48,
+                    width: 2.5,
+                    height: 24,
                     margin: const EdgeInsets.only(right: 12),
                     decoration: BoxDecoration(
-                      color: tintColor,
-                      borderRadius: BorderRadius.circular(2),
+                      color: const Color(0xFF00D4FF),
+                      borderRadius: BorderRadius.circular(100),
                     ),
                   ),
-                  // ── 미니 휠 프리뷰 + 퍼플 글로우 ──
-                  _ColorPreview(roulette: roulette),
-                  const SizedBox(width: 14),
+                  // ── 미니 휠 36x36 ──
+                  ClipOval(
+                    child: SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: CustomPaint(
+                        painter: _SetWheelPainter(
+                          colors: roulette.items.map((e) => e.color).toList(),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
                   // ── 텍스트 영역 ──
                   Expanded(
                     child: Column(
@@ -83,101 +94,67 @@ class RouletteCard extends StatelessWidget {
                         Text(
                           roulette.name,
                           style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
-                            color: AppColors.textPrimary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Text(
-                              l10n.itemCount(roulette.items.length),
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                            if (roulette.lastPlayedAt != null) ...[
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 6),
-                                child: Text(
-                                  '·',
-                                  style: TextStyle(
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                AppUtils.formatRelativeDate(
-                                    roulette.lastPlayedAt!),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color:
-                                      Colors.white.withValues(alpha: 0.4),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                        if (lastResult != null) ...[
-                          const SizedBox(height: 3),
-                          Text(
-                            lastResult!,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.white.withValues(alpha: 0.4),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                        const SizedBox(height: 2),
+                        Text(
+                          lastResult ?? l10n.itemCount(roulette.items.length),
+                          style: const TextStyle(
+                            fontSize: 9.5,
+                            color: Color(0x80FFFFFF),
                           ),
-                        ],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // ── 재생 버튼: Primary 원형 + 글로우 ──
+                  // ── 재생 버튼: 26x26 그래디언트 ──
                   Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
+                    width: 26,
+                    height: 26,
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF0284C7), Color(0xFF00D4FF)],
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.45),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                          color: Color(0x5900D4FF),
+                          blurRadius: 10,
                         ),
                       ],
                     ),
                     child: const Icon(
                       Icons.play_arrow_rounded,
                       color: Colors.white,
-                      size: 22,
+                      size: 14,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  // ── 더보기 버튼: 흰색 10% bg, 8px radius ──
+                  const SizedBox(width: 6),
+                  // ── 더보기 버튼 ──
                   InkWell(
                     onTap: () => _showMenu(context, l10n),
                     borderRadius: BorderRadius.circular(8),
                     child: Container(
-                      width: 32,
-                      height: 32,
+                      width: 28,
+                      height: 28,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.10),
+                        color: Colors.white.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         Icons.more_horiz_rounded,
                         color: AppColors.textSecondary,
-                        size: 18,
+                        size: 16,
                       ),
                     ),
                   ),
@@ -341,52 +318,38 @@ class _MenuRow extends StatelessWidget {
   }
 }
 
-class _ColorPreview extends StatelessWidget {
-  final Roulette roulette;
-  const _ColorPreview({required this.roulette});
+class _SetWheelPainter extends CustomPainter {
+  final List<Color> colors;
+  _SetWheelPainter({required this.colors});
 
   @override
-  Widget build(BuildContext context) {
-    final colors = roulette.items.map((e) => e.color).toList();
+  void paint(Canvas canvas, Size size) {
+    if (colors.isEmpty) return;
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+    final sweepAngle = (2 * pi) / colors.length;
 
-    return Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.40),
-            blurRadius: 16,
-          ),
-        ],
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: SweepGradient(
-            colors: colors.length >= 2
-                ? colors
-                : [...colors, colors.first],
-          ),
-        ),
-        child: Center(
-          child: Container(
-            width: 16,
-            height: 16,
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    for (int i = 0; i < colors.length; i++) {
+      final paint = Paint()
+        ..color = colors[i]
+        ..style = PaintingStyle.fill;
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        -pi / 2 + (sweepAngle * i),
+        sweepAngle,
+        true,
+        paint,
+      );
+    }
+
+    // 중앙 도넛홀
+    canvas.drawCircle(
+      center,
+      radius * 0.25,
+      Paint()..color = const Color(0xFF0E1628),
     );
   }
+
+  @override
+  bool shouldRepaint(_SetWheelPainter old) => old.colors != colors;
 }

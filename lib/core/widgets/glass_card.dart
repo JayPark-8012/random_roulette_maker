@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../design_tokens.dart';
 
-/// 글래스모피즘 카드 — 반투명 배경 + 테두리 + 퍼플 오버레이
+/// 글래스모피즘 카드 — surfaceBg 배경 + surfaceBorder 테두리 + 상단 하이라이트
 class GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -20,35 +20,22 @@ class GlassCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surfaceFill,
+        color: const Color(0xFF141D35),
         borderRadius: radius,
-        border: Border.all(color: AppColors.surfaceBorder, width: 1),
-        boxShadow: [AppShadows.card],
+        border: Border.all(color: const Color(0x26FFFFFF), width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 16,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: radius as BorderRadius,
         child: Stack(
           children: [
-            // 상단 좌측 퍼플 5% 그라데이션 오버레이
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 120,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.primary.withValues(alpha: 0.06),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // 1px 상단 하이라이트 (white 20% → 0%)
+            // 1px 상단 하이라이트 (white 20% → 5% → transparent)
             Positioned(
               top: 0,
               left: 0,
@@ -61,7 +48,7 @@ class GlassCard extends StatelessWidget {
                     end: Alignment.centerRight,
                     colors: [
                       Colors.white.withValues(alpha: 0.20),
-                      Colors.white.withValues(alpha: 0.08),
+                      Colors.white.withValues(alpha: 0.05),
                       Colors.transparent,
                     ],
                     stops: const [0.0, 0.5, 1.0],

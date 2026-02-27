@@ -472,6 +472,36 @@ class _PlayScreenState extends State<PlayScreen>
           backgroundColor: Colors.transparent,
           body: Stack(
             children: [
+              // ── 사이언 빛 번짐 (좌상단) ──
+              Positioned(
+                top: -60,
+                left: -40,
+                child: Container(
+                  width: 220,
+                  height: 220,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [Color(0x1200D4FF), Colors.transparent],
+                    ),
+                  ),
+                ),
+              ),
+              // ── 퍼플 빛 번짐 (우하단) ──
+              Positioned(
+                bottom: -60,
+                right: -40,
+                child: Container(
+                  width: 180,
+                  height: 180,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [Color(0x0F7B61FF), Colors.transparent],
+                    ),
+                  ),
+                ),
+              ),
               SafeArea(
                 bottom: false,
                 child: Column(
@@ -558,19 +588,19 @@ class _PlayScreenState extends State<PlayScreen>
                                             decoration: BoxDecoration(
                                               shape: BoxShape.circle,
                                               border: Border.all(
-                                                color: Colors.white.withValues(alpha: 0.12),
-                                                width: 3,
+                                                color: Colors.white.withValues(alpha: 0.10),
+                                                width: 2,
                                               ),
-                                              boxShadow: [
-                                                // 안쪽 글로우: Primary 20%, blur 20
+                                              boxShadow: const [
+                                                // 안쪽 글로우
                                                 BoxShadow(
-                                                  color: AppColors.primary.withValues(alpha: 0.20),
-                                                  blurRadius: 20,
+                                                  color: Color(0x4000D4FF),
+                                                  blurRadius: 16,
                                                   spreadRadius: 4,
                                                 ),
-                                                // 바깥쪽 글로우: Primary 10%, blur 40
+                                                // 바깥쪽 글로우
                                                 BoxShadow(
-                                                  color: AppColors.primary.withValues(alpha: 0.10),
+                                                  color: Color(0x1A00D4FF),
                                                   blurRadius: 40,
                                                   spreadRadius: 0,
                                                 ),
@@ -856,7 +886,7 @@ class _ResultOverlayState extends State<_ResultOverlay>
     )..forward();
     _bounceCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 600),
     )..repeat(reverse: true);
   }
 
@@ -876,7 +906,7 @@ class _ResultOverlayState extends State<_ResultOverlay>
     return BackdropFilter(
       filter: ui.ImageFilter.blur(sigmaX: 22, sigmaY: 22),
       child: Container(
-        color: Colors.black.withValues(alpha: 0.80),
+        color: Colors.black.withValues(alpha: 0.70),
         child: Stack(
           children: [
             // ── 메인 콘텐츠 ───────────────────────────
@@ -903,13 +933,13 @@ class _ResultOverlayState extends State<_ResultOverlay>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // 트로피 원형 아이콘 (140px + 그라데이션 원 + 펄스 링 + 바운스)
+                          // 트로피 원형 아이콘 (primary 그라데이션 + 펄스 링 + 바운스 12px)
                           AnimatedBuilder(
                             animation: _bounceCtrl,
                             builder: (_, child) => Transform.translate(
                               offset: Offset(
                                   0,
-                                  -8 *
+                                  -12 *
                                       Curves.easeInOut
                                           .transform(_bounceCtrl.value)),
                               child: child,
@@ -920,12 +950,12 @@ class _ResultOverlayState extends State<_ResultOverlay>
                               child: Stack(
                                 alignment: Alignment.center,
                                 children: [
-                                  // 펄스 링 애니메이션 (Primary 25%)
+                                  // 펄스 링 애니메이션 (Primary 20%)
                                   AnimatedBuilder(
                                     animation: _bounceCtrl,
                                     builder: (_, _) {
                                       final scale = 1.0 + _bounceCtrl.value * 0.15;
-                                      final opacity = (1.0 - _bounceCtrl.value) * 0.25;
+                                      final opacity = (1.0 - _bounceCtrl.value) * 0.20;
                                       return Transform.scale(
                                         scale: scale,
                                         child: Container(
@@ -934,7 +964,7 @@ class _ResultOverlayState extends State<_ResultOverlay>
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
                                             border: Border.all(
-                                              color: winnerColor.withValues(alpha: opacity),
+                                              color: AppColors.primary.withValues(alpha: opacity),
                                               width: 2,
                                             ),
                                           ),
@@ -942,19 +972,19 @@ class _ResultOverlayState extends State<_ResultOverlay>
                                       );
                                     },
                                   ),
-                                  // 트로피 원
+                                  // 트로피 원 — Primary 그라데이션
                                   Container(
                                     width: 140,
                                     height: 140,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      gradient: LinearGradient(
+                                      gradient: const LinearGradient(
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
                                         colors: [
-                                          Color.lerp(winnerColor, Colors.white, 0.2)!,
-                                          winnerColor,
-                                          Color.lerp(winnerColor, Colors.black, 0.2)!,
+                                          AppColors.primaryLight,
+                                          AppColors.primary,
+                                          AppColors.primaryDeep,
                                         ],
                                       ),
                                       border: Border.all(
@@ -963,12 +993,12 @@ class _ResultOverlayState extends State<_ResultOverlay>
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: winnerColor.withValues(alpha: 0.65),
+                                          color: AppColors.primary.withValues(alpha: 0.65),
                                           blurRadius: 40,
                                           spreadRadius: 8,
                                         ),
                                         BoxShadow(
-                                          color: winnerColor.withValues(alpha: 0.30),
+                                          color: AppColors.primary.withValues(alpha: 0.30),
                                           blurRadius: 80,
                                           spreadRadius: 16,
                                         ),
@@ -976,7 +1006,7 @@ class _ResultOverlayState extends State<_ResultOverlay>
                                     ),
                                     child: const Icon(
                                       Icons.emoji_events_rounded,
-                                      size: 68,
+                                      size: 72,
                                       color: Colors.white,
                                     ),
                                   ),
@@ -1017,26 +1047,23 @@ class _ResultOverlayState extends State<_ResultOverlay>
                                 curve: Curves.easeOut,
                               ),
                           const SizedBox(height: 8),
-                          // "✨ 당첨 ✨" 배너
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text('✨',
-                                  style: TextStyle(fontSize: 16)),
-                              const SizedBox(width: 8),
-                              Text(
-                                l10n.resultLabel,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: winnerColor,
-                                  letterSpacing: 3.0,
-                                ),
+                          // "당첨 항목" 라벨 — primary pill 배경
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.10),
+                              borderRadius: BorderRadius.circular(100),
+                            ),
+                            child: Text(
+                              l10n.resultLabel,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primary,
+                                letterSpacing: 2.0,
                               ),
-                              const SizedBox(width: 8),
-                              const Text('✨',
-                                  style: TextStyle(fontSize: 16)),
-                            ],
+                            ),
                           ).animate().fadeIn(duration: 300.ms, delay: 200.ms),
                           const SizedBox(height: 12),
                           // 당첨 항목 이름 (세그먼트 색상 + 빛나는 blur 원형 배경)
@@ -1060,9 +1087,9 @@ class _ResultOverlayState extends State<_ResultOverlay>
                               Text(
                                 widget.winner.label,
                                 style: TextStyle(
-                                  fontSize: 68,
+                                  fontSize: 36,
                                   fontWeight: FontWeight.w900,
-                                  letterSpacing: -1.5,
+                                  letterSpacing: -1.0,
                                   color: winnerColor,
                                   shadows: [
                                     Shadow(
@@ -1204,6 +1231,7 @@ class _ResultOverlayState extends State<_ResultOverlay>
                             Expanded(
                               child: GradientButton(
                                 text: l10n.actionConfirm,
+                                height: 48,
                                 onPressed: widget.onClose,
                               ),
                             ),
@@ -1393,11 +1421,15 @@ class _SpinModeSegment extends StatelessWidget {
     ];
 
     return Container(
-      height: 44,
+      height: 40,
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.07),
+        color: const Color(0xFF0A1020),
         borderRadius: BorderRadius.circular(100),
+        border: Border.all(
+          color: const Color(0xFFFFFFFF).withValues(alpha: 0.06),
+          width: 1,
+        ),
       ),
       child: Row(
         children: modes.map((entry) {
@@ -1411,19 +1443,29 @@ class _SpinModeSegment extends StatelessWidget {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary : Colors.transparent,
+                  color: isSelected
+                      ? const Color(0xFF00D4FF).withValues(alpha: 0.15)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(100),
+                  border: isSelected
+                      ? Border.all(
+                          color: const Color(0xFF00D4FF)
+                              .withValues(alpha: 0.4),
+                          width: 1,
+                        )
+                      : null,
                 ),
                 child: Center(
                   child: Text(
                     label,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 12,
                       fontWeight:
-                          isSelected ? FontWeight.w700 : FontWeight.w400,
+                          isSelected ? FontWeight.w700 : FontWeight.w500,
                       color: isSelected
-                          ? Colors.white
-                          : AppColors.textSecondary,
+                          ? const Color(0xFF00D4FF)
+                          : const Color(0xFFFFFFFF)
+                              .withValues(alpha: 0.4),
                     ),
                   ),
                 ),
@@ -1449,10 +1491,16 @@ class _SpinButton extends StatelessWidget {
     required this.onSpin,
   });
 
+  static const _spinGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF0284C7), Color(0xFF00D4FF)],
+  );
+
   static const _stopGradient = LinearGradient(
-    begin: Alignment(-1, -1),
-    end: Alignment(1, 1),
-    colors: [Color(0xFFFC5C7D), Color(0xFFFF8C69)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFCC2255), Color(0xFFFF4466)],
   );
 
   @override
@@ -1460,96 +1508,41 @@ class _SpinButton extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final isDisabled = allPicked && !isSpinning;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      width: double.infinity,
-      height: AppDimens.buttonHeight,
-      decoration: BoxDecoration(
-        gradient: isSpinning ? _stopGradient : AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
-        // 하단 2px primaryDeep 테두리 (입체감)
-        border: Border(
-          bottom: BorderSide(
-            color: isSpinning
-                ? const Color(0xFFC2185B)
-                : AppColors.primaryDeep,
-            width: 2,
-          ),
-        ),
-        boxShadow: isDisabled
-            ? []
-            : [
-                BoxShadow(
-                  color: (isSpinning
-                          ? const Color(0xFFFC5C7D)
-                          : AppColors.primary)
-                      .withValues(alpha: 0.45),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-      ),
+    return GestureDetector(
+      onTap: isDisabled ? null : onSpin,
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 200),
         opacity: isDisabled ? 0.45 : 1.0,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
-          child: Stack(
-            children: [
-              // 상단 절반 흰색 12% 오버레이
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                height: AppDimens.buttonHeight / 2,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.white.withValues(alpha: 0.12),
-                        Colors.transparent,
-                      ],
+        child: Container(
+          height: 56,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: isSpinning ? _stopGradient : _spinGradient,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: isDisabled
+                ? []
+                : [
+                    BoxShadow(
+                      color: isSpinning
+                          ? const Color(0x66FF4466)
+                          : const Color(0x6600D4FF),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
                     ),
-                  ),
-                ),
+                  ],
+          ),
+          child: Center(
+            child: Text(
+              isSpinning
+                  ? 'STOP'
+                  : (allPicked ? l10n.allPicked : 'SPIN'),
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2.0,
+                color: Colors.white,
               ),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: isDisabled ? null : onSpin,
-                  borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
-                  splashColor: Colors.white.withValues(alpha: 0.15),
-                  child: Center(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      child: isSpinning
-                          ? const Text(
-                              'STOP',
-                              key: ValueKey('stop'),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 3.0,
-                              ),
-                            )
-                          : Text(
-                              allPicked ? l10n.allPicked : 'SPIN',
-                              key: const ValueKey('spin'),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 3.0,
-                              ),
-                            ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -1602,12 +1595,13 @@ class _GhostButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: AppDimens.buttonHeight,
+      height: 48,
       decoration: BoxDecoration(
+        color: AppColors.surfaceBg,
         borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.2),
-          width: 1.2,
+          color: AppColors.surfaceBorder,
+          width: 1,
         ),
       ),
       child: Material(

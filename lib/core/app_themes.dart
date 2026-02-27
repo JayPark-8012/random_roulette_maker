@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 import 'design_tokens.dart';
 
 // ── 팔레트 정의 ─────────────────────────────────────────
@@ -61,14 +61,14 @@ class AppThemeData {
       brightness: Brightness.dark,
       contrastLevel: 0.1,
     ).copyWith(
-      primary: AppColors.primary,
-      surface: AppColors.background,
+      primary: const Color(0xFF00D4FF),
+      surface: const Color(0xFF0E1628),
       onSurface: AppColors.textPrimary,
       onSurfaceVariant: AppColors.textSecondary,
     );
 
-    // ── Nunito 기반 TextTheme ──
-    final baseText = GoogleFonts.nunitoTextTheme(ThemeData.dark().textTheme);
+    // ── 시스템 기본 폰트 TextTheme ──
+    final baseText = ThemeData.dark().textTheme;
     final textTheme = baseText.copyWith(
       displayLarge: baseText.displayLarge?.copyWith(fontWeight: FontWeight.w800),
       displayMedium: baseText.displayMedium?.copyWith(fontWeight: FontWeight.w800),
@@ -94,37 +94,39 @@ class AppThemeData {
       colorScheme: colorScheme,
       useMaterial3: true,
       textTheme: textTheme,
-      scaffoldBackgroundColor: Colors.transparent,
+      scaffoldBackgroundColor: const Color(0xFF070B14),
       appBarTheme: AppBarTheme(
         centerTitle: false,
         elevation: 0,
         scrolledUnderElevation: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFF0A1020),
         foregroundColor: AppColors.textPrimary,
-        titleTextStyle: GoogleFonts.nunito(
-          fontSize: 20,
+        titleTextStyle: const TextStyle(
+          fontSize: 13,
           fontWeight: FontWeight.w800,
-          color: AppColors.textPrimary,
+          color: Colors.white,
         ),
-        // 0.5px subtle separator at bottom
-        shape: Border(
+        shape: const Border(
           bottom: BorderSide(
-            color: Colors.white.withValues(alpha: 0.06),
-            width: 0.5,
+            color: Color(0x1400D4FF),
+            width: 1,
           ),
         ),
-        iconTheme: IconThemeData(
-          color: AppColors.textPrimary,
-        ),
-        actionsIconTheme: IconThemeData(
-          color: AppColors.textPrimary,
-        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+        actionsIconTheme: const IconThemeData(color: Colors.white),
+        systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
-      // Icon button tap states: Primary 15% bg
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: Color(0xFF0A1020),
+        selectedItemColor: Color(0xFF00D4FF),
+        unselectedItemColor: Color(0x38FFFFFF),
+        elevation: 0,
+      ),
+      // Icon button tap states
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
-          highlightColor: AppColors.primary.withValues(alpha: 0.15),
-          hoverColor: AppColors.primary.withValues(alpha: 0.08),
+          highlightColor: const Color(0xFF00D4FF).withValues(alpha: 0.15),
+          hoverColor: const Color(0xFF00D4FF).withValues(alpha: 0.08),
         ),
       ),
       cardTheme: CardThemeData(
@@ -138,7 +140,7 @@ class AppThemeData {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(64, AppDimens.buttonHeight),
-          backgroundColor: AppColors.primary,
+          backgroundColor: const Color(0xFF00D4FF),
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
@@ -156,7 +158,7 @@ class AppThemeData {
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: AppColors.primary,
+        backgroundColor: const Color(0xFF00D4FF),
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
@@ -173,7 +175,7 @@ class AppThemeData {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimens.cardRadius),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          borderSide: const BorderSide(color: Color(0xFF00D4FF), width: 1.5),
         ),
         filled: true,
         fillColor: AppColors.surfaceFill,

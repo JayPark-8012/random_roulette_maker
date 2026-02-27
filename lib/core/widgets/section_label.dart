@@ -25,10 +25,10 @@ class SectionLabel extends StatelessWidget {
           Text(
             text.toUpperCase(),
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: FontWeight.w700,
-              letterSpacing: 1.6,
-              color: AppColors.textSecondary,
+              letterSpacing: 0.5,
+              color: Colors.white.withValues(alpha: 0.3),
             ),
           ),
           if (trailing != null) ...[

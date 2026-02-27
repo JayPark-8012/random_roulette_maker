@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../../core/app_themes.dart';
@@ -6,12 +5,9 @@ import '../../../core/atmosphere_presets.dart';
 import '../../../core/constants.dart';
 import '../../../core/design_tokens.dart';
 import '../../../core/widgets/app_background.dart';
-import '../../../core/widgets/glass_card.dart';
 import '../../../core/widgets/section_label.dart';
-import '../../../core/roulette_wheel_themes.dart';
 import '../../../data/premium_service.dart';
 import '../../../domain/premium_state.dart';
-import '../../../domain/roulette_wheel_theme.dart';
 import '../../../domain/settings.dart';
 import '../../../l10n/app_localizations.dart';
 import '../state/settings_notifier.dart';
@@ -25,6 +21,10 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  /// false로 설정하면 Atmosphere 배경 프리셋 섹션이 숨겨짐.
+  /// 다시 켜려면 true로 변경.
+  static const _showAtmosphereSection = false;
+
   final SettingsNotifier _notifier = SettingsNotifier.instance;
 
   @override
@@ -51,14 +51,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     _notifier.setThemeId(theme.id);
-  }
-
-  void _selectWheelTheme(BuildContext context, RouletteWheelTheme wt) {
-    if (!PremiumService.instance.canUseWheelTheme(wt.id)) {
-      _showWheelThemeLockDialog(context, wt);
-      return;
-    }
-    _notifier.setWheelThemeId(wt.id);
   }
 
   void _selectAtmosphere(BuildContext context, AtmospherePreset atm) {
@@ -94,55 +86,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: atm.gradient == null ? atm.solidColor : null,
                 borderRadius: BorderRadius.circular(8),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(l10n.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              Navigator.of(context).pushNamed(AppRoutes.paywall);
-            },
-            child: Text(l10n.paywallUnlockButton),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showWheelThemeLockDialog(BuildContext context, RouletteWheelTheme wt) {
-    final cs = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context)!;
-
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        icon: Icon(Icons.lock_rounded, size: 40, color: cs.primary),
-        title: Text(l10n.paywallPaletteLockTitle),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              l10n.paywallPaletteLockContent(wt.name),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            // 휠 테마 색상 스와치 미리보기
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: wt.palette.take(6).map((c) {
-                return Container(
-                  width: 24,
-                  height: 24,
-                  margin: const EdgeInsets.symmetric(horizontal: 2),
-                  decoration:
-                      BoxDecoration(color: c, shape: BoxShape.circle),
-                );
-              }).toList(),
             ),
           ],
         ),
@@ -270,6 +213,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildSegment<T>({
+    required List<(T, String)> items,
+    required T selected,
+    required ValueChanged<T> onChanged,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0A1020),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(3),
+      child: Row(
+        children: items.map((item) {
+          final isSelected = item.$1 == selected;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => onChanged(item.$1),
+              child: Container(
+                height: 32,
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFF0F1C30) : Colors.transparent,
+                  border: isSelected
+                      ? Border.all(color: const Color(0xFF00D4FF).withValues(alpha: 0.4))
+                      : null,
+                  borderRadius: BorderRadius.circular(7),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  item.$2,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected
+                        ? const Color(0xFF00D4FF)
+                        : Colors.white.withValues(alpha: 0.35),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -284,44 +273,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── 프리미엄 데모 위젯 ────────────────────────
           const PremiumDemoWidget(),
 
-          // ── Atmosphere 배경 ──────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: SectionLabel(text: l10n.atmosphereLabel),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: ValueListenableBuilder<PremiumState>(
-              valueListenable: PremiumService.instance.stateNotifier,
-              builder: (ctx, ps, child) => GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 2.2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
+          // ── Atmosphere 배경 (숨김 처리 — _showAtmosphereSection = true 로 복원 가능) ──
+          if (_showAtmosphereSection) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: SectionLabel(text: l10n.atmosphereLabel),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: ValueListenableBuilder<PremiumState>(
+                valueListenable: PremiumService.instance.stateNotifier,
+                builder: (ctx, ps, child) => GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 2.2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                  ),
+                  itemCount: kAtmospherePresets.length,
+                  itemBuilder: (ctx, i) {
+                    final atm = kAtmospherePresets[i];
+                    return _AtmospherePreviewCard(
+                      atmosphere: atm,
+                      isSelected: atm.id == _notifier.atmosphereId,
+                      isLocked: !ps.isPremium && atm.isLocked,
+                      onTap: () => _selectAtmosphere(context, atm),
+                    );
+                  },
                 ),
-                itemCount: kAtmospherePresets.length,
-                itemBuilder: (ctx, i) {
-                  final atm = kAtmospherePresets[i];
-                  return _AtmospherePreviewCard(
-                    atmosphere: atm,
-                    isSelected: atm.id == _notifier.atmosphereId,
-                    isLocked: !ps.isPremium && atm.isLocked,
-                    onTap: () => _selectAtmosphere(context, atm),
-                  );
-                },
               ),
             ),
-          ),
-
-          // ── 섹션 구분선 ──
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: Divider(height: 1, color: Colors.white.withValues(alpha: 0.06)),
-          ),
+            // ── 섹션 구분선 ──
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              child: Divider(height: 1, color: Colors.white.withValues(alpha: 0.06)),
+            ),
+          ],
           // ── 색상 팔레트 ──────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -360,44 +350,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             child: Divider(height: 1, color: Colors.white.withValues(alpha: 0.06)),
           ),
-          // ── 룰렛 휠 테마 ─────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: SectionLabel(text: l10n.wheelThemeLabel),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: ValueListenableBuilder<PremiumState>(
-              valueListenable: PremiumService.instance.stateNotifier,
-              builder: (ctx, ps, child) => GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  childAspectRatio: 0.65,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                ),
-                itemCount: kRouletteWheelThemes.length,
-                itemBuilder: (ctx, i) {
-                  final wt = kRouletteWheelThemes[i];
-                  return _WheelThemePreviewCard(
-                    wheelTheme: wt,
-                    isSelected: wt.id == _notifier.wheelThemeId,
-                    isLocked: !ps.isPremium && wt.isLocked,
-                    onTap: () => _selectWheelTheme(context, wt),
-                  );
-                },
-              ),
-            ),
-          ),
-
-          // ── 섹션 구분선 ──
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: Divider(height: 1, color: Colors.white.withValues(alpha: 0.06)),
-          ),
           // ── 언어 ──────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -405,8 +357,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: GlassCard(
-              padding: EdgeInsets.zero,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF0E1628),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: ListTile(
                 leading: const Icon(Icons.language_rounded,
                     color: AppColors.textPrimary),
@@ -433,8 +389,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: GlassCard(
-              padding: EdgeInsets.zero,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF0E1628),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Column(
                 children: [
                   SwitchListTile(
@@ -448,6 +408,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           : Icons.volume_off_outlined,
                       color: AppColors.textPrimary,
                     ),
+                    activeThumbColor: const Color(0xFF00D4FF),
+                    activeTrackColor: const Color(0xFF00D4FF).withValues(alpha: 0.3),
                     value: _notifier.soundEnabled,
                     onChanged: _notifier.setSoundEnabled,
                   ),
@@ -469,26 +431,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          SegmentedButton<SoundPack>(
-                            expandedInsets: EdgeInsets.zero,
-                            segments: [
-                              ButtonSegment(
-                                value: SoundPack.basic,
-                                label: Text(l10n.packBasic),
-                              ),
-                              ButtonSegment(
-                                value: SoundPack.clicky,
-                                label: Text(l10n.packClicky),
-                              ),
-                              ButtonSegment(
-                                value: SoundPack.party,
-                                label: Text(l10n.packParty),
-                              ),
+                          _buildSegment<SoundPack>(
+                            items: [
+                              (SoundPack.basic, l10n.packBasic),
+                              (SoundPack.clicky, l10n.packClicky),
+                              (SoundPack.party, l10n.packParty),
                             ],
-                            selected: {_notifier.soundPack},
-                            onSelectionChanged: (set) =>
-                                _notifier.setSoundPack(set.first),
-                            showSelectedIcon: false,
+                            selected: _notifier.soundPack,
+                            onChanged: (v) => _notifier.setSoundPack(v),
                           ),
                         ],
                       ),
@@ -508,26 +458,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                    child: SegmentedButton<HapticStrength>(
-                      expandedInsets: EdgeInsets.zero,
-                      segments: [
-                        ButtonSegment(
-                          value: HapticStrength.off,
-                          label: Text(l10n.hapticOff),
-                        ),
-                        ButtonSegment(
-                          value: HapticStrength.light,
-                          label: Text(l10n.hapticLight),
-                        ),
-                        ButtonSegment(
-                          value: HapticStrength.strong,
-                          label: Text(l10n.hapticStrong),
-                        ),
+                    child: _buildSegment<HapticStrength>(
+                      items: [
+                        (HapticStrength.off, l10n.hapticOff),
+                        (HapticStrength.light, l10n.hapticLight),
+                        (HapticStrength.strong, l10n.hapticStrong),
                       ],
-                      selected: {_notifier.hapticStrength},
-                      onSelectionChanged: (set) =>
-                          _notifier.setHapticStrength(set.first),
-                      showSelectedIcon: false,
+                      selected: _notifier.hapticStrength,
+                      onChanged: (v) => _notifier.setHapticStrength(v),
                     ),
                   ),
                 ],
@@ -547,30 +485,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: GlassCard(
-              child: SegmentedButton<SpinDuration>(
-                expandedInsets: EdgeInsets.zero,
-                segments: [
-                  ButtonSegment(
-                    value: SpinDuration.short,
-                    label: Text(l10n.spinShort),
-                    icon: const Icon(Icons.flash_on_outlined),
-                  ),
-                  ButtonSegment(
-                    value: SpinDuration.normal,
-                    label: Text(l10n.spinNormal),
-                    icon: const Icon(Icons.speed),
-                  ),
-                  ButtonSegment(
-                    value: SpinDuration.long,
-                    label: Text(l10n.spinLong),
-                    icon: const Icon(Icons.hourglass_empty_rounded),
-                  ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF0E1628),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.all(16),
+              child: _buildSegment<SpinDuration>(
+                items: [
+                  (SpinDuration.short, l10n.spinShort),
+                  (SpinDuration.normal, l10n.spinNormal),
+                  (SpinDuration.long, l10n.spinLong),
                 ],
-                selected: {_notifier.spinDuration},
-                onSelectionChanged: (set) =>
-                    _notifier.setSpinDuration(set.first),
-                showSelectedIcon: false,
+                selected: _notifier.spinDuration,
+                onChanged: (v) => _notifier.setSpinDuration(v),
               ),
             ),
           ),
@@ -587,8 +516,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: GlassCard(
-              padding: EdgeInsets.zero,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF0E1628),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Column(
                 children: [
                   ListTile(
@@ -770,26 +703,16 @@ class _ThemePreviewCard extends StatelessWidget {
         children: [
           // ── Card ──
           Expanded(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
+            child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isSelected
-                      ? AppColors.primary
-                      : Colors.white.withValues(alpha: 0.12),
+                      ? const Color(0xFF00D4FF).withValues(alpha: 0.5)
+                      : Colors.white.withValues(alpha: 0.07),
                   width: isSelected ? 2 : 1,
                 ),
                 color: Colors.white.withValues(alpha: 0.055),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.35),
-                          blurRadius: 12,
-                          spreadRadius: 1,
-                        ),
-                      ]
-                    : null,
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(11),
@@ -834,16 +757,9 @@ class _ThemePreviewCard extends StatelessWidget {
                         child: Container(
                           width: 20,
                           height: 20,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF00D4FF),
                             shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    AppColors.primary.withValues(alpha: 0.4),
-                                blurRadius: 6,
-                              ),
-                            ],
                           ),
                           child: const Icon(Icons.check_rounded,
                               size: 13, color: Colors.white),
@@ -872,210 +788,4 @@ class _ThemePreviewCard extends StatelessWidget {
   }
 }
 
-// ── 룰렛 휠 테마 프리뷰 카드 ─────────────────────────────
-class _WheelThemePreviewCard extends StatelessWidget {
-  final RouletteWheelTheme wheelTheme;
-  final bool isSelected;
-  final bool isLocked;
-  final VoidCallback onTap;
-
-  const _WheelThemePreviewCard({
-    required this.wheelTheme,
-    required this.isSelected,
-    required this.isLocked,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          // ── Card ──
-          Expanded(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isSelected
-                      ? AppColors.primary
-                      : Colors.white.withValues(alpha: 0.12),
-                  width: isSelected ? 2 : 1,
-                ),
-                color: Colors.white.withValues(alpha: 0.055),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.35),
-                          blurRadius: 12,
-                          spreadRadius: 1,
-                        ),
-                      ]
-                    : null,
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(11),
-                child: Stack(
-                  children: [
-                    Center(
-                      child: CustomPaint(
-                        painter: _MiniWheelPreviewPainter(
-                          palette: wheelTheme.palette,
-                          style: wheelTheme.style,
-                        ),
-                        size: const Size(44, 44),
-                      ),
-                    ),
-                    // ── Locked overlay ──
-                    if (isLocked) ...[
-                      Positioned.fill(
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
-                          child: Container(
-                            color: Colors.black.withValues(alpha: 0.50),
-                          ),
-                        ),
-                      ),
-                      const Center(
-                        child: Icon(Icons.lock_rounded,
-                            size: 18, color: Colors.white70),
-                      ),
-                    ],
-                    // ── Selected check badge ──
-                    if (isSelected)
-                      Positioned(
-                        right: 4,
-                        top: 4,
-                        child: Container(
-                          width: 20,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    AppColors.primary.withValues(alpha: 0.4),
-                                blurRadius: 6,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(Icons.check_rounded,
-                              size: 13, color: Colors.white),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          // ── Label below card ──
-          const SizedBox(height: 4),
-          Text(
-            wheelTheme.name,
-            style: TextStyle(
-              fontSize: 11,
-              color: AppColors.textSecondary,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── 미니 휠 프리뷰 페인터 (설정 화면용) ───────────────────
-class _MiniWheelPreviewPainter extends CustomPainter {
-  final List<Color> palette;
-  final WheelStyle style;
-
-  const _MiniWheelPreviewPainter({
-    required this.palette,
-    required this.style,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 1;
-    const count = 6;
-    final sectorAngle = 2 * pi / count;
-
-    for (int i = 0; i < count; i++) {
-      final color = palette[i % palette.length];
-      final start = -pi / 2 + i * sectorAngle;
-      final rect = Rect.fromCircle(center: center, radius: radius);
-
-      switch (style) {
-        case WheelStyle.gradient:
-          final lighter = Color.lerp(color, Colors.white, 0.4)!;
-          canvas.drawArc(
-            rect, start, sectorAngle, true,
-            Paint()
-              ..shader = RadialGradient(
-                colors: [lighter, color],
-              ).createShader(rect),
-          );
-        case WheelStyle.neonGlow:
-          canvas.drawArc(rect, start, sectorAngle, true,
-              Paint()..color = Color.lerp(color, Colors.black, 0.15)!);
-          canvas.drawArc(rect, start, sectorAngle, true,
-              Paint()
-                ..color = color.withValues(alpha: 0.9)
-                ..style = PaintingStyle.stroke
-                ..strokeWidth = 2
-                ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3));
-        case WheelStyle.metallic:
-          canvas.drawArc(rect, start, sectorAngle, true,
-              Paint()..color = color);
-          canvas.drawArc(rect, start, sectorAngle, true,
-              Paint()
-                ..shader = LinearGradient(
-                  colors: [
-                    Colors.white.withValues(alpha: 0.30),
-                    Colors.transparent,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ).createShader(rect));
-        case WheelStyle.crystal:
-          canvas.drawArc(rect, start, sectorAngle, true,
-              Paint()..color = color);
-          canvas.drawArc(rect, start, sectorAngle, true,
-              Paint()..color = Colors.white.withValues(alpha: 0.18));
-        case WheelStyle.classic:
-          canvas.drawArc(rect, start, sectorAngle, true,
-              Paint()..color = color);
-      }
-
-      // 섹터 구분선
-      canvas.drawArc(rect, start, sectorAngle, true,
-          Paint()
-            ..color = Colors.white.withValues(alpha: 0.6)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 0.8);
-    }
-
-    // 외곽 링
-    canvas.drawCircle(
-      center, radius,
-      Paint()
-        ..color = Colors.white.withValues(alpha: 0.7)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
-    );
-
-    // 중앙 허브
-    canvas.drawCircle(center, radius * 0.18, Paint()..color = Colors.white);
-  }
-
-  @override
-  bool shouldRepaint(_MiniWheelPreviewPainter old) =>
-      old.palette != palette || old.style != style;
-}
 

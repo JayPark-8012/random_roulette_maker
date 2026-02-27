@@ -1,5 +1,4 @@
 import 'dart:math' show pi;
-import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback, SystemNavigator;
 import '../../../core/constants.dart';
@@ -40,12 +39,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, String?> _lastResults = {};
   bool _setsExpanded = false;
 
+  // ── 랜덤 추천 스타터 (앱 실행 시 1회 셔플) ──
+  late final List<Map<String, dynamic>> _randomStarters;
+
   @override
   void initState() {
     super.initState();
     _notifier.addListener(_onNotifierChanged);
     _notifier.load();
     _checkFirstRun();
+    final list = List<Map<String, dynamic>>.from(kStarterSets);
+    list.shuffle();
+    _randomStarters = list.take(4).toList();
   }
 
   void _onNotifierChanged() {
@@ -139,120 +144,99 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        // ── 하단 NavigationBar (Floating Island) ────────────
-        bottomNavigationBar: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    blurRadius: 24,
-                    spreadRadius: 0,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
+        // ── 하단 NavigationBar ────────────────────────────
+        bottomNavigationBar: Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFF0A1020),
+            border: Border(
+              top: BorderSide(
+                color: Color(0x1400D4FF),
+                width: 1,
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(28),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                  child: Container(
-                    height: 68,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0A0F1E).withValues(alpha: 0.75),
-                      borderRadius: BorderRadius.circular(28),
-                      border: Border(
-                        top: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.06),
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: List.generate(4, (i) {
-                        final selected = _mode.index == i;
-                        final icons = [
-                          [Icons.track_changes_outlined, Icons.track_changes_rounded],
-                          [Icons.monetization_on_outlined, Icons.monetization_on_rounded],
-                          [Icons.casino_outlined, Icons.casino_rounded],
-                          [Icons.shuffle_rounded, Icons.shuffle_rounded],
-                        ];
-                        final labels = [
-                          l10n.tabRoulette,
-                          l10n.tabCoin,
-                          l10n.tabDice,
-                          l10n.tabNumber,
-                        ];
-                        return Expanded(
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () {
-                              HapticFeedback.selectionClick();
-                              setState(() => _mode = _HomeMode.values[i]);
-                            },
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                // Icon with glow container for selected
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: SafeArea(
+            top: false,
+            child: SizedBox(
+              height: 72,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: List.generate(4, (i) {
+                  final selected = _mode.index == i;
+                  final icons = [
+                    [Icons.track_changes_outlined, Icons.track_changes_rounded],
+                    [Icons.monetization_on_outlined, Icons.monetization_on_rounded],
+                    [Icons.casino_outlined, Icons.casino_rounded],
+                    [Icons.shuffle_rounded, Icons.shuffle_rounded],
+                  ];
+                  final labels = [
+                    l10n.tabRoulette,
+                    l10n.tabCoin,
+                    l10n.tabDice,
+                    l10n.tabNumber,
+                  ];
+                  return Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() => _mode = _HomeMode.values[i]);
+                      },
+                      child: Center(
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeInOut,
+                          width: 64,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: selected
+                                ? const Color(0x1400D4FF)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Opacity(
+                                opacity: selected ? 1.0 : 0.22,
+                                child: Icon(
+                                  selected ? icons[i][1] : icons[i][0],
+                                  size: 22,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                labels[i],
+                                style: TextStyle(
+                                  fontSize: 8.5,
+                                  fontWeight: selected
+                                      ? FontWeight.w700
+                                      : FontWeight.w600,
+                                  color: selected
+                                      ? const Color(0xFF00D4FF)
+                                      : const Color(0x38FFFFFF),
+                                ),
+                              ),
+                              if (selected) ...[
+                                const SizedBox(height: 2),
                                 Container(
-                                  width: 36,
-                                  height: 28,
-                                  decoration: selected
-                                      ? BoxDecoration(
-                                          borderRadius: BorderRadius.circular(8),
-                                          color: AppColors.primary.withValues(alpha: 0.15),
-                                        )
-                                      : null,
-                                  child: Icon(
-                                    selected ? icons[i][1] : icons[i][0],
-                                    size: 22,
-                                    color: selected
-                                        ? AppColors.primary
-                                        : Colors.white.withValues(alpha: 0.45),
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                // Dot indicator under selected
-                                AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  width: selected ? 4 : 0,
-                                  height: selected ? 4 : 0,
-                                  decoration: BoxDecoration(
+                                  width: 3,
+                                  height: 3,
+                                  decoration: const BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: AppColors.primary.withValues(alpha: selected ? 0.8 : 0.0),
-                                    boxShadow: selected
-                                        ? [
-                                            BoxShadow(
-                                              color: AppColors.primary.withValues(alpha: 0.30),
-                                              blurRadius: 6,
-                                            ),
-                                          ]
-                                        : null,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  labels[i],
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                                    color: selected
-                                        ? AppColors.primary
-                                        : Colors.white.withValues(alpha: 0.40),
+                                    color: Color(0xFF00D4FF),
                                   ),
                                 ),
                               ],
-                            ),
+                            ],
                           ),
-                        );
-                      }),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                }),
               ),
             ),
           ),
@@ -307,25 +291,18 @@ class _HomeScreenState extends State<HomeScreen> {
   // ── 헤더 ──────────────────────────────────────────────
 
   Widget _buildHeader(BuildContext context) {
-    const bgColor = Color(0xFF1A0F2E);
-    const fgColor = Colors.white;
-
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: Container(
-          decoration: BoxDecoration(
-            color: bgColor.withValues(alpha: 0.6),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.25),
-                blurRadius: 14,
-                offset: const Offset(0, 5),
-              ),
-            ],
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.bgElevated,
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.white.withValues(alpha: 0.06),
+            width: 0.5,
           ),
-          padding: const EdgeInsets.fromLTRB(20, 14, 8, 12),
-          child: Row(
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 14, 8, 12),
+      child: Row(
         children: [
           // 로고 아이콘
           Container(
@@ -333,12 +310,12 @@ class _HomeScreenState extends State<HomeScreen> {
             height: 34,
             margin: const EdgeInsets.only(right: 10),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
-              shape: BoxShape.circle,
+              color: AppColors.surfaceBg,
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               Icons.track_changes_rounded,
-              color: Colors.white,
+              color: AppColors.textPrimary,
               size: 18,
             ),
           ),
@@ -347,23 +324,31 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Text(
               AppLocalizations.of(context)!.homeTitle,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w900,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
                     letterSpacing: -0.5,
-                    color: fgColor,
+                    color: AppColors.textPrimary,
                   ),
             ),
           ),
           // 설정 버튼
-          IconButton(
-            icon: Icon(Icons.settings_rounded, color: fgColor),
-            onPressed: () =>
-                Navigator.of(context).pushNamed(AppRoutes.settings),
-            tooltip: AppLocalizations.of(context)!.settingsTooltip,
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceBg,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              icon: Icon(Icons.settings_rounded, color: AppColors.textPrimary, size: 18),
+              onPressed: () =>
+                  Navigator.of(context).pushNamed(AppRoutes.settings),
+              tooltip: AppLocalizations.of(context)!.settingsTooltip,
+            ),
           ),
         ],
       ),
-    ),
-    ),
     );
   }
 
@@ -396,150 +381,110 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // ── 3-zone hub layout ──
 
+    // 세트 목록 (3개 초과 시 접기/펼치기)
+    final allSets = _notifier.roulettes;
+
     // 최근 사용 세트 (lastPlayedAt가 있는 것 중 가장 최신)
-    final recentlyPlayed = _notifier.roulettes
+    final recentlyPlayed = allSets
         .where((r) => r.lastPlayedAt != null)
         .toList()
       ..sort((a, b) => b.lastPlayedAt!.compareTo(a.lastPlayedAt!));
-    final quickLaunch = recentlyPlayed.isNotEmpty ? recentlyPlayed.first : null;
-
-    // 세트 목록 (3개 초과 시 접기/펼치기)
-    final allSets = _notifier.roulettes;
+    final quickLaunch = recentlyPlayed.isNotEmpty ? recentlyPlayed.first : allSets.first;
     final visibleSets =
         _setsExpanded ? allSets : allSets.take(3).toList();
     final canExpand = allSets.length > 3;
 
-    // 추천: 아직 사용하지 않은 스타터 세트 (이름 기준 비교)
-    final existingNames =
-        allSets.map((r) => r.name.toLowerCase()).toSet();
-    final unusedStarters = kStarterSets.where((s) {
-      final name = _resolveStarterName(l10n, s['nameKey'] as String);
-      return !existingNames.contains(name.toLowerCase());
-    }).take(2).toList();
 
     return SingleChildScrollView(
       key: const PageStorageKey('roulette_hub'),
-      padding: const EdgeInsets.fromLTRB(0, 4, 0, 120),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ═════ Zone 1: 빠른 실행 ═════
-          if (quickLaunch != null) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 16, 0),
-              child: SectionLabel(
-                text: l10n.sectionQuickLaunch,
-                padding: EdgeInsets.zero,
-              ),
+          // ═════ Section 1: 빠른 실행 히어로 ═════
+          _QuickLaunchCard(
+            roulette: quickLaunch,
+            lastResult: _lastResults[quickLaunch.id],
+            onTap: () => _navigateToPlay(context, quickLaunch),
+          ),
+          const SizedBox(height: 28),
+
+          // ═════ Section 2: 내 룰렛 세트 ═════
+          ValueListenableBuilder<PremiumState>(
+            valueListenable: PremiumService.instance.stateNotifier,
+            builder: (_, ps, _) => SectionLabel(
+              text: l10n.sectionMySets,
+              trailing: PremiumService.instance
+                  .formatSetCountLabel(_notifier.count),
+              padding: const EdgeInsets.only(bottom: 10),
             ),
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _QuickLaunchCard(
-                roulette: quickLaunch,
-                lastResult: _lastResults[quickLaunch.id],
-                onTap: () => _navigateToPlay(context, quickLaunch),
-              ),
+          ),
+          for (int i = 0; i < visibleSets.length; i++) ...[
+            RouletteCard(
+              roulette: visibleSets[i],
+              lastResult: _lastResults[visibleSets[i].id] != null
+                  ? l10n.recentResult(
+                      _lastResults[visibleSets[i].id]!)
+                  : null,
+              onTap: () =>
+                  _navigateToPlay(context, visibleSets[i]),
+              onEdit: () => _navigateToEditor(context,
+                  roulette: visibleSets[i]),
+              onDuplicate: () =>
+                  _duplicateRoulette(context, visibleSets[i]),
+              onRename: (n) =>
+                  _notifier.rename(visibleSets[i].id, n),
+              onDelete: () =>
+                  _notifier.delete(visibleSets[i].id),
             ),
-            const SizedBox(height: 24),
+            if (i < visibleSets.length - 1)
+              const SizedBox(height: 8),
           ],
-
-          // ═════ Zone 2: 내 세트 ═════
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 16, 0),
-            child: ValueListenableBuilder<PremiumState>(
-              valueListenable: PremiumService.instance.stateNotifier,
-              builder: (_, ps, _) => SectionLabel(
-                text: l10n.sectionMySets,
-                trailing: PremiumService.instance
-                    .formatSetCountLabel(_notifier.count),
-                padding: EdgeInsets.zero,
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              children: [
-                for (int i = 0; i < visibleSets.length; i++) ...[
-                  RouletteCard(
-                    roulette: visibleSets[i],
-                    lastResult: _lastResults[visibleSets[i].id] != null
-                        ? l10n.recentResult(
-                            _lastResults[visibleSets[i].id]!)
-                        : null,
-                    onTap: () =>
-                        _navigateToPlay(context, visibleSets[i]),
-                    onEdit: () => _navigateToEditor(context,
-                        roulette: visibleSets[i]),
-                    onDuplicate: () =>
-                        _duplicateRoulette(context, visibleSets[i]),
-                    onRename: (n) =>
-                        _notifier.rename(visibleSets[i].id, n),
-                    onDelete: () =>
-                        _notifier.delete(visibleSets[i].id),
+          if (canExpand) ...[
+            const SizedBox(height: 8),
+            Center(
+              child: TextButton.icon(
+                onPressed: () =>
+                    setState(() => _setsExpanded = !_setsExpanded),
+                icon: Icon(
+                  _setsExpanded
+                      ? Icons.keyboard_arrow_up_rounded
+                      : Icons.keyboard_arrow_down_rounded,
+                  size: 20,
+                  color: AppColors.textSecondary,
+                ),
+                label: Text(
+                  _setsExpanded ? l10n.showLess : l10n.showMore,
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                   ),
-                  if (i < visibleSets.length - 1)
-                    const SizedBox(height: 12),
-                ],
-                if (canExpand) ...[
-                  const SizedBox(height: 8),
-                  Center(
-                    child: TextButton.icon(
-                      onPressed: () =>
-                          setState(() => _setsExpanded = !_setsExpanded),
-                      icon: Icon(
-                        _setsExpanded
-                            ? Icons.keyboard_arrow_up_rounded
-                            : Icons.keyboard_arrow_down_rounded,
-                        size: 20,
-                        color: AppColors.textSecondary,
-                      ),
-                      label: Text(
-                        _setsExpanded ? l10n.showLess : l10n.showMore,
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // ═════ Zone 3: 추천 ═════
-          if (unusedStarters.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 16, 0),
-              child: SectionLabel(
-                text: l10n.sectionRecommend,
-                padding: EdgeInsets.zero,
-              ),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 100,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: unusedStarters.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 12),
-                itemBuilder: (_, i) => _RecommendCard(
-                  set: unusedStarters[i],
-                  onTap: () {
-                    Navigator.of(context)
-                        .pushNamed(AppRoutes.templates)
-                        .then((_) => _notifier.load());
-                  },
                 ),
               ),
             ),
           ],
+          const SizedBox(height: 28),
+
+          // ═════ Section 3: 이런 룰렛 어때요? ═════
+          SectionLabel(
+            text: l10n.sectionRecommend,
+            padding: const EdgeInsets.only(bottom: 10),
+          ),
+          Row(
+            children: [
+              for (int i = 0; i < _randomStarters.length; i++) ...[
+                Expanded(
+                  child: _RecommendCard(
+                    set: _randomStarters[i],
+                    onTap: () => _onStarterSetTap(context, _randomStarters[i]),
+                  ),
+                ),
+                if (i < _randomStarters.length - 1)
+                  const SizedBox(width: 6),
+              ],
+            ],
+          ),
         ],
       ),
     );
@@ -653,17 +598,17 @@ class _HomeScreenState extends State<HomeScreen> {
     return showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withValues(alpha: 0.6),
+      barrierColor: const Color(0xB3000000),
       builder: (ctx) => Dialog(
         backgroundColor: Colors.transparent,
         elevation: 0,
         child: Container(
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: const Color(0xFF1A1F35),
-            borderRadius: BorderRadius.circular(20),
+            color: const Color(0xFF1C2642),
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.12),
+              color: const Color(0x33FFFFFF),
               width: 1,
             ),
             boxShadow: [
@@ -676,13 +621,6 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 상단 Primary 그라데이션 라인
-              Container(
-                height: 3,
-                decoration: const BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                ),
-              ),
               Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(
@@ -969,13 +907,17 @@ class _FirstRunState extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.circular(20),
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF0284C7), Color(0xFF00D4FF)],
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.35),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
+                    color: const Color(0xFF00D4FF).withValues(alpha: 0.4),
+                    blurRadius: 20,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
@@ -1044,6 +986,16 @@ class _FirstRunState extends StatelessWidget {
               text: l10n.firstRunViewMore,
               icon: Icons.grid_view_rounded,
               onPressed: onViewMore,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF0369A1), Color(0xFF0284C7)],
+              ),
+              shadow: BoxShadow(
+                color: const Color(0xFF0284C7).withValues(alpha: 0.35),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
             ),
           ),
         ],
@@ -1122,11 +1074,29 @@ class _StarterSetCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                // 화살표
-                Icon(
-                  Icons.play_circle_filled_rounded,
-                  color: AppColors.primary.withValues(alpha: 0.6),
-                  size: 32,
+                // 재생 버튼
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF0284C7), Color(0xFF00D4FF)],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF00D4FF).withValues(alpha: 0.4),
+                        blurRadius: 10,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                 ),
               ],
             ),
@@ -1219,166 +1189,232 @@ class _QuickLaunchCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final resultText = lastResult != null && roulette.lastPlayedAt != null
-        ? l10n.lastResultWithDate(
-            lastResult!,
-            AppUtils.formatRelativeDate(roulette.lastPlayedAt!),
-          )
-        : null;
+    final resultText = lastResult != null
+        ? l10n.recentResult(lastResult!)
+        : l10n.itemCount(roulette.items.length);
 
-    return GlassCard(
-      padding: EdgeInsets.zero,
-      child: Stack(
-        children: [
-          // 우상단 코너 Primary 빛 번짐
-          Positioned(
-            top: -10,
-            right: -10,
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.primary.withValues(alpha: 0.12),
-                    Colors.transparent,
-                  ],
+    final wheelColors = roulette.items.isNotEmpty
+        ? roulette.items.map((e) => e.color).toList()
+        : const [
+            Color(0xFFFF6B6B), Color(0xFFFFB347),
+            Color(0xFF98D8A3), Color(0xFF7CC8F5),
+            Color(0xFFC3A6FF), Color(0xFFFFD93D),
+          ];
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        clipBehavior: Clip.hardEdge,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0F1C30),
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: const Color(0xFF00D4FF).withValues(alpha: 0.3),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF00D4FF).withValues(alpha: 0.12),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // 레이어1 — 배경 글로우
+            Positioned(
+              top: -50,
+              right: -20,
+              child: Container(
+                width: 140,
+                height: 140,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [Color(0x1A00D4FF), Colors.transparent],
+                  ),
                 ),
               ),
             ),
-          ),
-          // 좌측 Primary 그라데이션 액센트 바
-          Positioned(
-            left: 0,
-            top: 8,
-            bottom: 8,
-            child: Container(
-              width: 3,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(2),
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [AppColors.primaryLight, AppColors.primaryDeep],
+            // 레이어2 — 상단 하이라이트 라인
+            Positioned(
+              top: 0,
+              left: 16,
+              right: 16,
+              height: 1,
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.transparent,
+                      Color(0x2200D4FF),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(AppDimens.cardRadius),
-              splashColor: AppColors.primary.withValues(alpha: 0.08),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 16, 16, 16),
-                child: Row(
-                  children: [
-                    // 미니 휠 + 퍼플 글로우
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.40),
-                            blurRadius: 16,
-                          ),
-                        ],
-                      ),
-                      child: Container(
+            // 레이어3 — 콘텐츠 Row
+            Row(
+              children: [
+                // 휠 프리뷰
+                ClipOval(
+                  child: SizedBox(
+                    width: 60,
+                    height: 60,
+                    child: CustomPaint(
+                      painter: _MiniWheelPainter(wheelColors),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // 텍스트 영역
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Pill 라벨
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 5),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: SweepGradient(
-                            colors: roulette.items.length >= 2
-                                ? roulette.items.map((e) => e.color).toList()
-                                : [
-                                    roulette.items.first.color,
-                                    roulette.items.first.color
-                                  ],
-                          ),
+                          color: const Color(0x1400D4FF),
+                          border: Border.all(
+                              color: const Color(0x4D00D4FF), width: 1),
+                          borderRadius: BorderRadius.circular(100),
                         ),
-                        child: Center(
-                          child: Container(
-                            width: 16,
-                            height: 16,
-                            decoration: BoxDecoration(
-                              color: AppColors.background,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    // 텍스트 영역
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            roulette.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (resultText != null) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              resultText,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textSecondary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // 바로 스핀 버튼
-                    Container(
-                      width: 80,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
-                        borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.35),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Center(
                         child: Text(
-                          l10n.quickLaunchSpin,
+                          l10n.sectionQuickLaunch.toUpperCase(),
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 7.5,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF67E8F9),
+                            letterSpacing: 1.0,
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      // 세트 이름
+                      Text(
+                        roulette.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      // 서브텍스트
+                      const SizedBox(height: 2),
+                      Opacity(
+                        opacity: 0.65,
+                        child: Text(
+                          resultText,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF67E8F9),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+                const SizedBox(width: 10),
+                // 스핀 버튼
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 18, vertical: 11),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF0284C7), Color(0xFF00D4FF)],
+                    ),
+                    borderRadius: BorderRadius.circular(100),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF00D4FF).withValues(alpha: 0.4),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.play_arrow_rounded,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        l10n.quickLaunchSpin,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+}
+
+// ── 빠른 실행 미니 휠 페인터 ──────────────────────────────────
+
+class _MiniWheelPainter extends CustomPainter {
+  final List<Color> colors;
+  _MiniWheelPainter(this.colors);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+    final sweepAngle = (2 * pi) / colors.length;
+
+    for (int i = 0; i < colors.length; i++) {
+      final paint = Paint()
+        ..color = colors[i]
+        ..style = PaintingStyle.fill;
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        -pi / 2 + (sweepAngle * i),
+        sweepAngle,
+        true,
+        paint,
+      );
+    }
+
+    // 중앙 도넛홀
+    final holePaint = Paint()
+      ..color = const Color(0xFF0F1C30)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, radius * 0.28, holePaint);
+
+    // 도넛홀 테두리
+    final borderPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.15)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    canvas.drawCircle(center, radius * 0.28, borderPaint);
+  }
+
+  @override
+  bool shouldRepaint(_MiniWheelPainter old) => old.colors != colors;
 }
 
 // ── 추천 카드 ────────────────────────────────────────────────
@@ -1396,35 +1432,25 @@ class _RecommendCard extends StatelessWidget {
     final category = _HomeScreenState._resolveStarterCategory(
         l10n, set['categoryKey'] as String);
 
-    return SizedBox(
-      width: 140,
-      height: 100,
-      child: GlassCard(
-        padding: EdgeInsets.zero,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(AppDimens.cardRadius),
-            splashColor: AppColors.primary.withValues(alpha: 0.08),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(emoji, style: const TextStyle(fontSize: 32)),
-                  const SizedBox(height: 8),
-                  Text(
-                    category,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
+        decoration: BoxDecoration(
+          color: const Color(0x0AFFFFFF),
+          borderRadius: BorderRadius.circular(100),
+          border: Border.all(color: const Color(0x0FFFFFFF), width: 1),
+        ),
+        child: Text(
+          '$emoji $category',
+          style: const TextStyle(
+            fontSize: 9.5,
+            fontWeight: FontWeight.w500,
+            color: Color(0x8CFFFFFF),
           ),
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
     );

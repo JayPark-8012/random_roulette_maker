@@ -52,14 +52,18 @@ class GradientButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
           child: Stack(
             children: [
-              // White 15% top-half highlight overlay
+              // 상단 40% 하이라이트 오버레이
               Positioned(
                 top: 0,
                 left: 0,
                 right: 0,
-                height: height / 2,
+                height: height * 0.4,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(AppDimens.buttonRadius),
+                      topRight: Radius.circular(AppDimens.buttonRadius),
+                    ),
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -70,6 +74,14 @@ class GradientButton extends StatelessWidget {
                     ),
                   ),
                 ),
+              ),
+              // 하단 2px primaryDeep 엣지 라인
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 2,
+                child: ColoredBox(color: AppColors.primaryDeep),
               ),
               Material(
                 color: Colors.transparent,
@@ -90,9 +102,9 @@ class GradientButton extends StatelessWidget {
                           text,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.3,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.5,
                           ),
                         ),
                       ],

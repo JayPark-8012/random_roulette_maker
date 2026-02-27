@@ -3,8 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../core/constants.dart';
 import '../../core/design_tokens.dart';
-import '../../core/widgets/glass_card.dart';
-import '../../core/widgets/section_label.dart';
 import '../../data/local_storage.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -158,10 +156,7 @@ class _ToolsTabState extends State<ToolsTab>
             onGenerate: _generateNumber,
             fullscreen: true),
       };
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
-        child: card,
-      );
+      return card;
     }
 
     // ── 전체 목록 뷰 ──
@@ -194,23 +189,6 @@ class _ToolsTabState extends State<ToolsTab>
 }
 
 // ── 공통 카드 데코레이션 헬퍼 ───────────────────────────────────
-BoxDecoration _cardDecoration(Color accentColor, Color surface) {
-  return BoxDecoration(
-    color: Colors.white.withValues(alpha: 0.07),
-    borderRadius: BorderRadius.circular(22),
-    border: Border.all(
-      color: accentColor.withValues(alpha: 0.50),
-      width: 1.5,
-    ),
-    boxShadow: [
-      BoxShadow(
-        color: accentColor.withValues(alpha: 0.10),
-        blurRadius: 8,
-      ),
-    ],
-  );
-}
-
 // 아이콘 배지 헤더 위젯
 Widget _cardHeader(
     BuildContext context, IconData icon, String title, Color color) {
@@ -283,7 +261,7 @@ class _CoinCardState extends State<_CoinCard>
   // 5바퀴 = 10 반회전 / easeOutCubic으로 자연 감속
   static const int _totalHalfTurns = 10;
   static const Duration _spinDuration = Duration(milliseconds: 2200);
-  static const double _coinSize = 169.0; // 30% larger than 130
+  static const double _coinSize = 200.0;
 
   late AnimationController _spinCtrl;
   late Animation<double> _spinAnim;
@@ -357,81 +335,201 @@ class _CoinCardState extends State<_CoinCard>
   Widget _buildCoinFace(bool? isHeads) {
     // 미실행 상태: ? 물음표
     if (isHeads == null) {
-      return Container(
+      return SizedBox(
         width: _coinSize,
         height: _coinSize,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white.withValues(alpha: 0.07),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.15),
-            width: 2.5,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            '?',
-            style: TextStyle(
-              fontSize: 52,
-              fontWeight: FontWeight.w900,
-              color: Colors.white.withValues(alpha: 0.25),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // 외부 글로우
+            Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFFB800).withValues(alpha: 0.10),
+                    blurRadius: 50,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
             ),
-          ),
+            // 외곽 링
+            Container(
+              width: 190,
+              height: 190,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.05),
+              ),
+            ),
+            // 내부
+            Container(
+              width: 160,
+              height: 160,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.03),
+              ),
+            ),
+            // 물음표
+            Center(
+              child: Text(
+                '?',
+                style: TextStyle(
+                  fontSize: 52,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white.withValues(alpha: 0.25),
+                ),
+              ),
+            ),
+            // 테두리 링
+            Container(
+              width: 190,
+              height: 190,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  width: 2,
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
 
     final isH = isHeads;
-    // 앞면: gold gradient / 뒷면: silver gradient
-    final gradient = isH
-        ? const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFFFB800), Color(0xFFFF8C00)],
+    final glowColor = isH
+        ? const Color(0xFFFFB800)
+        : const Color(0xFF8B9DB0);
+    final outerGradient = isH
+        ? const RadialGradient(
+            colors: [Color(0xFFFFD93D), Color(0xFFFF9500)],
+            stops: [0.0, 1.0],
           )
-        : const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+        : const RadialGradient(
             colors: [Color(0xFFC8D0DC), Color(0xFF8B9DB0)],
+            stops: [0.0, 1.0],
           );
-    final borderColor =
-        isH ? const Color(0xFFCC9400) : const Color(0xFF6B7D90);
+    final innerGradient = isH
+        ? const RadialGradient(
+            center: Alignment(-0.3, -0.3),
+            colors: [Color(0xFFFFE566), Color(0xFFCC7700)],
+          )
+        : const RadialGradient(
+            center: Alignment(-0.3, -0.3),
+            colors: [Color(0xFFD4DCE8), Color(0xFF6B7D90)],
+          );
+    const textColor = Color(0xFF7A4500);
+    const silverTextColor = Color(0xFF3A4A5C);
 
-    return Container(
+    return SizedBox(
       width: _coinSize,
       height: _coinSize,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: gradient,
-        border: Border.all(color: borderColor, width: 3.5),
-      ),
-      child: Center(
-        child: Icon(
-          isH ? Icons.wb_sunny_rounded : Icons.nightlight_round,
-          size: 56,
-          color: Colors.white.withValues(alpha: 0.9),
-        ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // 레이어1 — 외부 글로우
+          Container(
+            width: 200,
+            height: 200,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: glowColor.withValues(alpha: 0.2),
+                  blurRadius: 50,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+          ),
+          // 레이어2 — 코인 외곽 링
+          Container(
+            width: 190,
+            height: 190,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: outerGradient,
+              boxShadow: [
+                BoxShadow(
+                  color: glowColor.withValues(alpha: 0.6),
+                  blurRadius: 10,
+                ),
+              ],
+            ),
+          ),
+          // 레이어3 — 코인 내부
+          Container(
+            width: 160,
+            height: 160,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: innerGradient,
+            ),
+          ),
+          // 레이어4 — 앞/뒤 텍스트
+          Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  isH ? '👑' : '✦',
+                  style: const TextStyle(fontSize: 32),
+                ),
+                Text(
+                  isH ? '앞' : '뒤',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: isH ? textColor : silverTextColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // 레이어5 — 코인 테두리 링
+          Container(
+            width: 190,
+            height: 190,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: const Color(0xFFFFB800).withValues(alpha: 0.25),
+                width: 1.5,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildFlipButton(AppLocalizations l10n) {
-    const darkGold = Color(0xFF7A4F00);
+    const textColor = Color(0xFF3D2000);
 
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 200),
       opacity: _isFlipping ? 0.65 : 1.0,
       child: Container(
-        height: AppDimens.buttonHeight,
+        height: 56,
         decoration: BoxDecoration(
-          gradient: AppColors.goldGradient,
-          borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
+          gradient: const LinearGradient(
+            colors: [Color(0xFFCC8800), Color(0xFFFFB800)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          borderRadius: BorderRadius.circular(14),
           boxShadow: !_isFlipping
               ? [
                   BoxShadow(
-                    color: AppColors.gold.withValues(alpha: 0.45),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
+                    color: const Color(0xFFFFB800).withValues(alpha: 0.35),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
                   ),
                 ]
               : null,
@@ -440,37 +538,17 @@ class _CoinCardState extends State<_CoinCard>
           color: Colors.transparent,
           child: InkWell(
             onTap: _isFlipping ? null : _startFlip,
-            borderRadius: BorderRadius.circular(AppDimens.buttonRadius),
+            borderRadius: BorderRadius.circular(14),
             splashColor: Colors.white.withValues(alpha: 0.15),
             highlightColor: Colors.white.withValues(alpha: 0.05),
             child: Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (_isFlipping)
-                    AnimatedBuilder(
-                      animation: _spinAnim,
-                      builder: (_, child) => Transform.rotate(
-                        angle: _spinAnim.value * 2 * pi * 5,
-                        child: child,
-                      ),
-                      child: const Icon(Icons.refresh_rounded,
-                          color: darkGold, size: 20),
-                    )
-                  else
-                    const Icon(Icons.refresh_rounded,
-                        color: darkGold, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    l10n.actionFlip,
-                    style: const TextStyle(
-                      color: darkGold,
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ],
+              child: Text(
+                '🪙 뒤집기',
+                style: const TextStyle(
+                  color: textColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
           ),
@@ -485,163 +563,234 @@ class _CoinCardState extends State<_CoinCard>
     final headsCount = widget.history.where((h) => h).length;
     final tailsCount = widget.history.where((h) => !h).length;
 
-    return GlassCard(
-      padding: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── GlassCard label header ──
-            Row(
+    return SafeArea(
+      top: false,
+      bottom: true,
+      child: Column(
+      children: [
+        // ── 메인 박스 ──
+        Expanded(
+          child: Container(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0E1628),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: const Color(0xFFFFB800).withValues(alpha: 0.4),
+                width: 1.5,
+              ),
+            ),
+            child: Column(
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.gold.withValues(alpha: 0.22),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.monetization_on_outlined,
-                      size: 18, color: AppColors.gold),
+                // ── 헤더 ──
+                Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.gold.withValues(alpha: 0.22),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.monetization_on_outlined,
+                          size: 18, color: AppColors.gold),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      l10n.coinFlipTitle,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.gold,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                Text(
-                  l10n.coinFlipTitle,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.gold,
+                const SizedBox(height: 16),
+                // ── Coin with glow pulse (Expanded 중앙) ──
+                Expanded(
+                  child: Center(
+                    child: SizedBox(
+                      width: _coinSize,
+                      height: _coinSize,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Idle glow pulse
+                          if (!_isFlipping)
+                            AnimatedBuilder(
+                              animation: _glowAnim,
+                              builder: (_, _) => Container(
+                                width: _coinSize,
+                                height: _coinSize,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFFFFB800)
+                                          .withValues(alpha: _glowAnim.value * 0.5),
+                                      blurRadius: 28,
+                                      spreadRadius: 4,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          // Static coin (not flipping)
+                          Opacity(
+                            opacity: _isFlipping ? 0.0 : 1.0,
+                            child: _ResultBounce(
+                              resultKey:
+                                  _flipDoneCount > 0 ? _flipDoneCount : null,
+                              child: _buildCoinFace(widget.coin),
+                            ),
+                          ),
+                          // Flipping coin animation
+                          if (_isFlipping)
+                            AnimatedBuilder(
+                              animation: _spinAnim,
+                              builder: (_, _) {
+                                final t = _spinAnim.value * _totalHalfTurns;
+                                final halfTurn =
+                                    t.floor().clamp(0, _totalHalfTurns - 1);
+                                final phase = t - t.floor();
+                                final scaleX =
+                                    halfTurn.isEven ? (1.0 - phase) : phase;
+                                final face = (halfTurn == _totalHalfTurns - 1)
+                                    ? widget.coin
+                                    : _halfTurnFaces[halfTurn];
+                                return Transform.scale(
+                                  scaleX: scaleX.clamp(0.0, 1.0),
+                                  child: _buildCoinFace(face),
+                                );
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
+                ),
+                // ── 결과 통계 ──
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF141D35),
+                          border: Border.all(
+                            color: const Color(0xFFFFB800).withValues(alpha: 0.12),
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              l10n.coinHeads,
+                              style: TextStyle(
+                                fontSize: 8,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFFFFB800).withValues(alpha: 0.6),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '$headsCount',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF141D35),
+                          border: Border.all(
+                            color: const Color(0xFFFFB800).withValues(alpha: 0.12),
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              l10n.coinTails,
+                              style: TextStyle(
+                                fontSize: 8,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFFFFB800).withValues(alpha: 0.6),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '$tailsCount',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF141D35),
+                          border: Border.all(
+                            color: const Color(0xFFFFB800).withValues(alpha: 0.12),
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              '총',
+                              style: TextStyle(
+                                fontSize: 8,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFFFFB800).withValues(alpha: 0.6),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${widget.history.length}',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // ── Flip button ──
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: _buildFlipButton(l10n),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            // ── Coin with glow pulse ──
-            SizedBox(
-              height: 190,
-              child: Center(
-                child: SizedBox(
-                  width: _coinSize,
-                  height: _coinSize,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Idle glow pulse
-                      if (!_isFlipping)
-                        AnimatedBuilder(
-                          animation: _glowAnim,
-                          builder: (_, _) => Container(
-                            width: _coinSize,
-                            height: _coinSize,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.gold
-                                      .withValues(alpha: _glowAnim.value),
-                                  blurRadius: 28,
-                                  spreadRadius: 4,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      // Static coin (not flipping)
-                      Opacity(
-                        opacity: _isFlipping ? 0.0 : 1.0,
-                        child: _ResultBounce(
-                          resultKey:
-                              _flipDoneCount > 0 ? _flipDoneCount : null,
-                          child: _buildCoinFace(widget.coin),
-                        ),
-                      ),
-                      // Flipping coin animation
-                      if (_isFlipping)
-                        AnimatedBuilder(
-                          animation: _spinAnim,
-                          builder: (_, _) {
-                            final t = _spinAnim.value * _totalHalfTurns;
-                            final halfTurn =
-                                t.floor().clamp(0, _totalHalfTurns - 1);
-                            final phase = t - t.floor();
-                            final scaleX =
-                                halfTurn.isEven ? (1.0 - phase) : phase;
-                            final face = (halfTurn == _totalHalfTurns - 1)
-                                ? widget.coin
-                                : _halfTurnFaces[halfTurn];
-                            return Transform.scale(
-                              scaleX: scaleX.clamp(0.0, 1.0),
-                              child: _buildCoinFace(face),
-                            );
-                          },
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // ── Recent results ──
-            if (widget.history.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              SectionLabel(text: l10n.statsRecentResults),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: widget.history.map((h) {
-                    final chipColor =
-                        h ? AppColors.gold : const Color(0xFF8B9DB0);
-                    return Container(
-                      width: 30,
-                      height: 30,
-                      margin: const EdgeInsets.only(right: 6),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: chipColor.withValues(alpha: 0.25),
-                        border: Border.all(
-                          color: chipColor.withValues(alpha: 0.55),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          h ? l10n.coinHeads : l10n.coinTails,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: chipColor,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-              const SizedBox(height: 8),
-              // Stats summary
-              Text(
-                '${l10n.coinHeads} $headsCount · ${l10n.coinTails} $tailsCount · ${widget.history.length}',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-            if (widget.fullscreen)
-              const Spacer()
-            else
-              const SizedBox(height: 20),
-            // ── Flip button (gold gradient + spinning icon) ──
-            SizedBox(
-              width: double.infinity,
-              height: AppDimens.buttonHeight,
-              child: _buildFlipButton(l10n),
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
+    ),
     );
   }
 }
@@ -713,147 +862,32 @@ class _DiceCardState extends State<_DiceCard> {
   // ── 다면체 이름 매핑 ──
   static const _polyhedraTypes = [4, 6, 8, 10, 12, 20];
 
-  String _polyhedraName(AppLocalizations l10n, int type) {
-    return switch (type) {
-      4 => l10n.diceD4Name,
-      6 => l10n.diceD6Name,
-      8 => l10n.diceD8Name,
-      10 => l10n.diceD10Name,
-      12 => l10n.diceD12Name,
-      20 => l10n.diceD20Name,
-      _ => 'D$type',
-    };
-  }
-
-  Widget _buildDiceFace(int? result, Color accentColor, ColorScheme cs,
-      {bool rolling = false}) {
-    final isD6 = widget.selectedType == 6;
-
-    if (result == null) {
-      // ── 빈 상태 ──
-      if (isD6) {
-        return Container(
-          width: 130,
-          height: 130,
-          decoration: BoxDecoration(
-            color: cs.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: cs.outlineVariant.withValues(alpha: 0.70),
-              width: 2.0,
-            ),
-          ),
-          child: Center(
-            child: Text(
-              '?',
-              style: TextStyle(
-                fontSize: 44,
-                fontWeight: FontWeight.w900,
-                color: cs.onSurfaceVariant.withValues(alpha: 0.45),
-              ),
-            ),
-          ),
-        );
-      }
-      // 비-D6 빈 상태: 원형 GlassCard
-      return _buildNonD6Visual(null, accentColor, cs, rolling: false);
-    }
-
-    // ── D6: CustomPainter (기존) ──
-    if (isD6) {
-      return Container(
-        width: 130,
-        height: 130,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: accentColor.withValues(alpha: rolling ? 0.10 : 0.25),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: CustomPaint(
-          size: const Size(130, 130),
-          painter: _DiceFacePainter(
-              value: result, color: accentColor, rolling: rolling),
-        ),
-      );
-    }
-
-    // ── 비-D6: 원형 GlassCard 숫자 표시 ──
-    return _buildNonD6Visual(result, accentColor, cs, rolling: rolling);
-  }
-
-  Widget _buildNonD6Visual(int? result, Color accentColor, ColorScheme cs,
-      {bool rolling = false}) {
-    final l10n = AppLocalizations.of(context)!;
-    return Container(
-      width: 130,
-      height: 130,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: accentColor.withValues(alpha: rolling ? 0.14 : 0.22),
-        border: Border.all(
-          color: accentColor.withValues(alpha: rolling ? 0.45 : 0.80),
-          width: 2.5,
-        ),
-        boxShadow: result != null && !rolling
-            ? [
-                BoxShadow(
-                  color: accentColor.withValues(alpha: 0.25),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ]
-            : [],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            result != null ? '$result' : '?',
-            style: TextStyle(
-              fontSize: result != null ? 48 : 44,
-              fontWeight: FontWeight.w900,
-              color: result != null
-                  ? accentColor.withValues(alpha: rolling ? 0.50 : 1.0)
-                  : cs.onSurfaceVariant.withValues(alpha: 0.45),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'D${widget.selectedType}',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: accentColor.withValues(alpha: 0.6),
-              letterSpacing: 0.5,
-            ),
-          ),
-          Text(
-            _polyhedraName(l10n, widget.selectedType),
-            style: TextStyle(
-              fontSize: 9,
-              color: cs.onSurfaceVariant.withValues(alpha: 0.5),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
-    const accentColor = Color(0xFFAB47BC);
+    const accentColor = Color(0xFF00D4FF);
 
     final shownResult = _isRolling ? _displayResult : widget.result;
 
-    return Container(
-      decoration: _cardDecoration(accentColor, cs.surface),
+    return SafeArea(
+      top: false,
+      bottom: true,
+      child: Container(
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F1C30),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFF00D4FF).withValues(alpha: 0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF00D4FF).withValues(alpha: 0.15),
+            blurRadius: 20,
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -864,86 +898,130 @@ class _DiceCardState extends State<_DiceCard> {
                 context, Icons.casino_outlined, l10n.diceTitle, accentColor),
             const SizedBox(height: 12),
 
-            // ── 다면체 선택 칩 행 ──
-            SizedBox(
-              height: 36,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: _polyhedraTypes.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final type = _polyhedraTypes[index];
-                  final selected = type == widget.selectedType;
-                  return GestureDetector(
-                    onTap: _isRolling
-                        ? null
-                        : () => widget.onTypeChanged(type),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      width: 48,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        gradient: selected
-                            ? const LinearGradient(
-                                colors: [Color(0xFFAB47BC), Color(0xFF8E24AA)],
-                              )
-                            : null,
-                        color: selected
-                            ? null
-                            : Colors.white.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(100),
-                        border: Border.all(
+            // ── 다면체 선택 버튼 행 ──
+            Row(
+              children: _polyhedraTypes.asMap().entries.map((entry) {
+                final index = entry.key;
+                final type = entry.value;
+                final selected = type == widget.selectedType;
+                return Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                        left: index == 0 ? 0 : 3,
+                        right: index == _polyhedraTypes.length - 1 ? 0 : 3),
+                    child: GestureDetector(
+                      onTap: _isRolling
+                          ? null
+                          : () => widget.onTypeChanged(type),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        height: 44,
+                        decoration: BoxDecoration(
                           color: selected
-                              ? Colors.transparent
-                              : Colors.white.withValues(alpha: 0.15),
-                          width: 1,
+                              ? const Color(0xFF00D4FF)
+                              : const Color(0xFF0E1628),
+                          borderRadius: BorderRadius.circular(10),
+                          border: selected
+                              ? null
+                              : Border.all(
+                                  color: const Color(0xFFFFFFFF)
+                                      .withValues(alpha: 0.1),
+                                  width: 1,
+                                ),
                         ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'D$type',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight:
-                                selected ? FontWeight.bold : FontWeight.w500,
-                            color: selected
-                                ? Colors.white
-                                : cs.onSurfaceVariant,
+                        child: Center(
+                          child: Text(
+                            'D$type',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight:
+                                  selected ? FontWeight.w800 : FontWeight.w600,
+                              color: selected
+                                  ? const Color(0xFF070B14)
+                                  : const Color(0xFFFFFFFF)
+                                      .withValues(alpha: 0.45),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              }).toList(),
             ),
             const SizedBox(height: 16),
 
             // ── 주사위 뷰잉 ──
             SizedBox(
-              height: 160,
+              height: 220,
               child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _ResultBounce(
-                      resultKey: _rollDoneCount,
-                      child: _buildDiceFace(
-                        shownResult, accentColor, cs,
-                        rolling: _isRolling,
-                      ),
-                    ),
-                    if (!_isRolling && widget.result != null) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        l10n.diceRange(widget.selectedType),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: cs.onSurfaceVariant.withValues(alpha: 0.55),
+                child: _ResultBounce(
+                  resultKey: _rollDoneCount,
+                  child: SizedBox(
+                    width: 220,
+                    height: 220,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // 외부 글로우
+                        Container(
+                          width: 220,
+                          height: 220,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF00D4FF)
+                                    .withValues(alpha: _isRolling ? 0.35 : 0.2),
+                                blurRadius: 40,
+                                spreadRadius: 8,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ],
+                        // 다각형
+                        CustomPaint(
+                          size: const Size(200, 200),
+                          painter: _DiceShapePainter(
+                            sides: widget.selectedType,
+                            fillColor: const Color(0xFF0F1C30),
+                            borderColor: const Color(0xFF00D4FF)
+                                .withValues(alpha: 0.6),
+                          ),
+                        ),
+                        // 숫자 + 라벨
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              shownResult != null ? '$shownResult' : '?',
+                              style: TextStyle(
+                                fontSize: 52,
+                                fontWeight: FontWeight.w900,
+                                color: shownResult != null
+                                    ? const Color(0xFF00D4FF).withValues(
+                                        alpha: _isRolling ? 0.5 : 1.0)
+                                    : const Color(0xFFFFFFFF)
+                                        .withValues(alpha: 0.3),
+                                height: 1.0,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'D${widget.selectedType}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF00D4FF)
+                                    .withValues(alpha: 0.45),
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -1008,102 +1086,128 @@ class _DiceCardState extends State<_DiceCard> {
               const SizedBox(height: 20),
 
             // ── 버튼 (항상 최하단) ──
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: _PremiumButton(
-                onPressed: _isRolling ? null : _startRoll,
-                icon: Icons.casino_rounded,
-                label: l10n.rollDice(widget.selectedType),
-                color: accentColor,
+            GestureDetector(
+              onTap: _isRolling ? null : _startRoll,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: _isRolling ? 0.45 : 1.0,
+                child: Container(
+                  width: double.infinity,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF0284C7), Color(0xFF00D4FF)],
+                    ),
+                    boxShadow: _isRolling
+                        ? []
+                        : [
+                            BoxShadow(
+                              color: const Color(0xFF00D4FF)
+                                  .withValues(alpha: 0.4),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.casino_rounded,
+                          color: Colors.white, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.rollDice(widget.selectedType),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ],
         ),
       ),
+    ),
     );
   }
 }
 
-// ── D6 눈 CustomPainter ─────────────────────────────────────
-class _DiceFacePainter extends CustomPainter {
-  final int value;
-  final Color color;
-  final bool rolling;
+// ── 다각형 주사위 모양 CustomPainter ────────────────────────────
+class _DiceShapePainter extends CustomPainter {
+  final int sides;
+  final Color fillColor;
+  final Color borderColor;
 
-  const _DiceFacePainter({
-    required this.value,
-    required this.color,
-    this.rolling = false,
+  _DiceShapePainter({
+    required this.sides,
+    required this.fillColor,
+    required this.borderColor,
   });
-
-  // 눈 위치 (0.0~1.0 비율)
-  static const _dots = <int, List<Offset>>{
-    1: [Offset(0.50, 0.50)],
-    2: [Offset(0.72, 0.28), Offset(0.28, 0.72)],
-    3: [Offset(0.72, 0.28), Offset(0.50, 0.50), Offset(0.28, 0.72)],
-    4: [
-      Offset(0.28, 0.28),
-      Offset(0.72, 0.28),
-      Offset(0.28, 0.72),
-      Offset(0.72, 0.72)
-    ],
-    5: [
-      Offset(0.28, 0.28),
-      Offset(0.72, 0.28),
-      Offset(0.50, 0.50),
-      Offset(0.28, 0.72),
-      Offset(0.72, 0.72)
-    ],
-    6: [
-      Offset(0.28, 0.25),
-      Offset(0.72, 0.25),
-      Offset(0.28, 0.50),
-      Offset(0.72, 0.50),
-      Offset(0.28, 0.75),
-      Offset(0.72, 0.75)
-    ],
-  };
 
   @override
   void paint(Canvas canvas, Size size) {
-    final bgAlpha = rolling ? 0.14 : 0.26;
-    final bgColor = color.withValues(alpha: bgAlpha);
-    final borderColor = color.withValues(alpha: rolling ? 0.45 : 0.85);
-    final dotColor = color.withValues(alpha: rolling ? 0.50 : 1.0);
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final r = size.width * 0.46;
 
-    final rrect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      const Radius.circular(24),
-    );
+    final fillPaint = Paint()
+      ..color = fillColor
+      ..style = PaintingStyle.fill;
 
-    // 배경
-    canvas.drawRRect(rrect, Paint()..color = bgColor);
-    // 테두리 (강화: alpha 0.45→0.85, strokeWidth 1.5→2.5)
-    canvas.drawRRect(
-        rrect,
-        Paint()
-          ..color = borderColor
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.5);
+    final borderPaint = Paint()
+      ..color = borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
 
-    // 눈
-    final positions = _dots[value.clamp(1, 6)] ?? [];
-    final dotRadius = size.width * 0.09;
-    for (final pos in positions) {
-      canvas.drawCircle(
-        Offset(pos.dx * size.width, pos.dy * size.height),
-        dotRadius,
-        Paint()..color = dotColor,
-      );
+    final int vertexCount = switch (sides) {
+      4 => 3,
+      6 => 4,
+      8 => 4,
+      10 => 5,
+      12 => 5,
+      20 => 6,
+      _ => 6,
+    };
+
+    final double startAngle = switch (sides) {
+      4 => -pi / 2,
+      6 => -pi / 4,
+      8 => 0,
+      10 => -pi / 2,
+      12 => -pi / 2,
+      20 => 0,
+      _ => 0,
+    };
+
+    final path = Path();
+    for (int i = 0; i < vertexCount; i++) {
+      final angle = startAngle + (2 * pi * i / vertexCount);
+      final x = cx + r * cos(angle);
+      final y = cy + r * sin(angle);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
     }
+    path.close();
+
+    canvas.drawPath(path, fillPaint);
+    canvas.drawPath(path, borderPaint);
   }
 
   @override
-  bool shouldRepaint(_DiceFacePainter old) =>
-      old.value != value ||
-      old.color != color ||
-      old.rolling != rolling;
+  bool shouldRepaint(_DiceShapePainter old) =>
+      old.sides != sides ||
+      old.fillColor != fillColor ||
+      old.borderColor != borderColor;
 }
 
 // ── 랜덤 숫자 카드 (StatefulWidget + 감속 카운터 애니메이션) ──────────
@@ -1180,297 +1284,315 @@ class _NumberCardState extends State<_NumberCard> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
-    const accentColor = Color(0xFF42A5F5);
+    const accent = Color(0xFF00D4FF);
 
     final shownResult = _isGenerating ? _displayResult : widget.result;
+    final minText = widget.minCtrl.text.trim().isEmpty ? '1' : widget.minCtrl.text.trim();
+    final maxText = widget.maxCtrl.text.trim().isEmpty ? '100' : widget.maxCtrl.text.trim();
 
-    final inputBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide:
-          BorderSide(color: accentColor.withValues(alpha: 0.35), width: 1),
-    );
-    final focusedBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: accentColor, width: 2),
-    );
-
-    return Container(
-      decoration: _cardDecoration(accentColor, cs.surface),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── 헤더 ──
-            _cardHeader(context, Icons.tag_rounded,
-                l10n.randomNumberTitle, accentColor),
-            const SizedBox(height: 16),
-            // ── min / max 입력 — 생성 중 비활성 ──
-            Row(
+    return SafeArea(
+      top: false,
+      bottom: true,
+      child: Column(
+      children: [
+        // ── 메인 박스 ──
+        Expanded(
+          child: Container(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0E1628),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: const Color(0xFF00D4FF).withValues(alpha: 0.4),
+                width: 1.5,
+              ),
+            ),
+            child: Column(
               children: [
+                // ── 헤더 ──
+                Row(
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0284C7), Color(0xFF00D4FF)],
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          '#',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      '랜덤 숫자',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // ── 입력 필드 (최솟값 / → / 최댓값) ──
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0E1628),
+                          border: Border.all(
+                            color: accent.withValues(alpha: 0.2),
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              l10n.minLabel,
+                              style: TextStyle(
+                                fontSize: 8,
+                                fontWeight: FontWeight.w600,
+                                color: accent.withValues(alpha: 0.5),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            TextField(
+                              controller: widget.minCtrl,
+                              enabled: !_isGenerating,
+                              keyboardType: TextInputType.number,
+                              textAlign: TextAlign.center,
+                              cursorColor: accent,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                              decoration: const InputDecoration(
+                                isDense: true,
+                                contentPadding: EdgeInsets.zero,
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Icon(
+                        Icons.arrow_forward,
+                        color: accent.withValues(alpha: 0.4),
+                        size: 20,
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0E1628),
+                          border: Border.all(
+                            color: accent.withValues(alpha: 0.2),
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              l10n.maxLabel,
+                              style: TextStyle(
+                                fontSize: 8,
+                                fontWeight: FontWeight.w600,
+                                color: accent.withValues(alpha: 0.5),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            TextField(
+                              controller: widget.maxCtrl,
+                              enabled: !_isGenerating,
+                              keyboardType: TextInputType.number,
+                              textAlign: TextAlign.center,
+                              cursorColor: accent,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                              decoration: const InputDecoration(
+                                isDense: true,
+                                contentPadding: EdgeInsets.zero,
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                // ── 결과 숫자 (Expanded 중앙) ──
                 Expanded(
-                  child: TextField(
-                    controller: widget.minCtrl,
-                    enabled: !_isGenerating,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                    decoration: InputDecoration(
-                      labelText: l10n.minLabel,
-                      isDense: true,
-                      filled: true,
-                      fillColor:
-                          accentColor.withValues(alpha: 0.10),
-                      border: inputBorder,
-                      enabledBorder: inputBorder,
-                      focusedBorder: focusedBorder,
+                  child: Center(
+                    child: _ResultBounce(
+                      resultKey: _genDoneCount,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 150),
+                            style: TextStyle(
+                              fontSize: 72,
+                              fontWeight: FontWeight.w900,
+                              color: shownResult != null
+                                  ? Colors.white.withValues(
+                                      alpha: _isGenerating ? 0.45 : 1.0)
+                                  : Colors.white.withValues(alpha: 0.25),
+                              height: 1.0,
+                            ),
+                            child: Text(
+                              shownResult != null ? '$shownResult' : '?',
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '$minText ~ $maxText 사이',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: accent.withValues(alpha: 0.5),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Icon(
-                    Icons.arrow_forward_rounded,
-                    color: accentColor.withValues(alpha: 0.55),
-                    size: 20,
+                // ── 최근 결과 히스토리 ──
+                if (widget.history.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        l10n.recent10,
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white.withValues(alpha: 0.3),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: TextField(
-                    controller: widget.maxCtrl,
-                    enabled: !_isGenerating,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                    decoration: InputDecoration(
-                      labelText: l10n.maxLabel,
-                      isDense: true,
-                      filled: true,
-                      fillColor:
-                          accentColor.withValues(alpha: 0.10),
-                      border: inputBorder,
-                      enabledBorder: inputBorder,
-                      focusedBorder: focusedBorder,
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: widget.history.map((h) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0E1628),
+                          border: Border.all(
+                            color: accent.withValues(alpha: 0.2),
+                          ),
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                        child: RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: '${h['min']}~${h['max']} ',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: accent.withValues(alpha: 0.5),
+                                ),
+                              ),
+                              TextSpan(
+                                text: '${h['result']}',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                // ── 생성 버튼 ──
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: _isGenerating ? 0.65 : 1.0,
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0284C7), Color(0xFF00D4FF)],
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: !_isGenerating
+                            ? [
+                                BoxShadow(
+                                  color: accent.withValues(alpha: 0.4),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: _isGenerating ? null : _startGenerate,
+                          borderRadius: BorderRadius.circular(14),
+                          splashColor: Colors.white.withValues(alpha: 0.15),
+                          highlightColor: Colors.white.withValues(alpha: 0.05),
+                          child: const Center(
+                            child: Text(
+                              '🎲 생성',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            // ── 숫자 뷰잉 (항상 고정 144px) ──
-            SizedBox(
-              height: 144,
-              child: Center(
-                child: _ResultBounce(
-                  resultKey: _genDoneCount,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 18),
-                    decoration: BoxDecoration(
-                      color: shownResult != null
-                          ? accentColor.withValues(
-                              alpha: _isGenerating ? 0.12 : 0.22)
-                          : cs.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: shownResult != null
-                            ? accentColor.withValues(
-                                alpha: _isGenerating ? 0.35 : 0.80)
-                            : cs.outlineVariant.withValues(alpha: 0.70),
-                        width: 2.0,
-                      ),
-                      boxShadow: shownResult != null && !_isGenerating
-                          ? [
-                              BoxShadow(
-                                color: accentColor.withValues(alpha: 0.20),
-                                blurRadius: 6,
-                                offset: const Offset(0, 3),
-                              )
-                            ]
-                          : [],
-                    ),
-                    child: Text(
-                      shownResult != null ? '$shownResult' : '?',
-                      style: TextStyle(
-                        fontSize: 52,
-                        fontWeight: FontWeight.w900,
-                        color: shownResult != null
-                            ? accentColor.withValues(
-                                alpha: _isGenerating ? 0.45 : 1.0)
-                            : cs.onSurfaceVariant.withValues(alpha: 0.45),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            // ── 히스토리 (뷰잉과 버튼 사이) ──
-            if (widget.history.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Divider(color: accentColor.withValues(alpha: 0.2)),
-              const SizedBox(height: 8),
-              _historyRow(
-                widget.history
-                    .map((h) => Container(
-                          margin: const EdgeInsets.only(right: 6),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 11, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: accentColor.withValues(
-                                alpha: 0.18),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                                color: accentColor.withValues(alpha: 0.35),
-                                width: 1),
-                          ),
-                          child: RichText(
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: '${h['min']}~${h['max']} ',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: cs.onSurfaceVariant
-                                        .withValues(alpha: 0.65),
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: '${h['result']}',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: accentColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ))
-                    .toList(),
-                l10n.recent10,
-                context,
-              ),
-              const SizedBox(height: 8),
-            ],
-            if (widget.fullscreen) const Spacer() else const SizedBox(height: 20),
-            // ── 버튼 (항상 최하단) ──
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: _PremiumButton(
-                onPressed: _isGenerating ? null : _startGenerate,
-                icon: Icons.shuffle_rounded,
-                label: l10n.actionGenerate,
-                color: accentColor,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── 공통 액션 버튼 (pulse glow) ──────────────────────────────────────────
-
-class _PremiumButton extends StatefulWidget {
-  final VoidCallback? onPressed;
-  final IconData icon;
-  final String label;
-  final Color color;
-
-  const _PremiumButton({
-    required this.onPressed,
-    required this.icon,
-    required this.label,
-    required this.color,
-  });
-
-  @override
-  State<_PremiumButton> createState() => _PremiumButtonState();
-}
-
-/// 3D 아케이드 버튼 (tools 카드용) — _PremiumSpinButton 과 동일한 스타일
-class _PremiumButtonState extends State<_PremiumButton> {
-  bool _isPressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDisabled = widget.onPressed == null;
-    final color = isDisabled
-        ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.25)
-        : widget.color;
-
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
-      onTap: widget.onPressed,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 80),
-        curve: Curves.easeOut,
-        transform: Matrix4.translationValues(0, _isPressed ? 4.0 : 0.0, 0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          gradient: LinearGradient(
-            colors: [
-              Color.lerp(color, Colors.white, isDisabled ? 0.0 : 0.22)!,
-              color,
-              Color.lerp(color, Colors.black, isDisabled ? 0.0 : 0.30)!,
-            ],
-            stops: const [0.0, 0.42, 1.0],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-          boxShadow: isDisabled
-              ? []
-              : [
-                  BoxShadow(
-                    color: Color.lerp(color, Colors.black, 0.55)!
-                        .withValues(alpha: 0.75),
-                    blurRadius: 0,
-                    offset: Offset(0, _isPressed ? 1.0 : 5.0),
-                  ),
-                  BoxShadow(
-                    color: color.withValues(alpha: 0.20),
-                    blurRadius: 10,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-        ),
-        child: Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(widget.icon,
-                  color: isDisabled
-                      ? Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.4)
-                      : Colors.white,
-                  size: 20),
-              const SizedBox(width: 8),
-              Text(
-                widget.label,
-                style: TextStyle(
-                  color: isDisabled
-                      ? Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.4)
-                      : Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-            ],
           ),
         ),
-      ),
+      ],
+    ),
     );
   }
 }

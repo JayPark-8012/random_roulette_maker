@@ -380,31 +380,48 @@ class RoulettePointer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 20% 확대: 30×48 → 36×58 + 골드 halo
+    // 25% 확대: 36×58 → 45×73 + 골드 halo
     return Stack(
       alignment: Alignment.topCenter,
       clipBehavior: Clip.none,
       children: [
-        // 포인터 아래쪽 골드 빛 번짐 halo
+        // 포인터 아래쪽 골드 타원형 halo (20x8)
         Positioned(
-          top: 30,
+          top: 52,
           child: Container(
-            width: 40,
-            height: 40,
+            width: 20,
+            height: 8,
             decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFFFB800).withValues(alpha: 0.20),
+                  blurRadius: 12,
+                  spreadRadius: 4,
+                ),
+              ],
+            ),
+          ),
+        ),
+        // 골드 글로우 드롭섀도우
+        Positioned(
+          top: 10,
+          child: Container(
+            width: 45,
+            height: 45,
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFFFB800).withValues(alpha: 0.35),
-                  blurRadius: 16,
-                  spreadRadius: 2,
+                  color: Color(0x66FFB800),
+                  blurRadius: 12,
                 ),
               ],
             ),
           ),
         ),
         CustomPaint(
-          size: const Size(36, 58),
+          size: const Size(45, 73),
           painter: _PointerPainter(
             color: const Color(0xFFFFBF00),
             shadowColor: const Color(0xFFFFB800),

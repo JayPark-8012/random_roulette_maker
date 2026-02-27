@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import '../atmosphere_presets.dart';
-import '../design_tokens.dart';
-import '../../features/settings/state/settings_notifier.dart';
 
 class AppBackground extends StatelessWidget {
   final Widget child;
@@ -10,68 +7,73 @@ class AppBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: SettingsNotifier.instance,
-      builder: (context, _) {
-        final atmosphere =
-            findAtmosphereById(SettingsNotifier.instance.atmosphereId);
+    final screenHeight = MediaQuery.sizeOf(context).height;
 
-        return Stack(
-          children: [
-            // Layer 0: Atmosphere base (gradient or solid)
-            Positioned.fill(
-              child: atmosphere.gradient != null
-                  ? DecoratedBox(
-                      decoration: BoxDecoration(gradient: atmosphere.gradient),
-                    )
-                  : ColoredBox(color: atmosphere.solidColor),
+    return ClipRect(
+      child: Stack(
+        children: [
+          // Layer 1 — 베이스 단색
+          Positioned.fill(
+            child: const ColoredBox(color: Color(0xFF070B14)),
+          ),
+          // Layer 2 — 사이언 빛 번짐 (좌상단)
+          Positioned(
+            top: -80,
+            left: -50,
+            child: IgnorePointer(
+              child: Container(
+                width: 260,
+                height: 260,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [Color(0x1700D4FF), Colors.transparent],
+                  ),
+                ),
+              ),
             ),
-            // Layer 1: Purple radial glow (center-left, upper)
-            Positioned.fill(
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
+          ),
+          // Layer 3 — 퍼플 빛 번짐 (우하단)
+          Positioned(
+            bottom: -70,
+            right: -40,
+            child: IgnorePointer(
+              child: Container(
+                width: 200,
+                height: 200,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [Color(0x127B61FF), Colors.transparent],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Layer 4 — 중앙 미세 글로우
+          Positioned(
+            top: screenHeight * 0.3,
+            left: 0,
+            right: 0,
+            child: IgnorePointer(
+              child: Center(
+                child: Container(
+                  width: 200,
+                  height: 200,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
                     gradient: RadialGradient(
-                      center: const Alignment(-0.3, -0.2),
-                      radius: 0.8,
-                      colors: [
-                        AppColors.primary.withValues(alpha: 0.10),
-                        Colors.transparent,
-                      ],
+                      colors: [Color(0x0A00D4FF), Colors.transparent],
                     ),
                   ),
                 ),
               ),
             ),
-            // Layer 2: Gold radial glow (bottom-right corner)
-            Positioned.fill(
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      center: const Alignment(1.2, 1.3),
-                      radius: 0.5,
-                      colors: [
-                        AppColors.gold.withValues(alpha: 0.05),
-                        Colors.transparent,
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            // Optional starfield pattern
-            if (atmosphere.hasPattern)
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: CustomPaint(painter: StarfieldPainter()),
-                ),
-              ),
-            // Child content
-            child,
-          ],
-        );
-      },
+          ),
+          // Layer 5 — 자식 위젯
+          Positioned.fill(child: child),
+        ],
+      ),
     );
   }
 }

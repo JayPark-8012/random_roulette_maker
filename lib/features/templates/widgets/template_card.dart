@@ -22,31 +22,43 @@ class TemplateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
-    return Card(
-      elevation: 0,
-      clipBehavior: Clip.hardEdge,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(
-          color: cs.outlineVariant,
-          width: 1.2,
+    return GestureDetector(
+      onTap: onTap,
+      onLongPress: onLongPress,
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF0E1628),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.07),
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(14),
         ),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        onLongPress: onLongPress,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // 미니 룰렛 휠 영역
             Expanded(
-              child: Container(
-                color: cs.surfaceContainerHighest,
-                padding: const EdgeInsets.all(16),
-                child: CustomPaint(
-                  painter: _MiniWheelPainter(items: items),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: ClipOval(
+                        child: CustomPaint(
+                          painter: _MiniWheelPainter(items: items),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -67,10 +79,11 @@ class TemplateCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleSmall
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -82,14 +95,19 @@ class TemplateCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                     decoration: BoxDecoration(
-                      color: cs.secondaryContainer,
+                      color: const Color(0xFF00D4FF).withValues(alpha: 0.1),
+                      border: Border.all(
+                        color: const Color(0xFF00D4FF).withValues(alpha: 0.25),
+                      ),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       category,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: cs.onSecondaryContainer,
-                          ),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF67E8F9),
+                      ),
                     ),
                   ),
                 ],

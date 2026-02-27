@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants.dart';
-import '../../../core/widgets/app_background.dart';
 import '../../../core/utils.dart';
 import '../../../data/roulette_repository.dart';
 import '../../../data/templates_data.dart';
@@ -80,12 +79,50 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return AppBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(title: Text(l10n.starterSetsTitle)),
-        body: Stack(
+    return Scaffold(
+      backgroundColor: const Color(0xFF070B14),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0A1020),
+        title: Text(l10n.starterSetsTitle),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            height: 1,
+            color: const Color(0xFF00D4FF).withValues(alpha: 0.08),
+          ),
+        ),
+      ),
+      body: Stack(
         children: [
+          // ── 배경 빛 번짐 ──
+          Positioned(
+            top: -60,
+            left: -60,
+            width: 200,
+            height: 200,
+            child: Container(
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [Color(0x1200D4FF), Colors.transparent],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -40,
+            right: -40,
+            width: 160,
+            height: 160,
+            child: Container(
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [Color(0x0F7B61FF), Colors.transparent],
+                ),
+              ),
+            ),
+          ),
           GridView.builder(
             padding: const EdgeInsets.all(12),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -120,7 +157,6 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
             ),
         ],
       ),
-    ),
     );
   }
 
