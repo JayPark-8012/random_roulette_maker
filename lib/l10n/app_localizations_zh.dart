@@ -766,6 +766,65 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get showLess => '收起';
+
+  @override
+  String get tabLadder => 'Ladder';
+
+  @override
+  String get ladderTitle => 'Ladder';
+
+  @override
+  String get ladderParticipants => 'Participants';
+
+  @override
+  String get ladderResults => 'Results (optional)';
+
+  @override
+  String get ladderResultHint => 'Leave blank for auto 1st, 2nd...';
+
+  @override
+  String get ladderStart => 'Start Ladder';
+
+  @override
+  String get ladderRetry => 'Retry';
+
+  @override
+  String get ladderShare => 'Share Results';
+
+  @override
+  String get ladderAddParticipant => '+ Add Participant';
+
+  @override
+  String ladderCountBadge(int current, int max) {
+    return '$current / $max';
+  }
+
+  @override
+  String ladderPerson(int index) {
+    return 'Person $index';
+  }
+
+  @override
+  String ladderResult(int index) {
+    return 'Result $index';
+  }
+
+  @override
+  String get ladderResultDefault1st => '1st';
+
+  @override
+  String get ladderResultDefault2nd => '2nd';
+
+  @override
+  String get ladderResultDefault3rd => '3rd';
+
+  @override
+  String ladderResultDefaultNth(int n) {
+    return '${n}th';
+  }
+
+  @override
+  String get ladderMinParticipants => 'At least 2 participants required';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).

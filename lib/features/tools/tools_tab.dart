@@ -1,10 +1,27 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../core/constants.dart';
 import '../../core/design_tokens.dart';
 import '../../data/local_storage.dart';
 import '../../l10n/app_localizations.dart';
+import 'widgets/slot_machine_display.dart';
+
+// ── 사다리 상태 enum ──
+enum LadderState { input, playing, result }
+
+// ── 사다리 경로 모델 ──
+class LadderPath {
+  final int fromIndex;
+  final int toIndex;
+  final List<Offset> points;
+  const LadderPath({
+    required this.fromIndex,
+    required this.toIndex,
+    required this.points,
+  });
+}
 
 class ToolsTab extends StatefulWidget {
   /// null = 전체 표시 / 'coin' | 'dice' | 'number' = 해당 도구만 표시
@@ -148,6 +165,7 @@ class _ToolsTabState extends State<ToolsTab>
               _diceResult = null;
             }),
             fullscreen: true),
+        'ladder' => const _LadderCard(fullscreen: true),
         _ => _NumberCard(
             minCtrl: _minCtrl,
             maxCtrl: _maxCtrl,
@@ -183,6 +201,8 @@ class _ToolsTabState extends State<ToolsTab>
           history: _numHistory,
           onGenerate: _generateNumber,
         ),
+        const SizedBox(height: 14),
+        const _LadderCard(),
       ],
     );
   }
@@ -817,27 +837,81 @@ class _DiceCard extends StatefulWidget {
   State<_DiceCard> createState() => _DiceCardState();
 }
 
-class _DiceCardState extends State<_DiceCard> {
+class _DiceCardState extends State<_DiceCard>
+    with TickerProviderStateMixin {
   // 감속 딜레이 목록 (ms) — 총 10틱
   static const _rollDelays = [35, 35, 40, 50, 65, 80, 100, 125, 155, 190];
+  static const _accent = AppColors.colorDice;
 
   int? _displayResult;
   bool _isRolling = false;
-  int _rollDoneCount = 0;
   bool _disposed = false;
+
+  // ── 굴림 애니메이션 ──
+  late AnimationController _rollCtrl;
+  late Animation<double> _rollScale;
+  late Animation<double> _rollRotate;
+
+  // ── Idle 떠다니기 애니메이션 ──
+  late AnimationController _idleCtrl;
+  late Animation<double> _idleTranslateY;
+  late Animation<double> _idleRotate;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Roll 애니메이션 (600ms)
+    _rollCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _rollScale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.92), weight: 30),
+      TweenSequenceItem(tween: Tween(begin: 0.92, end: 1.08), weight: 30),
+      TweenSequenceItem(tween: Tween(begin: 1.08, end: 0.96), weight: 20),
+      TweenSequenceItem(tween: Tween(begin: 0.96, end: 1.0), weight: 20),
+    ]).animate(CurvedAnimation(parent: _rollCtrl, curve: Curves.easeInOut));
+    _rollRotate = TweenSequence<double>([
+      TweenSequenceItem(
+          tween: Tween(begin: 0.0, end: -0.26), weight: 30), // -15deg
+      TweenSequenceItem(
+          tween: Tween(begin: -0.26, end: 0.35), weight: 30), // +20deg
+      TweenSequenceItem(
+          tween: Tween(begin: 0.35, end: -0.17), weight: 20), // -10deg
+      TweenSequenceItem(
+          tween: Tween(begin: -0.17, end: -0.035), weight: 20), // -2deg
+    ]).animate(CurvedAnimation(parent: _rollCtrl, curve: Curves.easeInOut));
+
+    // Idle 애니메이션 (3s loop)
+    _idleCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    );
+    _idleTranslateY = Tween<double>(begin: 0, end: -6).animate(
+      CurvedAnimation(parent: _idleCtrl, curve: Curves.easeInOut),
+    );
+    _idleRotate = Tween<double>(begin: -0.035, end: 0.035).animate(
+      CurvedAnimation(parent: _idleCtrl, curve: Curves.easeInOut),
+    );
+  }
 
   @override
   void dispose() {
     _disposed = true;
+    _rollCtrl.dispose();
+    _idleCtrl.dispose();
     super.dispose();
   }
 
   void _startRoll() {
     widget.onRoll();
+    _idleCtrl.stop();
     setState(() {
       _isRolling = true;
       _displayResult = Random().nextInt(widget.selectedType) + 1;
     });
+    _rollCtrl.forward(from: 0.0);
     _scheduleRollTick(0);
   }
 
@@ -853,8 +927,9 @@ class _DiceCardState extends State<_DiceCard> {
         setState(() {
           _isRolling = false;
           _displayResult = null;
-          _rollDoneCount++;
         });
+        // 굴림 완료 → idle 시작
+        _idleCtrl.repeat(reverse: true);
       }
     });
   }
@@ -862,12 +937,150 @@ class _DiceCardState extends State<_DiceCard> {
   // ── 다면체 이름 매핑 ──
   static const _polyhedraTypes = [4, 6, 8, 10, 12, 20];
 
+  // ── D6 Pip 레이아웃 (3x3 그리드) ──
+  static const _d6Pips = <int, List<bool>>{
+    1: [false, false, false, false, true, false, false, false, false],
+    2: [true, false, false, false, false, false, false, false, true],
+    3: [true, false, false, false, true, false, false, false, true],
+    4: [true, false, true, false, false, false, true, false, true],
+    5: [true, false, true, false, true, false, true, false, true],
+    6: [true, false, true, true, false, true, true, false, true],
+  };
+
+  Widget _buildD6Dice(int? result) {
+    const diceSize = 160.0;
+    final pips = _d6Pips[result] ?? _d6Pips[1]!;
+    final pipSize = diceSize / 5;
+
+    return Container(
+      width: diceSize,
+      height: diceSize,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF9D88FF), Color(0xFF7B61FF), Color(0xFF4A35CC)],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _accent.withValues(alpha: 0.50),
+            blurRadius: 40,
+          ),
+          const BoxShadow(
+            color: Color(0x80000000),
+            offset: Offset(4, 8),
+            blurRadius: 20,
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // 상단 하이라이트
+          Positioned(
+            top: 4,
+            left: 20,
+            right: 20,
+            child: Container(
+              height: 2,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(1),
+                color: Colors.white.withValues(alpha: 0.25),
+              ),
+            ),
+          ),
+          // pip 그리드
+          Center(
+            child: SizedBox(
+              width: diceSize * 0.65,
+              height: diceSize * 0.65,
+              child: GridView.count(
+                crossAxisCount: 3,
+                physics: const NeverScrollableScrollPhysics(),
+                children: List.generate(9, (i) {
+                  if (!pips[i]) return const SizedBox.shrink();
+                  return Center(
+                    child: Container(
+                      width: pipSize,
+                      height: pipSize,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.9),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            offset: const Offset(0, 1),
+                            blurRadius: 2,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPolyhedraDice(int? result) {
+    return SizedBox(
+      width: 200,
+      height: 200,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          CustomPaint(
+            size: const Size(200, 200),
+            painter: _DiceShapePainter(sides: widget.selectedType),
+          ),
+          // 숫자
+          Text(
+            result != null ? '$result' : '?',
+            style: TextStyle(
+              fontSize: 48,
+              fontWeight: FontWeight.w800,
+              color: result != null
+                  ? Colors.white
+                  : Colors.white.withValues(alpha: 0.3),
+              height: 1.0,
+              shadows: result != null
+                  ? const [
+                      Shadow(
+                        color: Color(0x80000000),
+                        offset: Offset(0, 2),
+                        blurRadius: 12,
+                      ),
+                    ]
+                  : null,
+            ),
+          ),
+          // D라벨
+          Positioned(
+            bottom: 30,
+            child: Text(
+              'D${widget.selectedType}',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: _accent.withValues(alpha: 0.45),
+                letterSpacing: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    const accentColor = Color(0xFF7B61FF);
 
     final shownResult = _isRolling ? _displayResult : widget.result;
+    final isD6 = widget.selectedType == 6;
 
     return SafeArea(
       top: false,
@@ -878,12 +1091,12 @@ class _DiceCardState extends State<_DiceCard> {
         color: const Color(0xFF0F1C30),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFF7B61FF).withValues(alpha: 0.3),
+          color: _accent.withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF7B61FF).withValues(alpha: 0.15),
+            color: _accent.withValues(alpha: 0.15),
             blurRadius: 20,
           ),
         ],
@@ -895,7 +1108,7 @@ class _DiceCardState extends State<_DiceCard> {
           children: [
             // ── 헤더 ──
             _cardHeader(
-                context, Icons.casino_outlined, l10n.diceTitle, accentColor),
+                context, Icons.casino_outlined, l10n.diceTitle, _accent),
             const SizedBox(height: 12),
 
             // ── 다면체 선택 버튼 행 ──
@@ -912,13 +1125,17 @@ class _DiceCardState extends State<_DiceCard> {
                     child: GestureDetector(
                       onTap: _isRolling
                           ? null
-                          : () => widget.onTypeChanged(type),
+                          : () {
+                              _idleCtrl.stop();
+                              _idleCtrl.reset();
+                              widget.onTypeChanged(type);
+                            },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         height: 44,
                         decoration: BoxDecoration(
                           color: selected
-                              ? const Color(0xFF7B61FF)
+                              ? _accent
                               : const Color(0xFF0E1628),
                           borderRadius: BorderRadius.circular(10),
                           border: selected
@@ -955,73 +1172,33 @@ class _DiceCardState extends State<_DiceCard> {
             SizedBox(
               height: 220,
               child: Center(
-                child: _ResultBounce(
-                  resultKey: _rollDoneCount,
-                  child: SizedBox(
-                    width: 220,
-                    height: 220,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // 외부 글로우
-                        Container(
-                          width: 220,
-                          height: 220,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF7B61FF)
-                                    .withValues(alpha: _isRolling ? 0.35 : 0.2),
-                                blurRadius: 40,
-                                spreadRadius: 8,
-                              ),
-                            ],
-                          ),
+                child: AnimatedBuilder(
+                  animation: Listenable.merge([_rollCtrl, _idleCtrl]),
+                  builder: (_, _) {
+                    final scale = _isRolling
+                        ? _rollScale.value
+                        : 1.0;
+                    final rotate = _isRolling
+                        ? _rollRotate.value
+                        : (_idleCtrl.isAnimating ? _idleRotate.value : 0.0);
+                    final translateY =
+                        _idleCtrl.isAnimating && !_isRolling
+                            ? _idleTranslateY.value
+                            : 0.0;
+
+                    return Transform.translate(
+                      offset: Offset(0, translateY),
+                      child: Transform.rotate(
+                        angle: rotate,
+                        child: Transform.scale(
+                          scale: scale,
+                          child: isD6
+                              ? _buildD6Dice(shownResult)
+                              : _buildPolyhedraDice(shownResult),
                         ),
-                        // 다각형
-                        CustomPaint(
-                          size: const Size(200, 200),
-                          painter: _DiceShapePainter(
-                            sides: widget.selectedType,
-                            fillColor: const Color(0xFF0F1C30),
-                            borderColor: const Color(0xFF7B61FF)
-                                .withValues(alpha: 0.6),
-                          ),
-                        ),
-                        // 숫자 + 라벨
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              shownResult != null ? '$shownResult' : '?',
-                              style: TextStyle(
-                                fontSize: 52,
-                                fontWeight: FontWeight.w900,
-                                color: shownResult != null
-                                    ? const Color(0xFF7B61FF).withValues(
-                                        alpha: _isRolling ? 0.5 : 1.0)
-                                    : const Color(0xFFFFFFFF)
-                                        .withValues(alpha: 0.3),
-                                height: 1.0,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'D${widget.selectedType}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF7B61FF)
-                                    .withValues(alpha: 0.45),
-                                letterSpacing: 1.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
@@ -1029,7 +1206,7 @@ class _DiceCardState extends State<_DiceCard> {
             // ── 히스토리 (뷰잉과 버튼 사이) ──
             if (widget.history.isNotEmpty) ...[
               const SizedBox(height: 12),
-              Divider(color: accentColor.withValues(alpha: 0.2)),
+              Divider(color: _accent.withValues(alpha: 0.2)),
               const SizedBox(height: 8),
               _historyRow(
                 widget.history
@@ -1038,10 +1215,10 @@ class _DiceCardState extends State<_DiceCard> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: accentColor.withValues(alpha: 0.18),
+                            color: _accent.withValues(alpha: 0.18),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                                color: accentColor.withValues(alpha: 0.35),
+                                color: _accent.withValues(alpha: 0.35),
                                 width: 1),
                           ),
                           child: RichText(
@@ -1052,14 +1229,14 @@ class _DiceCardState extends State<_DiceCard> {
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w600,
-                                    color: accentColor.withValues(alpha: 0.65),
+                                    color: _accent.withValues(alpha: 0.65),
                                   ),
                                 ),
                                 TextSpan(
                                   text: ' · ',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: accentColor.withValues(alpha: 0.4),
+                                    color: _accent.withValues(alpha: 0.4),
                                   ),
                                 ),
                                 TextSpan(
@@ -1067,7 +1244,7 @@ class _DiceCardState extends State<_DiceCard> {
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
-                                    color: accentColor,
+                                    color: _accent,
                                   ),
                                 ),
                               ],
@@ -1105,8 +1282,7 @@ class _DiceCardState extends State<_DiceCard> {
                         ? []
                         : [
                             BoxShadow(
-                              color: const Color(0xFF7B61FF)
-                                  .withValues(alpha: 0.4),
+                              color: _accent.withValues(alpha: 0.4),
                               blurRadius: 16,
                               offset: const Offset(0, 6),
                             ),
@@ -1139,32 +1315,18 @@ class _DiceCardState extends State<_DiceCard> {
   }
 }
 
-// ── 다각형 주사위 모양 CustomPainter ────────────────────────────
+// ── 다면체 주사위 CustomPainter (그래디언트 + facet + 글로우) ────────
 class _DiceShapePainter extends CustomPainter {
   final int sides;
-  final Color fillColor;
-  final Color borderColor;
 
-  _DiceShapePainter({
-    required this.sides,
-    required this.fillColor,
-    required this.borderColor,
-  });
+  _DiceShapePainter({required this.sides});
 
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
     final cy = size.height / 2;
-    final r = size.width * 0.46;
-
-    final fillPaint = Paint()
-      ..color = fillColor
-      ..style = PaintingStyle.fill;
-
-    final borderPaint = Paint()
-      ..color = borderColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0;
+    final r = size.width * 0.44;
+    const cornerRadius = 6.0;
 
     final int vertexCount = switch (sides) {
       4 => 3,
@@ -1186,28 +1348,80 @@ class _DiceShapePainter extends CustomPainter {
       _ => 0,
     };
 
-    final path = Path();
+    // 꼭짓점 계산
+    final vertices = <Offset>[];
     for (int i = 0; i < vertexCount; i++) {
       final angle = startAngle + (2 * pi * i / vertexCount);
-      final x = cx + r * cos(angle);
-      final y = cy + r * sin(angle);
-      if (i == 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
+      vertices.add(Offset(cx + r * cos(angle), cy + r * sin(angle)));
     }
-    path.close();
 
-    canvas.drawPath(path, fillPaint);
-    canvas.drawPath(path, borderPaint);
+    // 라운드 처리된 Path
+    final shapePath = Path();
+    for (int i = 0; i < vertexCount; i++) {
+      final prev = vertices[(i - 1 + vertexCount) % vertexCount];
+      final curr = vertices[i];
+      final next = vertices[(i + 1) % vertexCount];
+
+      final toPrev = (prev - curr);
+      final toNext = (next - curr);
+      final lenPrev = toPrev.distance;
+      final lenNext = toNext.distance;
+      final cr = cornerRadius.clamp(0.0, min(lenPrev, lenNext) * 0.3);
+
+      final p1 = curr + toPrev * (cr / lenPrev);
+      final p2 = curr + toNext * (cr / lenNext);
+
+      if (i == 0) {
+        shapePath.moveTo(p1.dx, p1.dy);
+      } else {
+        shapePath.lineTo(p1.dx, p1.dy);
+      }
+      shapePath.quadraticBezierTo(curr.dx, curr.dy, p2.dx, p2.dy);
+    }
+    shapePath.close();
+
+    // 글로우
+    canvas.drawPath(
+      shapePath,
+      Paint()
+        ..color = AppColors.colorDice.withValues(alpha: 0.6)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 16)
+        ..style = PaintingStyle.fill,
+    );
+
+    // 그래디언트 채우기
+    final bounds = shapePath.getBounds();
+    canvas.drawPath(
+      shapePath,
+      Paint()
+        ..shader = const RadialGradient(
+          center: Alignment(-0.3, -0.3),
+          colors: [Color(0xFF9D88FF), Color(0xFF4A35CC)],
+        ).createShader(bounds)
+        ..style = PaintingStyle.fill,
+    );
+
+    // 내부 facet 선 (중심 → 꼭짓점)
+    final facetPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.07)
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+    for (final v in vertices) {
+      canvas.drawLine(Offset(cx, cy), v, facetPaint);
+    }
+
+    // 테두리 하이라이트
+    canvas.drawPath(
+      shapePath,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.2)
+        ..strokeWidth = 1.5
+        ..style = PaintingStyle.stroke,
+    );
   }
 
   @override
-  bool shouldRepaint(_DiceShapePainter old) =>
-      old.sides != sides ||
-      old.fillColor != fillColor ||
-      old.borderColor != borderColor;
+  bool shouldRepaint(_DiceShapePainter old) => old.sides != sides;
 }
 
 // ── 랜덤 숫자 카드 (StatefulWidget + 감속 카운터 애니메이션) ──────────
@@ -1233,19 +1447,10 @@ class _NumberCard extends StatefulWidget {
 }
 
 class _NumberCardState extends State<_NumberCard> {
-  // 감속 딜레이 목록 (ms) — 총 12틱
-  static const _genDelays = [30, 30, 35, 45, 58, 72, 90, 110, 135, 165, 200, 240];
+  static const _accent = AppColors.colorNumber;
 
-  int? _displayResult;
-  bool _isGenerating = false;
-  int _genDoneCount = 0;
-  bool _disposed = false;
-
-  @override
-  void dispose() {
-    _disposed = true;
-    super.dispose();
-  }
+  final _slotKey = GlobalKey<SlotMachineDisplayState>();
+  bool _isSpinning = false;
 
   void _startGenerate() {
     final min = int.tryParse(widget.minCtrl.text.trim()) ?? 1;
@@ -1256,28 +1461,15 @@ class _NumberCardState extends State<_NumberCard> {
       );
       return;
     }
-    widget.onGenerate(); // 즉시 부모 상태 갱신
-    setState(() {
-      _isGenerating = true;
-      _displayResult = min + Random().nextInt(max - min + 1);
-    });
-    _scheduleGenTick(min, max, 0);
-  }
+    widget.onGenerate(); // 부모 상태 갱신 (result + history)
+    setState(() => _isSpinning = true);
 
-  void _scheduleGenTick(int min, int max, int tick) {
-    if (_disposed) return;
-    Timer(Duration(milliseconds: _genDelays[tick]), () {
-      if (_disposed) return;
-      final nextVal = min + Random().nextInt(max - min + 1);
-      if (tick + 1 < _genDelays.length) {
-        setState(() => _displayResult = nextVal);
-        _scheduleGenTick(min, max, tick + 1);
-      } else {
-        setState(() {
-          _isGenerating = false;
-          _displayResult = null;
-          _genDoneCount++;
-        });
+    // 부모 setState 반영 후 widget.result 로 스핀
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final result = widget.result;
+      if (result != null) {
+        _slotKey.currentState?.spin(result);
       }
     });
   }
@@ -1285,11 +1477,13 @@ class _NumberCardState extends State<_NumberCard> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    const accent = Color(0xFF00D68F);
 
-    final shownResult = _isGenerating ? _displayResult : widget.result;
-    final minText = widget.minCtrl.text.trim().isEmpty ? '1' : widget.minCtrl.text.trim();
-    final maxText = widget.maxCtrl.text.trim().isEmpty ? '100' : widget.maxCtrl.text.trim();
+    final maxVal = int.tryParse(widget.maxCtrl.text.trim()) ?? 100;
+    final digitCount = maxVal.toString().length;
+    final minText =
+        widget.minCtrl.text.trim().isEmpty ? '1' : widget.minCtrl.text.trim();
+    final maxText =
+        widget.maxCtrl.text.trim().isEmpty ? '100' : widget.maxCtrl.text.trim();
 
     return SafeArea(
       top: false,
@@ -1302,10 +1496,10 @@ class _NumberCardState extends State<_NumberCard> {
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF0E1628),
+              color: AppColors.bgCard,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: const Color(0xFF00D68F).withValues(alpha: 0.4),
+                color: _accent.withValues(alpha: 0.4),
                 width: 1.5,
               ),
             ),
@@ -1351,11 +1545,12 @@ class _NumberCardState extends State<_NumberCard> {
                   children: [
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0E1628),
+                          color: AppColors.bgCard,
                           border: Border.all(
-                            color: accent.withValues(alpha: 0.2),
+                            color: _accent.withValues(alpha: 0.2),
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -1366,16 +1561,16 @@ class _NumberCardState extends State<_NumberCard> {
                               style: TextStyle(
                                 fontSize: 8,
                                 fontWeight: FontWeight.w600,
-                                color: accent.withValues(alpha: 0.5),
+                                color: _accent.withValues(alpha: 0.5),
                               ),
                             ),
                             const SizedBox(height: 4),
                             TextField(
                               controller: widget.minCtrl,
-                              enabled: !_isGenerating,
+                              enabled: !_isSpinning,
                               keyboardType: TextInputType.number,
                               textAlign: TextAlign.center,
-                              cursorColor: accent,
+                              cursorColor: _accent,
                               style: const TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w800,
@@ -1397,17 +1592,18 @@ class _NumberCardState extends State<_NumberCard> {
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: Icon(
                         Icons.arrow_forward,
-                        color: accent.withValues(alpha: 0.4),
+                        color: _accent.withValues(alpha: 0.4),
                         size: 20,
                       ),
                     ),
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0E1628),
+                          color: AppColors.bgCard,
                           border: Border.all(
-                            color: accent.withValues(alpha: 0.2),
+                            color: _accent.withValues(alpha: 0.2),
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -1418,16 +1614,16 @@ class _NumberCardState extends State<_NumberCard> {
                               style: TextStyle(
                                 fontSize: 8,
                                 fontWeight: FontWeight.w600,
-                                color: accent.withValues(alpha: 0.5),
+                                color: _accent.withValues(alpha: 0.5),
                               ),
                             ),
                             const SizedBox(height: 4),
                             TextField(
                               controller: widget.maxCtrl,
-                              enabled: !_isGenerating,
+                              enabled: !_isSpinning,
                               keyboardType: TextInputType.number,
                               textAlign: TextAlign.center,
-                              cursorColor: accent,
+                              cursorColor: _accent,
                               style: const TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w800,
@@ -1448,40 +1644,30 @@ class _NumberCardState extends State<_NumberCard> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                // ── 결과 숫자 (Expanded 중앙) ──
+                // ── 슬롯머신 결과 영역 ──
                 Expanded(
                   child: Center(
-                    child: _ResultBounce(
-                      resultKey: _genDoneCount,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          AnimatedDefaultTextStyle(
-                            duration: const Duration(milliseconds: 150),
-                            style: TextStyle(
-                              fontSize: 72,
-                              fontWeight: FontWeight.w900,
-                              color: shownResult != null
-                                  ? Colors.white.withValues(
-                                      alpha: _isGenerating ? 0.45 : 1.0)
-                                  : Colors.white.withValues(alpha: 0.25),
-                              height: 1.0,
-                            ),
-                            child: Text(
-                              shownResult != null ? '$shownResult' : '?',
-                            ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SlotMachineDisplay(
+                          key: _slotKey,
+                          digitCount: digitCount,
+                          onSpinComplete: () {
+                            if (!mounted) return;
+                            setState(() => _isSpinning = false);
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          '$minText ~ $maxText',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: _accent.withValues(alpha: 0.5),
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '$minText ~ $maxText 사이',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: accent.withValues(alpha: 0.5),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -1507,11 +1693,12 @@ class _NumberCardState extends State<_NumberCard> {
                     runSpacing: 6,
                     children: widget.history.map((h) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0E1628),
+                          color: AppColors.bgCard,
                           border: Border.all(
-                            color: accent.withValues(alpha: 0.2),
+                            color: _accent.withValues(alpha: 0.2),
                           ),
                           borderRadius: BorderRadius.circular(100),
                         ),
@@ -1523,7 +1710,7 @@ class _NumberCardState extends State<_NumberCard> {
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
-                                  color: accent.withValues(alpha: 0.5),
+                                  color: _accent.withValues(alpha: 0.5),
                                 ),
                               ),
                               TextSpan(
@@ -1545,7 +1732,7 @@ class _NumberCardState extends State<_NumberCard> {
                 // ── 생성 버튼 ──
                 AnimatedOpacity(
                   duration: const Duration(milliseconds: 200),
-                  opacity: _isGenerating ? 0.65 : 1.0,
+                  opacity: _isSpinning ? 0.5 : 1.0,
                   child: SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -1555,10 +1742,10 @@ class _NumberCardState extends State<_NumberCard> {
                           colors: [Color(0xFF00A86B), Color(0xFF00D68F)],
                         ),
                         borderRadius: BorderRadius.circular(14),
-                        boxShadow: !_isGenerating
+                        boxShadow: !_isSpinning
                             ? [
                                 BoxShadow(
-                                  color: accent.withValues(alpha: 0.4),
+                                  color: _accent.withValues(alpha: 0.4),
                                   blurRadius: 16,
                                   offset: const Offset(0, 6),
                                 ),
@@ -1568,14 +1755,15 @@ class _NumberCardState extends State<_NumberCard> {
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          onTap: _isGenerating ? null : _startGenerate,
+                          onTap: _isSpinning ? null : _startGenerate,
                           borderRadius: BorderRadius.circular(14),
                           splashColor: Colors.white.withValues(alpha: 0.15),
-                          highlightColor: Colors.white.withValues(alpha: 0.05),
-                          child: const Center(
+                          highlightColor:
+                              Colors.white.withValues(alpha: 0.05),
+                          child: Center(
                             child: Text(
-                              '🎲 생성',
-                              style: TextStyle(
+                              _isSpinning ? '...' : '🎲 생성',
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
@@ -1595,6 +1783,888 @@ class _NumberCardState extends State<_NumberCard> {
     ),
     );
   }
+}
+
+// ── 사다리 게임 카드 ─────────────────────────────────────────────
+class _LadderCard extends StatefulWidget {
+  final bool fullscreen;
+  const _LadderCard({this.fullscreen = false});
+
+  @override
+  State<_LadderCard> createState() => _LadderCardState();
+}
+
+class _LadderCardState extends State<_LadderCard>
+    with TickerProviderStateMixin {
+  static const _accent = AppColors.colorLadder;
+  static const _maxParticipants = 8;
+
+  final List<TextEditingController> _nameControllers = [];
+  final List<TextEditingController> _resultControllers = [];
+  LadderState _state = LadderState.input;
+  List<LadderPath> _paths = [];
+  List<List<_HBar>> _horizontalBars = [];
+  int _participantCount = 4;
+
+  late AnimationController _animCtrl;
+  late Animation<double> _animValue;
+
+  @override
+  void initState() {
+    super.initState();
+    _initControllers(_participantCount);
+    _animCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2500),
+    );
+    _animValue = CurvedAnimation(parent: _animCtrl, curve: Curves.easeInOut);
+    _animCtrl.addStatusListener((status) {
+      if (status == AnimationStatus.completed && mounted) {
+        setState(() => _state = LadderState.result);
+      }
+    });
+  }
+
+  void _initControllers(int count) {
+    // 기존 컨트롤러 정리
+    for (final c in _nameControllers) {
+      c.dispose();
+    }
+    for (final c in _resultControllers) {
+      c.dispose();
+    }
+    _nameControllers.clear();
+    _resultControllers.clear();
+    for (int i = 0; i < count; i++) {
+      _nameControllers.add(TextEditingController());
+      _resultControllers.add(TextEditingController());
+    }
+  }
+
+  @override
+  void dispose() {
+    _animCtrl.dispose();
+    for (final c in _nameControllers) {
+      c.dispose();
+    }
+    for (final c in _resultControllers) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  void _addParticipant() {
+    if (_participantCount >= _maxParticipants) return;
+    setState(() {
+      _participantCount++;
+      _nameControllers.add(TextEditingController());
+      _resultControllers.add(TextEditingController());
+    });
+  }
+
+  void _removeParticipant(int index) {
+    if (_participantCount <= 2) return;
+    setState(() {
+      _nameControllers[index].dispose();
+      _nameControllers.removeAt(index);
+      _resultControllers[index].dispose();
+      _resultControllers.removeAt(index);
+      _participantCount--;
+    });
+  }
+
+  String _defaultResult(AppLocalizations l10n, int i) {
+    return switch (i) {
+      0 => l10n.ladderResultDefault1st,
+      1 => l10n.ladderResultDefault2nd,
+      2 => l10n.ladderResultDefault3rd,
+      _ => l10n.ladderResultDefaultNth(i + 1),
+    };
+  }
+
+  String _getName(AppLocalizations l10n, int i) {
+    final t = _nameControllers[i].text.trim();
+    return t.isEmpty ? l10n.ladderPerson(i + 1) : t;
+  }
+
+  String _getResult(AppLocalizations l10n, int toIndex) {
+    final t = _resultControllers[toIndex].text.trim();
+    return t.isEmpty ? _defaultResult(l10n, toIndex) : t;
+  }
+
+  void _startLadder() {
+    if (_participantCount < 2) return;
+
+    final rng = Random();
+    final n = _participantCount;
+    final barRows = n * 3;
+
+    List<List<_HBar>> bars;
+    List<LadderPath> paths;
+
+    // 중복 방지: 결과가 순열(permutation)이 될 때까지 재생성
+    int attempts = 0;
+    do {
+      bars = _generateBars(rng, n, barRows);
+      paths = _tracePaths(bars, n, barRows);
+      attempts++;
+    } while (_hasDuplicateResults(paths, n) && attempts < 20);
+
+    setState(() {
+      _horizontalBars = bars;
+      _paths = paths;
+      _state = LadderState.playing;
+    });
+    _animCtrl.forward(from: 0.0);
+  }
+
+  /// 가로선 생성 — usedCols로 양쪽 끝점 모두 추적
+  List<List<_HBar>> _generateBars(Random rng, int n, int barRows) {
+    final bars = <List<_HBar>>[];
+    for (int row = 0; row < barRows; row++) {
+      final rowBars = <_HBar>[];
+      final usedCols = <int>{}; // 이미 사용된 컬럼 (끝점 포함)
+      final pairs = List.generate(n - 1, (i) => i)..shuffle(rng);
+      for (final col in pairs) {
+        // col과 col+1 양쪽 모두 미사용인지 확인
+        if (usedCols.contains(col) || usedCols.contains(col + 1)) continue;
+        if (rng.nextDouble() < 0.45) {
+          rowBars.add(_HBar(row: row, col: col));
+          usedCols.add(col);
+          usedCols.add(col + 1);
+        }
+      }
+      bars.add(rowBars);
+    }
+    return bars;
+  }
+
+  /// 경로 추적 — 각 참가자의 시작점 → 도착점 계산
+  List<LadderPath> _tracePaths(
+      List<List<_HBar>> bars, int n, int barRows) {
+    final paths = <LadderPath>[];
+    for (int start = 0; start < n; start++) {
+      int currentCol = start;
+      final points = <Offset>[Offset(currentCol.toDouble(), 0)];
+
+      for (int row = 0; row < barRows; row++) {
+        for (final bar in bars[row]) {
+          if (bar.col == currentCol) {
+            // 오른쪽으로 이동
+            points.add(Offset(currentCol.toDouble(), (row + 0.5)));
+            currentCol++;
+            points.add(Offset(currentCol.toDouble(), (row + 0.5)));
+            break;
+          } else if (bar.col == currentCol - 1) {
+            // 왼쪽으로 이동
+            points.add(Offset(currentCol.toDouble(), (row + 0.5)));
+            currentCol--;
+            points.add(Offset(currentCol.toDouble(), (row + 0.5)));
+            break;
+          }
+        }
+      }
+      points.add(Offset(currentCol.toDouble(), barRows.toDouble()));
+      paths.add(LadderPath(
+        fromIndex: start,
+        toIndex: currentCol,
+        points: points,
+      ));
+    }
+    return paths;
+  }
+
+  /// toIndex 중복 검사 — 순열이 아니면 true
+  bool _hasDuplicateResults(List<LadderPath> paths, int n) {
+    final seen = <int>{};
+    for (final p in paths) {
+      if (!seen.add(p.toIndex)) return true;
+    }
+    return seen.length != n;
+  }
+
+  void _retry() {
+    setState(() {
+      _state = LadderState.input;
+      _paths = [];
+      _horizontalBars = [];
+    });
+    _animCtrl.reset();
+  }
+
+  void _shareResults() {
+    final l10n = AppLocalizations.of(context)!;
+    final buf = StringBuffer();
+    buf.writeln('🪜 ${l10n.ladderTitle}');
+    buf.writeln('─────────────');
+    for (final p in _paths) {
+      final name = _getName(l10n, p.fromIndex);
+      final result = _getResult(l10n, p.toIndex);
+      buf.writeln('$name → $result');
+    }
+    Share.share(buf.toString());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    if (widget.fullscreen) {
+      return SafeArea(
+        top: false,
+        bottom: true,
+        child: Column(
+          children: [
+            Expanded(child: _buildContent(l10n)),
+          ],
+        ),
+      );
+    }
+
+    return _buildContent(l10n);
+  }
+
+  Widget _buildContent(AppLocalizations l10n) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0E1628),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _accent.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
+      ),
+      child: switch (_state) {
+        LadderState.input => _buildInputState(l10n),
+        LadderState.playing => _buildPlayingState(l10n),
+        LadderState.result => _buildResultState(l10n),
+      },
+    );
+  }
+
+  // ── INPUT 상태 ──────────────────────────────────────────────
+  Widget _buildInputState(AppLocalizations l10n) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 헤더
+          _cardHeader(context, Icons.linear_scale_rounded,
+              l10n.ladderTitle, _accent),
+          const SizedBox(height: 16),
+
+          // 참가자 섹션
+          Row(
+            children: [
+              Text(
+                l10n.ladderParticipants,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: _accent.withValues(alpha: 0.8),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: _accent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  l10n.ladderCountBadge(
+                      _participantCount, _maxParticipants),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: _accent,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // 이름 입력 리스트
+          ...List.generate(_participantCount, (i) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  // 번호 배지
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: _accent.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${i + 1}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: _accent,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // 이름 입력
+                  Expanded(
+                    child: Container(
+                      height: 40,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF141D35),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: _accent.withValues(alpha: 0.15),
+                        ),
+                      ),
+                      child: TextField(
+                        controller: _nameControllers[i],
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.white,
+                        ),
+                        cursorColor: _accent,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          contentPadding:
+                              const EdgeInsets.symmetric(vertical: 10),
+                          border: InputBorder.none,
+                          hintText: l10n.ladderPerson(i + 1),
+                          hintStyle: TextStyle(
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.25),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  // 삭제 버튼
+                  if (_participantCount > 2)
+                    GestureDetector(
+                      onTap: () => _removeParticipant(i),
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 6),
+                        child: Icon(
+                          Icons.close_rounded,
+                          size: 18,
+                          color: Colors.white.withValues(alpha: 0.3),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          }),
+
+          // + 참가자 추가 버튼
+          if (_participantCount < _maxParticipants)
+            GestureDetector(
+              onTap: _addParticipant,
+              child: Container(
+                width: double.infinity,
+                height: 40,
+                margin: const EdgeInsets.only(top: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: _accent.withValues(alpha: 0.25),
+                    style: BorderStyle.solid,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    l10n.ladderAddParticipant,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: _accent.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          const SizedBox(height: 20),
+
+          // 결과 섹션
+          Text(
+            l10n.ladderResults,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: _accent.withValues(alpha: 0.8),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            l10n.ladderResultHint,
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.white.withValues(alpha: 0.3),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // 결과 입력 리스트
+          ...List.generate(_participantCount, (i) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  // 컬러 dot
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _accent.withValues(alpha: 0.6),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Container(
+                      height: 40,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF141D35),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: _accent.withValues(alpha: 0.12),
+                        ),
+                      ),
+                      child: TextField(
+                        controller: _resultControllers[i],
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.white,
+                        ),
+                        cursorColor: _accent,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          contentPadding:
+                              const EdgeInsets.symmetric(vertical: 10),
+                          border: InputBorder.none,
+                          hintText: _defaultResult(l10n, i),
+                          hintStyle: TextStyle(
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.2),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+
+          const SizedBox(height: 20),
+
+          // 시작 버튼
+          GestureDetector(
+            onTap: _participantCount >= 2 ? _startLadder : null,
+            child: Container(
+              width: double.infinity,
+              height: 56,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFE06520), Color(0xFFFF8C42)],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: _accent.withValues(alpha: 0.35),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  '🪜 ${l10n.ladderStart}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── PLAYING 상태 ──────────────────────────────────────────────
+  Widget _buildPlayingState(AppLocalizations l10n) {
+    return Column(
+      children: [
+        // 헤더
+        _cardHeader(
+            context, Icons.linear_scale_rounded, l10n.ladderTitle, _accent),
+        const SizedBox(height: 12),
+
+        // 상단 참가자 칩
+        Row(
+          children: List.generate(_participantCount, (i) {
+            return Expanded(
+              child: Center(
+                child: Text(
+                  _getName(l10n, i),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: _accent,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            );
+          }),
+        ),
+        const SizedBox(height: 8),
+
+        // 사다리 캔버스
+        Expanded(
+          child: AnimatedBuilder(
+            animation: _animValue,
+            builder: (_, _) => CustomPaint(
+              size: Size.infinite,
+              painter: _LadderPainter(
+                paths: _paths,
+                horizontalBars: _horizontalBars,
+                participantCount: _participantCount,
+                animationValue: _animValue.value,
+                accent: _accent,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        // 하단 결과 칩
+        Row(
+          children: List.generate(_participantCount, (i) {
+            return Expanded(
+              child: Center(
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 300),
+                  opacity: _animValue.value > 0.9 ? 1.0 : 0.25,
+                  child: Text(
+                    _getResult(l10n, i),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  // ── RESULT 상태 ──────────────────────────────────────────────
+  Widget _buildResultState(AppLocalizations l10n) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // 헤더
+          _cardHeader(context, Icons.linear_scale_rounded,
+              l10n.ladderTitle, _accent),
+          const SizedBox(height: 12),
+
+          // 사다리 미니 (흐리게)
+          SizedBox(
+            height: 160,
+            width: double.infinity,
+            child: Opacity(
+              opacity: 0.4,
+              child: CustomPaint(
+                size: Size.infinite,
+                painter: _LadderPainter(
+                  paths: _paths,
+                  horizontalBars: _horizontalBars,
+                  participantCount: _participantCount,
+                  animationValue: 1.0,
+                  accent: _accent,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 결과 리스트
+          ...List.generate(_paths.length, (i) {
+            final p = _paths[i];
+            final name = _getName(l10n, p.fromIndex);
+            final result = _getResult(l10n, p.toIndex);
+            final isFirst = p.toIndex == 0;
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: isFirst
+                    ? _accent.withValues(alpha: 0.12)
+                    : const Color(0xFF141D35),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isFirst
+                      ? _accent.withValues(alpha: 0.4)
+                      : Colors.white.withValues(alpha: 0.06),
+                ),
+              ),
+              child: Row(
+                children: [
+                  if (isFirst)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Icon(Icons.emoji_events_rounded,
+                          size: 18, color: _accent),
+                    ),
+                  Expanded(
+                    child: Text(
+                      name,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: isFirst ? _accent : Colors.white,
+                      ),
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_rounded,
+                      size: 14,
+                      color: Colors.white.withValues(alpha: 0.3)),
+                  const SizedBox(width: 8),
+                  Text(
+                    result,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: isFirst
+                          ? _accent
+                          : Colors.white.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          const SizedBox(height: 16),
+
+          // 버튼 2개
+          Row(
+            children: [
+              // 다시 뽑기
+              Expanded(
+                child: GestureDetector(
+                  onTap: _retry,
+                  child: Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFE06520), Color(0xFFFF8C42)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _accent.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        '↺ ${l10n.ladderRetry}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              // 결과 공유
+              Expanded(
+                child: GestureDetector(
+                  onTap: _shareResults,
+                  child: Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: _accent.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '📤 ${l10n.ladderShare}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: _accent,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── 가로선 모델 ──────────────────────────────────────────────
+class _HBar {
+  final int row;
+  final int col; // col과 col+1 사이 연결
+  const _HBar({required this.row, required this.col});
+}
+
+// ── 사다리 CustomPainter ────────────────────────────────────────
+class _LadderPainter extends CustomPainter {
+  final List<LadderPath> paths;
+  final List<List<_HBar>> horizontalBars;
+  final int participantCount;
+  final double animationValue;
+  final Color accent;
+
+  _LadderPainter({
+    required this.paths,
+    required this.horizontalBars,
+    required this.participantCount,
+    required this.animationValue,
+    required this.accent,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final n = participantCount;
+    if (n < 2) return;
+
+    final totalRows = horizontalBars.length;
+    if (totalRows == 0) return;
+
+    final colWidth = size.width / (n + 1);
+    double xOf(int col) => colWidth * (col + 1);
+    double yOf(double row) => (row / totalRows) * size.height;
+
+    // 세로선 (배경)
+    final bgPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.15)
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+
+    for (int c = 0; c < n; c++) {
+      canvas.drawLine(
+        Offset(xOf(c), 0),
+        Offset(xOf(c), size.height),
+        bgPaint,
+      );
+    }
+
+    // 가로선 (배경)
+    for (final rowBars in horizontalBars) {
+      for (final bar in rowBars) {
+        final y = yOf(bar.row + 0.5);
+        canvas.drawLine(
+          Offset(xOf(bar.col), y),
+          Offset(xOf(bar.col + 1), y),
+          bgPaint,
+        );
+      }
+    }
+
+    // 하이라이트 경로
+    final hlPaint = Paint()
+      ..color = accent
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    for (final path in paths) {
+      final pts = path.points;
+      if (pts.length < 2) continue;
+
+      // 전체 경로 길이 계산
+      double totalLen = 0;
+      final segLens = <double>[];
+      for (int i = 0; i < pts.length - 1; i++) {
+        final from = Offset(xOf(pts[i].dx.toInt()), yOf(pts[i].dy));
+        final to = Offset(xOf(pts[i + 1].dx.toInt()), yOf(pts[i + 1].dy));
+        final len = (to - from).distance;
+        segLens.add(len);
+        totalLen += len;
+      }
+
+      // 애니메이션 진행 만큼만 그리기
+      final drawLen = totalLen * animationValue;
+      double drawn = 0;
+
+      for (int i = 0; i < pts.length - 1; i++) {
+        if (drawn >= drawLen) break;
+        final from = Offset(xOf(pts[i].dx.toInt()), yOf(pts[i].dy));
+        final to = Offset(xOf(pts[i + 1].dx.toInt()), yOf(pts[i + 1].dy));
+        final segLen = segLens[i];
+        final remaining = drawLen - drawn;
+
+        if (remaining >= segLen) {
+          canvas.drawLine(from, to, hlPaint);
+          drawn += segLen;
+        } else {
+          final t = remaining / segLen;
+          final mid = Offset.lerp(from, to, t)!;
+          canvas.drawLine(from, mid, hlPaint);
+          drawn = drawLen;
+
+          // 구슬 (이동 중)
+          canvas.drawCircle(
+            mid,
+            5,
+            Paint()..color = accent,
+          );
+        }
+      }
+
+      // 애니메이션 완료 시 끝점에 구슬
+      if (animationValue >= 1.0) {
+        final last = pts.last;
+        canvas.drawCircle(
+          Offset(xOf(last.dx.toInt()), yOf(last.dy)),
+          5,
+          Paint()..color = accent,
+        );
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_LadderPainter old) =>
+      old.animationValue != animationValue ||
+      old.participantCount != participantCount;
 }
 
 // ── 결과 바운스 애니메이션 ────────────────────────────────────

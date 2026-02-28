@@ -21,7 +21,7 @@ import '../../../core/widgets/app_background.dart';
 import '../../../l10n/app_localizations.dart';
 
 // ── 홈 모드 ──────────────────────────────────────────────────
-enum _HomeMode { roulette, coin, dice, number }
+enum _HomeMode { roulette, coin, dice, number, ladder }
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -94,6 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _HomeMode.coin => 'coin',
         _HomeMode.dice => 'dice',
         _HomeMode.number => 'number',
+        _HomeMode.ladder => 'ladder',
         _HomeMode.roulette => null,
       };
 
@@ -162,20 +163,30 @@ class _HomeScreenState extends State<HomeScreen> {
               height: 72,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: List.generate(4, (i) {
+                children: List.generate(5, (i) {
                   final selected = _mode.index == i;
                   final icons = [
                     [Icons.track_changes_outlined, Icons.track_changes_rounded],
                     [Icons.monetization_on_outlined, Icons.monetization_on_rounded],
                     [Icons.casino_outlined, Icons.casino_rounded],
                     [Icons.shuffle_rounded, Icons.shuffle_rounded],
+                    [Icons.linear_scale_outlined, Icons.linear_scale_rounded],
                   ];
                   final labels = [
                     l10n.tabRoulette,
                     l10n.tabCoin,
                     l10n.tabDice,
                     l10n.tabNumber,
+                    l10n.tabLadder,
                   ];
+                  const tabColors = [
+                    AppColors.colorRoulette,
+                    AppColors.colorCoin,
+                    AppColors.colorDice,
+                    AppColors.colorNumber,
+                    AppColors.colorLadder,
+                  ];
+                  final tabColor = tabColors[i];
                   return Expanded(
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
@@ -187,11 +198,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           curve: Curves.easeInOut,
-                          width: 64,
                           height: 48,
                           decoration: BoxDecoration(
                             color: selected
-                                ? const Color(0x1400D4FF)
+                                ? tabColor.withValues(alpha: 0.08)
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -210,12 +220,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               Text(
                                 labels[i],
                                 style: TextStyle(
-                                  fontSize: 8.5,
+                                  fontSize: 9,
                                   fontWeight: selected
                                       ? FontWeight.w700
                                       : FontWeight.w600,
                                   color: selected
-                                      ? const Color(0xFF00D4FF)
+                                      ? tabColor
                                       : const Color(0x38FFFFFF),
                                 ),
                               ),
@@ -224,9 +234,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Container(
                                   width: 3,
                                   height: 3,
-                                  decoration: const BoxDecoration(
+                                  decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: Color(0xFF00D4FF),
+                                    color: tabColor,
                                   ),
                                 ),
                               ],

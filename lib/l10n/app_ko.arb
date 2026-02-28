@@ -242,5 +242,23 @@
   "recentResult": "최근: {result}",
   "sectionRecommend": "이런 룰렛 어때요?",
   "showMore": "더 보기",
-  "showLess": "접기"
+  "showLess": "접기",
+
+  "tabLadder": "사다리",
+  "ladderTitle": "사다리",
+  "ladderParticipants": "참가자",
+  "ladderResults": "결과 (선택사항)",
+  "ladderResultHint": "비워두면 1등, 2등... 자동 배정",
+  "ladderStart": "사다리 시작",
+  "ladderRetry": "다시 뽑기",
+  "ladderShare": "결과 공유",
+  "ladderAddParticipant": "+ 참가자 추가",
+  "ladderCountBadge": "{current} / {max}",
+  "ladderPerson": "참가자 {index}",
+  "ladderResult": "결과 {index}",
+  "ladderResultDefault1st": "1등",
+  "ladderResultDefault2nd": "2등",
+  "ladderResultDefault3rd": "3등",
+  "ladderResultDefaultNth": "{n}등",
+  "ladderMinParticipants": "최소 2명 이상 필요합니다"
 }

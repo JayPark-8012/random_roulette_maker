@@ -22,6 +22,7 @@ class AppColors {
   static const colorCoin     = Color(0xFFFFB800);
   static const colorDice     = Color(0xFF7B61FF);
   static const colorNumber   = Color(0xFF00D68F);
+  static const colorLadder   = Color(0xFFFF8C42);
 
   // ── 서브 액센트 — 퍼플 (스핀 결과/강조용) ──
   static const spark     = Color(0xFF7B61FF);

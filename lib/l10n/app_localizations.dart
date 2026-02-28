@@ -1541,6 +1541,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show Less'**
   String get showLess;
+
+  /// No description provided for @tabLadder.
+  ///
+  /// In en, this message translates to:
+  /// **'Ladder'**
+  String get tabLadder;
+
+  /// No description provided for @ladderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ladder'**
+  String get ladderTitle;
+
+  /// No description provided for @ladderParticipants.
+  ///
+  /// In en, this message translates to:
+  /// **'Participants'**
+  String get ladderParticipants;
+
+  /// No description provided for @ladderResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Results (optional)'**
+  String get ladderResults;
+
+  /// No description provided for @ladderResultHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave blank for auto 1st, 2nd...'**
+  String get ladderResultHint;
+
+  /// No description provided for @ladderStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Ladder'**
+  String get ladderStart;
+
+  /// No description provided for @ladderRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get ladderRetry;
+
+  /// No description provided for @ladderShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Results'**
+  String get ladderShare;
+
+  /// No description provided for @ladderAddParticipant.
+  ///
+  /// In en, this message translates to:
+  /// **'+ Add Participant'**
+  String get ladderAddParticipant;
+
+  /// No description provided for @ladderCountBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} / {max}'**
+  String ladderCountBadge(int current, int max);
+
+  /// No description provided for @ladderPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Person {index}'**
+  String ladderPerson(int index);
+
+  /// No description provided for @ladderResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Result {index}'**
+  String ladderResult(int index);
+
+  /// No description provided for @ladderResultDefault1st.
+  ///
+  /// In en, this message translates to:
+  /// **'1st'**
+  String get ladderResultDefault1st;
+
+  /// No description provided for @ladderResultDefault2nd.
+  ///
+  /// In en, this message translates to:
+  /// **'2nd'**
+  String get ladderResultDefault2nd;
+
+  /// No description provided for @ladderResultDefault3rd.
+  ///
+  /// In en, this message translates to:
+  /// **'3rd'**
+  String get ladderResultDefault3rd;
+
+  /// No description provided for @ladderResultDefaultNth.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}th'**
+  String ladderResultDefaultNth(int n);
+
+  /// No description provided for @ladderMinParticipants.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 2 participants required'**
+  String get ladderMinParticipants;
 }
 
 class _AppLocalizationsDelegate

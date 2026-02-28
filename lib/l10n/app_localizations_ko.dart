@@ -765,4 +765,63 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get showLess => '접기';
+
+  @override
+  String get tabLadder => '사다리';
+
+  @override
+  String get ladderTitle => '사다리';
+
+  @override
+  String get ladderParticipants => '참가자';
+
+  @override
+  String get ladderResults => '결과 (선택사항)';
+
+  @override
+  String get ladderResultHint => '비워두면 1등, 2등... 자동 배정';
+
+  @override
+  String get ladderStart => '사다리 시작';
+
+  @override
+  String get ladderRetry => '다시 뽑기';
+
+  @override
+  String get ladderShare => '결과 공유';
+
+  @override
+  String get ladderAddParticipant => '+ 참가자 추가';
+
+  @override
+  String ladderCountBadge(int current, int max) {
+    return '$current / $max';
+  }
+
+  @override
+  String ladderPerson(int index) {
+    return '참가자 $index';
+  }
+
+  @override
+  String ladderResult(int index) {
+    return '결과 $index';
+  }
+
+  @override
+  String get ladderResultDefault1st => '1등';
+
+  @override
+  String get ladderResultDefault2nd => '2등';
+
+  @override
+  String get ladderResultDefault3rd => '3등';
+
+  @override
+  String ladderResultDefaultNth(int n) {
+    return '$n등';
+  }
+
+  @override
+  String get ladderMinParticipants => '최소 2명 이상 필요합니다';
 }

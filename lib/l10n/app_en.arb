@@ -769,5 +769,57 @@
   "showMore": "Show More",
   "@showMore": {},
   "showLess": "Show Less",
-  "@showLess": {}
+  "@showLess": {},
+
+  "tabLadder": "Ladder",
+  "@tabLadder": {},
+  "ladderTitle": "Ladder",
+  "@ladderTitle": {},
+  "ladderParticipants": "Participants",
+  "@ladderParticipants": {},
+  "ladderResults": "Results (optional)",
+  "@ladderResults": {},
+  "ladderResultHint": "Leave blank for auto 1st, 2nd...",
+  "@ladderResultHint": {},
+  "ladderStart": "Start Ladder",
+  "@ladderStart": {},
+  "ladderRetry": "Retry",
+  "@ladderRetry": {},
+  "ladderShare": "Share Results",
+  "@ladderShare": {},
+  "ladderAddParticipant": "+ Add Participant",
+  "@ladderAddParticipant": {},
+  "ladderCountBadge": "{current} / {max}",
+  "@ladderCountBadge": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "max": {"type": "int"}
+    }
+  },
+  "ladderPerson": "Person {index}",
+  "@ladderPerson": {
+    "placeholders": {
+      "index": {"type": "int"}
+    }
+  },
+  "ladderResult": "Result {index}",
+  "@ladderResult": {
+    "placeholders": {
+      "index": {"type": "int"}
+    }
+  },
+  "ladderResultDefault1st": "1st",
+  "@ladderResultDefault1st": {},
+  "ladderResultDefault2nd": "2nd",
+  "@ladderResultDefault2nd": {},
+  "ladderResultDefault3rd": "3rd",
+  "@ladderResultDefault3rd": {},
+  "ladderResultDefaultNth": "{n}th",
+  "@ladderResultDefaultNth": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  },
+  "ladderMinParticipants": "At least 2 participants required",
+  "@ladderMinParticipants": {}
 }
