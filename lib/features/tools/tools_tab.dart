@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/constants.dart';
 import '../../core/design_tokens.dart';
+import '../../data/ad_service.dart';
 import '../../data/local_storage.dart';
+import '../../data/premium_service.dart';
 import '../../l10n/app_localizations.dart';
 import 'widgets/slot_machine_display.dart';
 
@@ -306,6 +308,7 @@ class _CoinCardState extends State<_CoinCard>
           _isFlipping = false;
           _flipDoneCount++;
         });
+        AdService.instance.recordToolUse('coin');
       }
     });
 
@@ -930,6 +933,7 @@ class _DiceCardState extends State<_DiceCard>
         });
         // 굴림 완료 → idle 시작
         _idleCtrl.repeat(reverse: true);
+        AdService.instance.recordToolUse('dice');
       }
     });
   }
@@ -1117,6 +1121,9 @@ class _DiceCardState extends State<_DiceCard>
                 final index = entry.key;
                 final type = entry.value;
                 final selected = type == widget.selectedType;
+                final isPremium = PremiumService.instance.isPremium;
+                final locked = !PremiumService.canUseDiceType(
+                    isPremium, 'D$type');
                 return Expanded(
                   child: Padding(
                     padding: EdgeInsets.only(
@@ -1126,6 +1133,11 @@ class _DiceCardState extends State<_DiceCard>
                       onTap: _isRolling
                           ? null
                           : () {
+                              if (locked) {
+                                Navigator.pushNamed(
+                                    context, AppRoutes.paywall);
+                                return;
+                              }
                               _idleCtrl.stop();
                               _idleCtrl.reset();
                               widget.onTypeChanged(type);
@@ -1134,11 +1146,11 @@ class _DiceCardState extends State<_DiceCard>
                         duration: const Duration(milliseconds: 200),
                         height: 44,
                         decoration: BoxDecoration(
-                          color: selected
+                          color: selected && !locked
                               ? _accent
-                              : const Color(0xFF0E1628),
+                              : AppColors.bgCard,
                           borderRadius: BorderRadius.circular(10),
-                          border: selected
+                          border: selected && !locked
                               ? null
                               : Border.all(
                                   color: const Color(0xFFFFFFFF)
@@ -1146,18 +1158,33 @@ class _DiceCardState extends State<_DiceCard>
                                   width: 1,
                                 ),
                         ),
-                        child: Center(
-                          child: Text(
-                            'D$type',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight:
-                                  selected ? FontWeight.w800 : FontWeight.w600,
-                              color: selected
-                                  ? const Color(0xFF070B14)
-                                  : const Color(0xFFFFFFFF)
-                                      .withValues(alpha: 0.45),
-                            ),
+                        child: Opacity(
+                          opacity: locked ? 0.4 : 1.0,
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: Text(
+                                  'D$type',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: selected && !locked
+                                        ? FontWeight.w800
+                                        : FontWeight.w600,
+                                    color: selected && !locked
+                                        ? const Color(0xFF070B14)
+                                        : const Color(0xFFFFFFFF)
+                                            .withValues(alpha: 0.45),
+                                  ),
+                                ),
+                              ),
+                              if (locked)
+                                const Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: Icon(Icons.lock,
+                                      size: 10, color: Colors.white54),
+                                ),
+                            ],
                           ),
                         ),
                       ),
@@ -1452,6 +1479,21 @@ class _NumberCardState extends State<_NumberCard> {
   final _slotKey = GlobalKey<SlotMachineDisplayState>();
   bool _isSpinning = false;
 
+  void _showProSnackBar() {
+    final nav = Navigator.of(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('더 큰 범위는 PRO에서 사용 가능해요'),
+        action: SnackBarAction(
+          label: 'PRO 보기',
+          onPressed: () => nav.pushNamed(AppRoutes.paywall),
+        ),
+        backgroundColor: AppColors.bgElevated,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   void _startGenerate() {
     final min = int.tryParse(widget.minCtrl.text.trim()) ?? 1;
     final max = int.tryParse(widget.maxCtrl.text.trim()) ?? 100;
@@ -1459,6 +1501,11 @@ class _NumberCardState extends State<_NumberCard> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.minMaxError)),
       );
+      return;
+    }
+    final isPremium = PremiumService.instance.isPremium;
+    if (!PremiumService.isNumberRangeAllowed(isPremium, max)) {
+      _showProSnackBar();
       return;
     }
     widget.onGenerate(); // 부모 상태 갱신 (result + history)
@@ -1643,7 +1690,20 @@ class _NumberCardState extends State<_NumberCard> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                // ── 범위 힌트 ──
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    PremiumService.instance.isPremium
+                        ? '최대 999,999,999'
+                        : '최대 9,999 · 더 큰 범위는 PRO',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: AppColors.textTertiary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 // ── 슬롯머신 결과 영역 ──
                 Expanded(
                   child: Center(
@@ -1656,6 +1716,7 @@ class _NumberCardState extends State<_NumberCard> {
                           onSpinComplete: () {
                             if (!mounted) return;
                             setState(() => _isSpinning = false);
+                            AdService.instance.recordToolUse('number');
                           },
                         ),
                         const SizedBox(height: 10),
@@ -1797,7 +1858,9 @@ class _LadderCard extends StatefulWidget {
 class _LadderCardState extends State<_LadderCard>
     with TickerProviderStateMixin {
   static const _accent = AppColors.colorLadder;
-  static const _maxParticipants = 8;
+  int get _maxParticipants => PremiumService.instance.isPremium
+      ? PremiumService.maxPremiumLadderParticipants
+      : PremiumService.maxFreeLadderParticipants;
 
   final List<TextEditingController> _nameControllers = [];
   final List<TextEditingController> _resultControllers = [];
@@ -1821,6 +1884,7 @@ class _LadderCardState extends State<_LadderCard>
     _animCtrl.addStatusListener((status) {
       if (status == AnimationStatus.completed && mounted) {
         setState(() => _state = LadderState.result);
+        AdService.instance.recordToolUse('ladder');
       }
     });
   }
@@ -1854,7 +1918,12 @@ class _LadderCardState extends State<_LadderCard>
   }
 
   void _addParticipant() {
-    if (_participantCount >= _maxParticipants) return;
+    final isPremium = PremiumService.instance.isPremium;
+    if (!PremiumService.canAddLadderParticipant(
+        isPremium, _nameControllers.length)) {
+      Navigator.pushNamed(context, AppRoutes.paywall);
+      return;
+    }
     setState(() {
       _participantCount++;
       _nameControllers.add(TextEditingController());
@@ -2166,32 +2235,41 @@ class _LadderCardState extends State<_LadderCard>
           }),
 
           // + 참가자 추가 버튼
-          if (_participantCount < _maxParticipants)
-            GestureDetector(
-              onTap: _addParticipant,
-              child: Container(
-                width: double.infinity,
-                height: 40,
-                margin: const EdgeInsets.only(top: 4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: _accent.withValues(alpha: 0.25),
-                    style: BorderStyle.solid,
+          if (_participantCount < PremiumService.maxPremiumLadderParticipants)
+            Builder(builder: (_) {
+              final isPremium = PremiumService.instance.isPremium;
+              final atFreeLimit = !isPremium &&
+                  _participantCount >=
+                      PremiumService.maxFreeLadderParticipants;
+              final btnColor = atFreeLimit ? AppColors.spark : _accent;
+              return GestureDetector(
+                onTap: _addParticipant,
+                child: Container(
+                  width: double.infinity,
+                  height: 40,
+                  margin: const EdgeInsets.only(top: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: btnColor.withValues(alpha: 0.25),
+                      style: BorderStyle.solid,
+                    ),
                   ),
-                ),
-                child: Center(
-                  child: Text(
-                    l10n.ladderAddParticipant,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: _accent.withValues(alpha: 0.6),
+                  child: Center(
+                    child: Text(
+                      atFreeLimit
+                          ? '🔒 최대 12명 (PRO)'
+                          : l10n.ladderAddParticipant,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: btnColor.withValues(alpha: 0.6),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
+              );
+            }),
 
           const SizedBox(height: 20),
 
@@ -2713,5 +2791,42 @@ class _ResultBounceState extends State<_ResultBounce>
   @override
   Widget build(BuildContext context) {
     return ScaleTransition(scale: _scale, child: widget.child);
+  }
+}
+
+// ── 프리미엄 잠금 배지 ─────────────────────────────────────────────
+class _PremiumLockBadge extends StatelessWidget {
+  const _PremiumLockBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, AppRoutes.paywall),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.spark.withValues(alpha: 0.2),
+          border: Border.all(
+            color: AppColors.spark.withValues(alpha: 0.5),
+          ),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.lock, size: 12, color: AppColors.spark),
+            const SizedBox(width: 3),
+            Text(
+              'PRO',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                color: AppColors.spark,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

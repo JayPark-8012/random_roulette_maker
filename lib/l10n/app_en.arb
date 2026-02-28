@@ -602,7 +602,7 @@
   "paywallTitle": "Upgrade to Premium",
   "@paywallTitle": {},
 
-  "paywallSubtitle": "One-time purchase for unlimited access forever.",
+  "paywallSubtitle": "Unlock all tools and features forever.",
   "@paywallSubtitle": {},
 
   "paywallFree": "Free",
@@ -617,11 +617,35 @@
   "paywallRouletteSets": "Roulette Sets",
   "@paywallRouletteSets": {},
 
-  "paywallColorPalettes": "Color Palettes",
-  "@paywallColorPalettes": {},
-
   "paywallUnlimited": "Unlimited",
   "@paywallUnlimited": {},
+
+  "paywallRouletteRow": "Roulette Sets",
+  "@paywallRouletteRow": {},
+  "paywallLadderRow": "Ladder Participants",
+  "@paywallLadderRow": {},
+  "paywallDiceRow": "Dice Types",
+  "@paywallDiceRow": {},
+  "paywallNumberRow": "Number Range",
+  "@paywallNumberRow": {},
+  "paywallAdsRow": "Ads",
+  "@paywallAdsRow": {},
+  "paywallFreeRoulette": "3",
+  "@paywallFreeRoulette": {},
+  "paywallFreeLadder": "Up to 6",
+  "@paywallFreeLadder": {},
+  "paywallFreeDice": "D6 only",
+  "@paywallFreeDice": {},
+  "paywallFreeNumber": "Up to 9,999",
+  "@paywallFreeNumber": {},
+  "paywallPremiumRoulette": "Unlimited",
+  "@paywallPremiumRoulette": {},
+  "paywallPremiumLadder": "Up to 12",
+  "@paywallPremiumLadder": {},
+  "paywallPremiumDice": "D4 – D20",
+  "@paywallPremiumDice": {},
+  "paywallPremiumNumber": "Up to 999,999,999",
+  "@paywallPremiumNumber": {},
 
   "paywallOneTimePrice": "One-time purchase",
   "@paywallOneTimePrice": {},
@@ -664,21 +688,21 @@
   "paywallRouletteLimitContent": "Free users can create up to 3 roulette sets.\nUpgrade to Premium for unlimited sets.",
   "@paywallRouletteLimitContent": {},
 
-  "paywallPaletteLockTitle": "Palette Locked",
-  "@paywallPaletteLockTitle": {},
-
-  "paywallPaletteLockContent": "The {paletteName} palette is only available in Premium.\nUnlock all color palettes today!",
-  "@paywallPaletteLockContent": {
-    "placeholders": {
-      "paletteName": {
-        "type": "String",
-        "example": "Ocean Blue"
-      }
-    }
-  },
-
   "paywallUnlockButton": "Unlock Premium",
   "@paywallUnlockButton": {},
+
+  "paywallDiceLockTitle": "Dice Type Locked",
+  "@paywallDiceLockTitle": {},
+  "paywallDiceLockContent": "D4, D8, D10, D12, D20 are available in Premium.",
+  "@paywallDiceLockContent": {},
+  "paywallLadderLimitTitle": "Participant Limit Reached",
+  "@paywallLadderLimitTitle": {},
+  "paywallLadderLimitContent": "Free users can add up to 6 participants. Upgrade to add up to 12.",
+  "@paywallLadderLimitContent": {},
+  "paywallNumberLimitTitle": "Range Limit Reached",
+  "@paywallNumberLimitTitle": {},
+  "paywallNumberLimitContent": "Free users can set a max of 9,999. Upgrade for up to 999,999,999.",
+  "@paywallNumberLimitContent": {},
   "premiumStatusFree": "Free Version",
   "@premiumStatusFree": {},
   "premiumStatusActive": "Premium Active",
@@ -707,6 +731,48 @@
   "@premiumRestoreSuccess": {},
   "premiumRestoreEmpty": "❌ No History",
   "@premiumRestoreEmpty": {},
+
+  "settingsPremiumFreeTitle": "FREE PLAN",
+  "@settingsPremiumFreeTitle": {},
+  "settingsPremiumFreeLimitRoulette": "Roulette: max {count} sets",
+  "@settingsPremiumFreeLimitRoulette": {
+    "placeholders": { "count": {"type": "int"} }
+  },
+  "settingsPremiumFreeLimitLadder": "Ladder: max {count} players",
+  "@settingsPremiumFreeLimitLadder": {
+    "placeholders": { "count": {"type": "int"} }
+  },
+  "settingsPremiumFreeLimitDice": "Dice: D6 only",
+  "@settingsPremiumFreeLimitDice": {},
+  "settingsPremiumFreeLimitNumber": "Number: max {limit}",
+  "@settingsPremiumFreeLimitNumber": {
+    "placeholders": { "limit": {"type": "String"} }
+  },
+  "settingsPremiumBenefitNoAds": "No Ads",
+  "@settingsPremiumBenefitNoAds": {},
+  "settingsPremiumBenefitUnlimitedSets": "Unlimited Sets",
+  "@settingsPremiumBenefitUnlimitedSets": {},
+  "settingsPremiumBenefitAllDice": "All Dice",
+  "@settingsPremiumBenefitAllDice": {},
+  "settingsPremiumBenefitExtRange": "Extended Range",
+  "@settingsPremiumBenefitExtRange": {},
+  "settingsPremiumBenefitAllBg": "All Backgrounds",
+  "@settingsPremiumBenefitAllBg": {},
+  "settingsPremiumUnlockAll": "Unlock All Features",
+  "@settingsPremiumUnlockAll": {},
+  "settingsPremiumRestore": "Restore Purchase",
+  "@settingsPremiumRestore": {},
+  "settingsPremiumProTitle": "PREMIUM",
+  "@settingsPremiumProTitle": {},
+  "settingsPremiumProBenefitAds": "Ad-free experience",
+  "@settingsPremiumProBenefitAds": {},
+  "settingsPremiumProBenefitSets": "Unlimited roulette sets",
+  "@settingsPremiumProBenefitSets": {},
+  "settingsPremiumProBenefitTools": "All tools fully unlocked",
+  "@settingsPremiumProBenefitTools": {},
+  "settingsPremiumProBenefitBg": "All backgrounds available",
+  "@settingsPremiumProBenefitBg": {},
+
   "createManualTitle": "Start Blank",
   "@createManualTitle": {},
   "createManualSubtitle": "Enter items manually",
@@ -717,23 +783,12 @@
   "atmosphereLabel": "Background",
   "@atmosphereLabel": {},
 
-  "paywallAtmosphereLockTitle": "Background Locked",
-  "@paywallAtmosphereLockTitle": {},
-
-  "paywallAtmosphereLockContent": "The {atmosphereName} background is only available in Premium.\nUnlock all backgrounds today!",
-  "@paywallAtmosphereLockContent": {
-    "placeholders": {
-      "atmosphereName": {
-        "type": "String",
-        "example": "Aurora"
-      }
-    }
-  },
-
   "firstRunWelcomeTitle": "Welcome!",
   "@firstRunWelcomeTitle": {},
   "firstRunWelcomeSubtitle": "Try spinning a starter set right now",
   "@firstRunWelcomeSubtitle": {},
+  "firstRunSubtitle": "From Roulette to Ladder\nWe help you decide.",
+  "@firstRunSubtitle": {},
   "firstRunCreateManual": "Create Your Own",
   "@firstRunCreateManual": {},
   "firstRunViewMore": "Browse All Starter Sets",
@@ -746,6 +801,25 @@
   "@firstRunSaveButton": {},
   "firstRunSkipButton": "Skip",
   "@firstRunSkipButton": {},
+
+  "onboardingSkip": "Skip",
+  "@onboardingSkip": {},
+  "onboardingNext": "Next",
+  "@onboardingNext": {},
+  "onboardingStart": "Get Started",
+  "@onboardingStart": {},
+  "onboardingSlide1Title": "Can't decide?",
+  "@onboardingSlide1Title": {},
+  "onboardingSlide1Desc": "Roulette, Ladder, Dice, Coin — all in one place.",
+  "@onboardingSlide1Desc": {},
+  "onboardingSlide2Title": "Ladder Game Too",
+  "@onboardingSlide2Title": {},
+  "onboardingSlide2Desc": "Enter participants and start right away.",
+  "@onboardingSlide2Desc": {},
+  "onboardingSlide3Title": "Start for Free",
+  "@onboardingSlide3Title": {},
+  "onboardingSlide3Desc": "Core features are completely free.",
+  "@onboardingSlide3Desc": {},
 
   "sectionQuickLaunch": "Quick Launch",
   "@sectionQuickLaunch": {},

@@ -1203,7 +1203,7 @@ abstract class AppLocalizations {
   /// No description provided for @paywallSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'One-time purchase for unlimited access forever.'**
+  /// **'Unlock all tools and features forever.'**
   String get paywallSubtitle;
 
   /// No description provided for @paywallFree.
@@ -1230,17 +1230,89 @@ abstract class AppLocalizations {
   /// **'Roulette Sets'**
   String get paywallRouletteSets;
 
-  /// No description provided for @paywallColorPalettes.
-  ///
-  /// In en, this message translates to:
-  /// **'Color Palettes'**
-  String get paywallColorPalettes;
-
   /// No description provided for @paywallUnlimited.
   ///
   /// In en, this message translates to:
   /// **'Unlimited'**
   String get paywallUnlimited;
+
+  /// No description provided for @paywallRouletteRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Roulette Sets'**
+  String get paywallRouletteRow;
+
+  /// No description provided for @paywallLadderRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Ladder Participants'**
+  String get paywallLadderRow;
+
+  /// No description provided for @paywallDiceRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Dice Types'**
+  String get paywallDiceRow;
+
+  /// No description provided for @paywallNumberRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Number Range'**
+  String get paywallNumberRow;
+
+  /// No description provided for @paywallAdsRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Ads'**
+  String get paywallAdsRow;
+
+  /// No description provided for @paywallFreeRoulette.
+  ///
+  /// In en, this message translates to:
+  /// **'3'**
+  String get paywallFreeRoulette;
+
+  /// No description provided for @paywallFreeLadder.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 6'**
+  String get paywallFreeLadder;
+
+  /// No description provided for @paywallFreeDice.
+  ///
+  /// In en, this message translates to:
+  /// **'D6 only'**
+  String get paywallFreeDice;
+
+  /// No description provided for @paywallFreeNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 9,999'**
+  String get paywallFreeNumber;
+
+  /// No description provided for @paywallPremiumRoulette.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited'**
+  String get paywallPremiumRoulette;
+
+  /// No description provided for @paywallPremiumLadder.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 12'**
+  String get paywallPremiumLadder;
+
+  /// No description provided for @paywallPremiumDice.
+  ///
+  /// In en, this message translates to:
+  /// **'D4 – D20'**
+  String get paywallPremiumDice;
+
+  /// No description provided for @paywallPremiumNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 999,999,999'**
+  String get paywallPremiumNumber;
 
   /// No description provided for @paywallOneTimePrice.
   ///
@@ -1326,23 +1398,47 @@ abstract class AppLocalizations {
   /// **'Free users can create up to 3 roulette sets.\nUpgrade to Premium for unlimited sets.'**
   String get paywallRouletteLimitContent;
 
-  /// No description provided for @paywallPaletteLockTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Palette Locked'**
-  String get paywallPaletteLockTitle;
-
-  /// No description provided for @paywallPaletteLockContent.
-  ///
-  /// In en, this message translates to:
-  /// **'The {paletteName} palette is only available in Premium.\nUnlock all color palettes today!'**
-  String paywallPaletteLockContent(String paletteName);
-
   /// No description provided for @paywallUnlockButton.
   ///
   /// In en, this message translates to:
   /// **'Unlock Premium'**
   String get paywallUnlockButton;
+
+  /// No description provided for @paywallDiceLockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dice Type Locked'**
+  String get paywallDiceLockTitle;
+
+  /// No description provided for @paywallDiceLockContent.
+  ///
+  /// In en, this message translates to:
+  /// **'D4, D8, D10, D12, D20 are available in Premium.'**
+  String get paywallDiceLockContent;
+
+  /// No description provided for @paywallLadderLimitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Participant Limit Reached'**
+  String get paywallLadderLimitTitle;
+
+  /// No description provided for @paywallLadderLimitContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Free users can add up to 6 participants. Upgrade to add up to 12.'**
+  String get paywallLadderLimitContent;
+
+  /// No description provided for @paywallNumberLimitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Range Limit Reached'**
+  String get paywallNumberLimitTitle;
+
+  /// No description provided for @paywallNumberLimitContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Free users can set a max of 9,999. Upgrade for up to 999,999,999.'**
+  String get paywallNumberLimitContent;
 
   /// No description provided for @premiumStatusFree.
   ///
@@ -1416,6 +1512,108 @@ abstract class AppLocalizations {
   /// **'❌ No History'**
   String get premiumRestoreEmpty;
 
+  /// No description provided for @settingsPremiumFreeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'FREE PLAN'**
+  String get settingsPremiumFreeTitle;
+
+  /// No description provided for @settingsPremiumFreeLimitRoulette.
+  ///
+  /// In en, this message translates to:
+  /// **'Roulette: max {count} sets'**
+  String settingsPremiumFreeLimitRoulette(int count);
+
+  /// No description provided for @settingsPremiumFreeLimitLadder.
+  ///
+  /// In en, this message translates to:
+  /// **'Ladder: max {count} players'**
+  String settingsPremiumFreeLimitLadder(int count);
+
+  /// No description provided for @settingsPremiumFreeLimitDice.
+  ///
+  /// In en, this message translates to:
+  /// **'Dice: D6 only'**
+  String get settingsPremiumFreeLimitDice;
+
+  /// No description provided for @settingsPremiumFreeLimitNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Number: max {limit}'**
+  String settingsPremiumFreeLimitNumber(String limit);
+
+  /// No description provided for @settingsPremiumBenefitNoAds.
+  ///
+  /// In en, this message translates to:
+  /// **'No Ads'**
+  String get settingsPremiumBenefitNoAds;
+
+  /// No description provided for @settingsPremiumBenefitUnlimitedSets.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited Sets'**
+  String get settingsPremiumBenefitUnlimitedSets;
+
+  /// No description provided for @settingsPremiumBenefitAllDice.
+  ///
+  /// In en, this message translates to:
+  /// **'All Dice'**
+  String get settingsPremiumBenefitAllDice;
+
+  /// No description provided for @settingsPremiumBenefitExtRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Extended Range'**
+  String get settingsPremiumBenefitExtRange;
+
+  /// No description provided for @settingsPremiumBenefitAllBg.
+  ///
+  /// In en, this message translates to:
+  /// **'All Backgrounds'**
+  String get settingsPremiumBenefitAllBg;
+
+  /// No description provided for @settingsPremiumUnlockAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock All Features'**
+  String get settingsPremiumUnlockAll;
+
+  /// No description provided for @settingsPremiumRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Purchase'**
+  String get settingsPremiumRestore;
+
+  /// No description provided for @settingsPremiumProTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PREMIUM'**
+  String get settingsPremiumProTitle;
+
+  /// No description provided for @settingsPremiumProBenefitAds.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad-free experience'**
+  String get settingsPremiumProBenefitAds;
+
+  /// No description provided for @settingsPremiumProBenefitSets.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited roulette sets'**
+  String get settingsPremiumProBenefitSets;
+
+  /// No description provided for @settingsPremiumProBenefitTools.
+  ///
+  /// In en, this message translates to:
+  /// **'All tools fully unlocked'**
+  String get settingsPremiumProBenefitTools;
+
+  /// No description provided for @settingsPremiumProBenefitBg.
+  ///
+  /// In en, this message translates to:
+  /// **'All backgrounds available'**
+  String get settingsPremiumProBenefitBg;
+
   /// No description provided for @createManualTitle.
   ///
   /// In en, this message translates to:
@@ -1440,18 +1638,6 @@ abstract class AppLocalizations {
   /// **'Background'**
   String get atmosphereLabel;
 
-  /// No description provided for @paywallAtmosphereLockTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Background Locked'**
-  String get paywallAtmosphereLockTitle;
-
-  /// No description provided for @paywallAtmosphereLockContent.
-  ///
-  /// In en, this message translates to:
-  /// **'The {atmosphereName} background is only available in Premium.\nUnlock all backgrounds today!'**
-  String paywallAtmosphereLockContent(String atmosphereName);
-
   /// No description provided for @firstRunWelcomeTitle.
   ///
   /// In en, this message translates to:
@@ -1463,6 +1649,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try spinning a starter set right now'**
   String get firstRunWelcomeSubtitle;
+
+  /// No description provided for @firstRunSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'From Roulette to Ladder\nWe help you decide.'**
+  String get firstRunSubtitle;
 
   /// No description provided for @firstRunCreateManual.
   ///
@@ -1499,6 +1691,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Skip'**
   String get firstRunSkipButton;
+
+  /// No description provided for @onboardingSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get onboardingSkip;
+
+  /// No description provided for @onboardingNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get onboardingNext;
+
+  /// No description provided for @onboardingStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Started'**
+  String get onboardingStart;
+
+  /// No description provided for @onboardingSlide1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t decide?'**
+  String get onboardingSlide1Title;
+
+  /// No description provided for @onboardingSlide1Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Roulette, Ladder, Dice, Coin — all in one place.'**
+  String get onboardingSlide1Desc;
+
+  /// No description provided for @onboardingSlide2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Ladder Game Too'**
+  String get onboardingSlide2Title;
+
+  /// No description provided for @onboardingSlide2Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter participants and start right away.'**
+  String get onboardingSlide2Desc;
+
+  /// No description provided for @onboardingSlide3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Start for Free'**
+  String get onboardingSlide3Title;
+
+  /// No description provided for @onboardingSlide3Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Core features are completely free.'**
+  String get onboardingSlide3Desc;
 
   /// No description provided for @sectionQuickLaunch.
   ///

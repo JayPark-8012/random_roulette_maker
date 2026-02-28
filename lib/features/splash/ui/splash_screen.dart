@@ -31,7 +31,17 @@ class _SplashScreenState extends State<SplashScreen> {
     await SplashNotifier.instance.initializeApp();
 
     if (!mounted) return;
-    Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+
+    // 첫 실행이면 온보딩 → 홈, 아니면 바로 홈
+    final hasCompleted = await LocalStorage.instance
+        .getBool(StorageKeys.hasCompletedFirstRun);
+    if (!mounted) return;
+
+    if (hasCompleted) {
+      Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+    } else {
+      Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding);
+    }
   }
 
   @override

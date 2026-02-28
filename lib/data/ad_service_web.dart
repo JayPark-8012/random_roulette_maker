@@ -12,6 +12,8 @@ class AdService {
 
   Future<void> showInterstitial() async {}
 
+  Future<void> recordToolUse(String toolType) async {}
+
   Future<void> tryShowInterstitialAfterSpin() async {}
 
   Widget bannerWidget() => const SizedBox.shrink();

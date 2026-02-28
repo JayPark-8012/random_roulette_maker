@@ -585,7 +585,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get paywallTitle => '프리미엄으로 업그레이드';
 
   @override
-  String get paywallSubtitle => '한 번의 구매로 모든 기능을 영구히 이용하세요.';
+  String get paywallSubtitle => '모든 도구와 기능을 영구히 잠금 해제하세요.';
 
   @override
   String get paywallFree => '무료';
@@ -600,10 +600,46 @@ class AppLocalizationsKo extends AppLocalizations {
   String get paywallRouletteSets => '룰렛 세트';
 
   @override
-  String get paywallColorPalettes => '컬러 팔레트';
+  String get paywallUnlimited => '무제한';
 
   @override
-  String get paywallUnlimited => '무제한';
+  String get paywallRouletteRow => '룰렛 세트';
+
+  @override
+  String get paywallLadderRow => '사다리 참가자';
+
+  @override
+  String get paywallDiceRow => '주사위 종류';
+
+  @override
+  String get paywallNumberRow => '숫자 범위';
+
+  @override
+  String get paywallAdsRow => '광고';
+
+  @override
+  String get paywallFreeRoulette => '3개';
+
+  @override
+  String get paywallFreeLadder => '최대 6명';
+
+  @override
+  String get paywallFreeDice => 'D6 전용';
+
+  @override
+  String get paywallFreeNumber => '최대 9,999';
+
+  @override
+  String get paywallPremiumRoulette => '무제한';
+
+  @override
+  String get paywallPremiumLadder => '최대 12명';
+
+  @override
+  String get paywallPremiumDice => 'D4 – D20';
+
+  @override
+  String get paywallPremiumNumber => '최대 999,999,999';
 
   @override
   String get paywallOneTimePrice => '한 번의 구매';
@@ -649,15 +685,28 @@ class AppLocalizationsKo extends AppLocalizations {
       '무료 사용자는 최대 3개의 룰렛 세트를 만들 수 있습니다.\n프리미엄으로 업그레이드하면 무제한으로 생성할 수 있습니다.';
 
   @override
-  String get paywallPaletteLockTitle => '팔레트 잠금';
-
-  @override
-  String paywallPaletteLockContent(String paletteName) {
-    return '$paletteName 팔레트는 프리미엄에서만 사용할 수 있습니다.\n지금 바로 모든 컬러 팔레트를 잠금 해제하세요!';
-  }
-
-  @override
   String get paywallUnlockButton => '프리미엄 잠금 해제';
+
+  @override
+  String get paywallDiceLockTitle => '주사위 잠금';
+
+  @override
+  String get paywallDiceLockContent =>
+      'D4, D8, D10, D12, D20은 프리미엄에서 사용할 수 있어요.';
+
+  @override
+  String get paywallLadderLimitTitle => '참가자 제한 도달';
+
+  @override
+  String get paywallLadderLimitContent =>
+      '무료 사용자는 최대 6명까지 추가할 수 있어요. 프리미엄으로 최대 12명까지 가능해요.';
+
+  @override
+  String get paywallNumberLimitTitle => '범위 제한 도달';
+
+  @override
+  String get paywallNumberLimitContent =>
+      '무료 사용자는 최대 9,999까지 설정할 수 있어요. 프리미엄으로 최대 999,999,999까지 가능해요.';
 
   @override
   String get premiumStatusFree => '무료 버전';
@@ -698,6 +747,63 @@ class AppLocalizationsKo extends AppLocalizations {
   String get premiumRestoreEmpty => '❌ 구매 기록 없음';
 
   @override
+  String get settingsPremiumFreeTitle => '무료 플랜';
+
+  @override
+  String settingsPremiumFreeLimitRoulette(int count) {
+    return '룰렛: 최대 $count개 세트';
+  }
+
+  @override
+  String settingsPremiumFreeLimitLadder(int count) {
+    return '사다리: 최대 $count명';
+  }
+
+  @override
+  String get settingsPremiumFreeLimitDice => '주사위: D6만 사용';
+
+  @override
+  String settingsPremiumFreeLimitNumber(String limit) {
+    return '숫자 뽑기: 최대 $limit';
+  }
+
+  @override
+  String get settingsPremiumBenefitNoAds => '광고 없음';
+
+  @override
+  String get settingsPremiumBenefitUnlimitedSets => '무제한 세트';
+
+  @override
+  String get settingsPremiumBenefitAllDice => '모든 주사위';
+
+  @override
+  String get settingsPremiumBenefitExtRange => '확장 범위';
+
+  @override
+  String get settingsPremiumBenefitAllBg => '모든 배경';
+
+  @override
+  String get settingsPremiumUnlockAll => '모든 기능 잠금 해제';
+
+  @override
+  String get settingsPremiumRestore => '구매 복원';
+
+  @override
+  String get settingsPremiumProTitle => '프리미엄';
+
+  @override
+  String get settingsPremiumProBenefitAds => '광고 없는 경험';
+
+  @override
+  String get settingsPremiumProBenefitSets => '무제한 룰렛 세트';
+
+  @override
+  String get settingsPremiumProBenefitTools => '모든 도구 완전 해금';
+
+  @override
+  String get settingsPremiumProBenefitBg => '모든 배경 사용 가능';
+
+  @override
   String get createManualTitle => '빈 룰렛으로 시작';
 
   @override
@@ -710,18 +816,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get atmosphereLabel => '배경';
 
   @override
-  String get paywallAtmosphereLockTitle => '배경 잠금';
-
-  @override
-  String paywallAtmosphereLockContent(String atmosphereName) {
-    return '$atmosphereName 배경은 프리미엄에서만 사용할 수 있습니다.\n지금 바로 모든 배경을 잠금 해제하세요!';
-  }
-
-  @override
   String get firstRunWelcomeTitle => '어서오세요!';
 
   @override
   String get firstRunWelcomeSubtitle => '스타터 세트를 바로 돌려보세요';
+
+  @override
+  String get firstRunSubtitle => '룰렛부터 사다리까지\n선택의 고민을 해결해드려요';
 
   @override
   String get firstRunCreateManual => '직접 만들기';
@@ -740,6 +841,33 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get firstRunSkipButton => '건너뛰기';
+
+  @override
+  String get onboardingSkip => '건너뛰기';
+
+  @override
+  String get onboardingNext => '다음';
+
+  @override
+  String get onboardingStart => '시작하기';
+
+  @override
+  String get onboardingSlide1Title => '결정이 어려울 땐?';
+
+  @override
+  String get onboardingSlide1Desc => '룰렛, 사다리, 주사위, 코인 — 하나로 해결.';
+
+  @override
+  String get onboardingSlide2Title => '사다리 게임도 여기서';
+
+  @override
+  String get onboardingSlide2Desc => '참가자 입력하고 바로 시작해요.';
+
+  @override
+  String get onboardingSlide3Title => '완전 무료로 시작';
+
+  @override
+  String get onboardingSlide3Desc => '핵심 기능은 모두 무료예요.';
 
   @override
   String get sectionQuickLaunch => '빠른 실행';

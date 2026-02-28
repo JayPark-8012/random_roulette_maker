@@ -222,23 +222,35 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       Divider(color: colorScheme.outlineVariant),
                       const SizedBox(height: 16),
 
-                      // ── 비교 항목들 ──
+                      // ── 비교 항목들 (5행) ──
                       _ComparisonRow(
-                        label: l10n.paywallAds,
+                        label: l10n.paywallAdsRow,
                         free: false,
                         premium: true,
                       ),
                       const SizedBox(height: 12),
                       _ComparisonRow(
-                        label: l10n.paywallRouletteSets,
-                        freeText: '3',
-                        premiumText: l10n.paywallUnlimited,
+                        label: l10n.paywallRouletteRow,
+                        freeText: l10n.paywallFreeRoulette,
+                        premiumText: l10n.paywallPremiumRoulette,
                       ),
                       const SizedBox(height: 12),
                       _ComparisonRow(
-                        label: l10n.paywallColorPalettes,
-                        freeText: '2',
-                        premiumText: '6',
+                        label: l10n.paywallLadderRow,
+                        freeText: l10n.paywallFreeLadder,
+                        premiumText: l10n.paywallPremiumLadder,
+                      ),
+                      const SizedBox(height: 12),
+                      _ComparisonRow(
+                        label: l10n.paywallDiceRow,
+                        freeText: l10n.paywallFreeDice,
+                        premiumText: l10n.paywallPremiumDice,
+                      ),
+                      const SizedBox(height: 12),
+                      _ComparisonRow(
+                        label: l10n.paywallNumberRow,
+                        freeText: l10n.paywallFreeNumber,
+                        premiumText: l10n.paywallPremiumNumber,
                       ),
                     ],
                   ),

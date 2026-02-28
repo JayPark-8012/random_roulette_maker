@@ -588,8 +588,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get paywallTitle => 'Upgrade to Premium';
 
   @override
-  String get paywallSubtitle =>
-      'One-time purchase for unlimited access forever.';
+  String get paywallSubtitle => 'Unlock all tools and features forever.';
 
   @override
   String get paywallFree => 'Free';
@@ -604,10 +603,46 @@ class AppLocalizationsPt extends AppLocalizations {
   String get paywallRouletteSets => 'Roulette Sets';
 
   @override
-  String get paywallColorPalettes => 'Color Palettes';
+  String get paywallUnlimited => 'Unlimited';
 
   @override
-  String get paywallUnlimited => 'Unlimited';
+  String get paywallRouletteRow => 'Roulette Sets';
+
+  @override
+  String get paywallLadderRow => 'Ladder Participants';
+
+  @override
+  String get paywallDiceRow => 'Dice Types';
+
+  @override
+  String get paywallNumberRow => 'Number Range';
+
+  @override
+  String get paywallAdsRow => 'Ads';
+
+  @override
+  String get paywallFreeRoulette => '3';
+
+  @override
+  String get paywallFreeLadder => 'Up to 6';
+
+  @override
+  String get paywallFreeDice => 'D6 only';
+
+  @override
+  String get paywallFreeNumber => 'Up to 9,999';
+
+  @override
+  String get paywallPremiumRoulette => 'Unlimited';
+
+  @override
+  String get paywallPremiumLadder => 'Up to 12';
+
+  @override
+  String get paywallPremiumDice => 'D4 – D20';
+
+  @override
+  String get paywallPremiumNumber => 'Up to 999,999,999';
 
   @override
   String get paywallOneTimePrice => 'One-time purchase';
@@ -653,15 +688,28 @@ class AppLocalizationsPt extends AppLocalizations {
       'Free users can create up to 3 roulette sets.\nUpgrade to Premium for unlimited sets.';
 
   @override
-  String get paywallPaletteLockTitle => 'Palette Locked';
-
-  @override
-  String paywallPaletteLockContent(String paletteName) {
-    return 'The $paletteName palette is only available in Premium.\nUnlock all color palettes today!';
-  }
-
-  @override
   String get paywallUnlockButton => 'Desbloquear Premium';
+
+  @override
+  String get paywallDiceLockTitle => 'Dice Type Locked';
+
+  @override
+  String get paywallDiceLockContent =>
+      'D4, D8, D10, D12, D20 are available in Premium.';
+
+  @override
+  String get paywallLadderLimitTitle => 'Participant Limit Reached';
+
+  @override
+  String get paywallLadderLimitContent =>
+      'Free users can add up to 6 participants. Upgrade to add up to 12.';
+
+  @override
+  String get paywallNumberLimitTitle => 'Range Limit Reached';
+
+  @override
+  String get paywallNumberLimitContent =>
+      'Free users can set a max of 9,999. Upgrade for up to 999,999,999.';
 
   @override
   String get premiumStatusFree => 'Versão Gratuita';
@@ -702,6 +750,63 @@ class AppLocalizationsPt extends AppLocalizations {
   String get premiumRestoreEmpty => '❌ Sem Histórico';
 
   @override
+  String get settingsPremiumFreeTitle => 'FREE PLAN';
+
+  @override
+  String settingsPremiumFreeLimitRoulette(int count) {
+    return 'Roulette: max $count sets';
+  }
+
+  @override
+  String settingsPremiumFreeLimitLadder(int count) {
+    return 'Ladder: max $count players';
+  }
+
+  @override
+  String get settingsPremiumFreeLimitDice => 'Dice: D6 only';
+
+  @override
+  String settingsPremiumFreeLimitNumber(String limit) {
+    return 'Number: max $limit';
+  }
+
+  @override
+  String get settingsPremiumBenefitNoAds => 'No Ads';
+
+  @override
+  String get settingsPremiumBenefitUnlimitedSets => 'Unlimited Sets';
+
+  @override
+  String get settingsPremiumBenefitAllDice => 'All Dice';
+
+  @override
+  String get settingsPremiumBenefitExtRange => 'Extended Range';
+
+  @override
+  String get settingsPremiumBenefitAllBg => 'All Backgrounds';
+
+  @override
+  String get settingsPremiumUnlockAll => 'Unlock All Features';
+
+  @override
+  String get settingsPremiumRestore => 'Restore Purchase';
+
+  @override
+  String get settingsPremiumProTitle => 'PREMIUM';
+
+  @override
+  String get settingsPremiumProBenefitAds => 'Ad-free experience';
+
+  @override
+  String get settingsPremiumProBenefitSets => 'Unlimited roulette sets';
+
+  @override
+  String get settingsPremiumProBenefitTools => 'All tools fully unlocked';
+
+  @override
+  String get settingsPremiumProBenefitBg => 'All backgrounds available';
+
+  @override
   String get createManualTitle => 'Em Branco';
 
   @override
@@ -714,19 +819,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get atmosphereLabel => 'Fundo';
 
   @override
-  String get paywallAtmosphereLockTitle => 'Fundo Bloqueado';
-
-  @override
-  String paywallAtmosphereLockContent(String atmosphereName) {
-    return 'O fundo $atmosphereName está disponível apenas no Premium.\nDesbloqueie todos os fundos agora!';
-  }
-
-  @override
   String get firstRunWelcomeTitle => 'Bem-vindo!';
 
   @override
   String get firstRunWelcomeSubtitle =>
       'Experimente girar um set inicial agora';
+
+  @override
+  String get firstRunSubtitle => 'From Roulette to Ladder\nWe help you decide.';
 
   @override
   String get firstRunCreateManual => 'Criar o seu';
@@ -746,6 +846,34 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get firstRunSkipButton => 'Saltar';
+
+  @override
+  String get onboardingSkip => 'Skip';
+
+  @override
+  String get onboardingNext => 'Next';
+
+  @override
+  String get onboardingStart => 'Get Started';
+
+  @override
+  String get onboardingSlide1Title => 'Can\'t decide?';
+
+  @override
+  String get onboardingSlide1Desc =>
+      'Roulette, Ladder, Dice, Coin — all in one place.';
+
+  @override
+  String get onboardingSlide2Title => 'Ladder Game Too';
+
+  @override
+  String get onboardingSlide2Desc => 'Enter participants and start right away.';
+
+  @override
+  String get onboardingSlide3Title => 'Start for Free';
+
+  @override
+  String get onboardingSlide3Desc => 'Core features are completely free.';
 
   @override
   String get sectionQuickLaunch => 'Acesso Rápido';
@@ -1390,15 +1518,124 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   String get itemSushi => 'Sushi';
 
   @override
-  String get atmosphereLabel => 'Fundo';
+  String get paywallRouletteRow => 'Roulette Sets';
 
   @override
-  String get paywallAtmosphereLockTitle => 'Fundo Bloqueado';
+  String get paywallLadderRow => 'Ladder Participants';
 
   @override
-  String paywallAtmosphereLockContent(String atmosphereName) {
-    return 'O fundo $atmosphereName está disponível apenas no Premium.\nDesbloqueie todos os fundos agora!';
+  String get paywallDiceRow => 'Dice Types';
+
+  @override
+  String get paywallNumberRow => 'Number Range';
+
+  @override
+  String get paywallAdsRow => 'Ads';
+
+  @override
+  String get paywallFreeRoulette => '3';
+
+  @override
+  String get paywallFreeLadder => 'Up to 6';
+
+  @override
+  String get paywallFreeDice => 'D6 only';
+
+  @override
+  String get paywallFreeNumber => 'Up to 9,999';
+
+  @override
+  String get paywallPremiumRoulette => 'Unlimited';
+
+  @override
+  String get paywallPremiumLadder => 'Up to 12';
+
+  @override
+  String get paywallPremiumDice => 'D4 – D20';
+
+  @override
+  String get paywallPremiumNumber => 'Up to 999,999,999';
+
+  @override
+  String get paywallDiceLockTitle => 'Dice Type Locked';
+
+  @override
+  String get paywallDiceLockContent =>
+      'D4, D8, D10, D12, D20 are available in Premium.';
+
+  @override
+  String get paywallLadderLimitTitle => 'Participant Limit Reached';
+
+  @override
+  String get paywallLadderLimitContent =>
+      'Free users can add up to 6 participants. Upgrade to add up to 12.';
+
+  @override
+  String get paywallNumberLimitTitle => 'Range Limit Reached';
+
+  @override
+  String get paywallNumberLimitContent =>
+      'Free users can set a max of 9,999. Upgrade for up to 999,999,999.';
+
+  @override
+  String get settingsPremiumFreeTitle => 'FREE PLAN';
+
+  @override
+  String settingsPremiumFreeLimitRoulette(int count) {
+    return 'Roulette: max $count sets';
   }
+
+  @override
+  String settingsPremiumFreeLimitLadder(int count) {
+    return 'Ladder: max $count players';
+  }
+
+  @override
+  String get settingsPremiumFreeLimitDice => 'Dice: D6 only';
+
+  @override
+  String settingsPremiumFreeLimitNumber(String limit) {
+    return 'Number: max $limit';
+  }
+
+  @override
+  String get settingsPremiumBenefitNoAds => 'No Ads';
+
+  @override
+  String get settingsPremiumBenefitUnlimitedSets => 'Unlimited Sets';
+
+  @override
+  String get settingsPremiumBenefitAllDice => 'All Dice';
+
+  @override
+  String get settingsPremiumBenefitExtRange => 'Extended Range';
+
+  @override
+  String get settingsPremiumBenefitAllBg => 'All Backgrounds';
+
+  @override
+  String get settingsPremiumUnlockAll => 'Unlock All Features';
+
+  @override
+  String get settingsPremiumRestore => 'Restore Purchase';
+
+  @override
+  String get settingsPremiumProTitle => 'PREMIUM';
+
+  @override
+  String get settingsPremiumProBenefitAds => 'Ad-free experience';
+
+  @override
+  String get settingsPremiumProBenefitSets => 'Unlimited roulette sets';
+
+  @override
+  String get settingsPremiumProBenefitTools => 'All tools fully unlocked';
+
+  @override
+  String get settingsPremiumProBenefitBg => 'All backgrounds available';
+
+  @override
+  String get atmosphereLabel => 'Fundo';
 
   @override
   String get firstRunWelcomeTitle => 'Bem-vindo!';
@@ -1406,6 +1643,9 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
   @override
   String get firstRunWelcomeSubtitle =>
       'Experimente girar um set inicial agora';
+
+  @override
+  String get firstRunSubtitle => 'From Roulette to Ladder\nWe help you decide.';
 
   @override
   String get firstRunCreateManual => 'Criar o seu';
@@ -1425,6 +1665,34 @@ class AppLocalizationsPtBr extends AppLocalizationsPt {
 
   @override
   String get firstRunSkipButton => 'Pular';
+
+  @override
+  String get onboardingSkip => 'Skip';
+
+  @override
+  String get onboardingNext => 'Next';
+
+  @override
+  String get onboardingStart => 'Get Started';
+
+  @override
+  String get onboardingSlide1Title => 'Can\'t decide?';
+
+  @override
+  String get onboardingSlide1Desc =>
+      'Roulette, Ladder, Dice, Coin — all in one place.';
+
+  @override
+  String get onboardingSlide2Title => 'Ladder Game Too';
+
+  @override
+  String get onboardingSlide2Desc => 'Enter participants and start right away.';
+
+  @override
+  String get onboardingSlide3Title => 'Start for Free';
+
+  @override
+  String get onboardingSlide3Desc => 'Core features are completely free.';
 
   @override
   String get sectionQuickLaunch => 'Acesso Rápido';

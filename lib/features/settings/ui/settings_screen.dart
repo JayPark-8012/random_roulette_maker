@@ -42,55 +42,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _selectAtmosphere(BuildContext context, AtmospherePreset atm) {
     if (!PremiumService.instance.canUseAtmosphere(atm.id)) {
-      _showAtmosphereLockDialog(context, atm);
+      Navigator.of(context).pushNamed(AppRoutes.paywall);
       return;
     }
     _notifier.setAtmosphereId(atm.id);
-  }
-
-  void _showAtmosphereLockDialog(BuildContext context, AtmospherePreset atm) {
-    final cs = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context)!;
-
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        icon: Icon(Icons.lock_rounded, size: 40, color: cs.primary),
-        title: Text(l10n.paywallAtmosphereLockTitle),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              l10n.paywallAtmosphereLockContent(atm.name),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            // 분위기 미리보기
-            Container(
-              height: 40,
-              decoration: BoxDecoration(
-                gradient: atm.gradient,
-                color: atm.gradient == null ? atm.solidColor : null,
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(l10n.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              Navigator.of(context).pushNamed(AppRoutes.paywall);
-            },
-            child: Text(l10n.paywallUnlockButton),
-          ),
-        ],
-      ),
-    );
   }
 
   String _currentLanguageName(AppLocalizations l10n) {

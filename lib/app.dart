@@ -10,6 +10,7 @@ import 'features/play/ui/play_screen.dart';
 import 'features/templates/ui/templates_screen.dart';
 import 'features/settings/ui/settings_screen.dart';
 import 'features/paywall/ui/paywall_screen.dart';
+import 'features/home/ui/onboarding_screen.dart';
 
 /// 부드러운 페이지 전환 애니메이션
 class SmoothPageRoute<T> extends PageRoute<T> {
@@ -123,6 +124,9 @@ class _AppState extends State<App> {
             break;
           case AppRoutes.paywall:
             page = const PaywallScreen();
+            break;
+          case AppRoutes.onboarding:
+            page = const OnboardingScreen();
             break;
           default:
             page = const HomeScreen();

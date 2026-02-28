@@ -192,11 +192,51 @@ class PremiumService extends ChangeNotifier {
     return wheelThemeId == 'classic' || wheelThemeId == 'candy';
   }
 
+  // ── 사다리 참가자 수 제한 ─────────────────────────────────
+
+  static const maxFreeLadderParticipants = 6;
+  static const maxPremiumLadderParticipants = 12;
+
+  /// 사다리 참가자 추가 가능 여부
+  static bool canAddLadderParticipant(bool isPremium, int currentCount) {
+    final max = isPremium
+        ? maxPremiumLadderParticipants
+        : maxFreeLadderParticipants;
+    return currentCount < max;
+  }
+
+  // ── 주사위 타입 제한 ──────────────────────────────────────
+
+  static const freeAllowedDice = ['D6'];
+  static const premiumAllowedDice = ['D4', 'D6', 'D8', 'D10', 'D12', 'D20'];
+
+  /// 주사위 타입 사용 가능 여부
+  static bool canUseDiceType(bool isPremium, String diceType) {
+    if (isPremium) return true;
+    return freeAllowedDice.contains(diceType);
+  }
+
+  // ── 숫자 범위 제한 ────────────────────────────────────────
+
+  static const maxFreeNumberRange = 9999;
+  static const maxPremiumNumberRange = 999999999;
+
+  /// 숫자 최댓값 범위 허용 여부
+  static bool isNumberRangeAllowed(bool isPremium, int max) {
+    final limit = isPremium
+        ? maxPremiumNumberRange
+        : maxFreeNumberRange;
+    return max <= limit;
+  }
+
   /// 무료 플랜 제한 정보 반환
   Map<String, dynamic> get freeLimits => {
     'maxRouletteSets': 3,
     'availablePalettes': ['indigo', 'emerald'],
     'availableWheelThemes': ['classic', 'candy'],
     'availableAtmospheres': ['deep_space', 'charcoal'],
+    'maxLadderParticipants': maxFreeLadderParticipants,
+    'allowedDice': freeAllowedDice,
+    'maxNumberRange': maxFreeNumberRange,
   };
 }

@@ -38,12 +38,16 @@ class AdService {
   InterstitialAd? _interstitialAd;
   RewardedAd? _rewardedAd;
 
+  // ── 통합 도구 사용 카운트 → 광고 트리거 ──────────────────
+  static const int adTriggerCount = 5;
+  static const int ladderAdWeight = 3;
+
+  int _useCount = 0;
+
   // ── 전면 광고 쿨타임/빈도 제어 ─────────────────────────────
-  static const int _kSpinsPerAd = 3;
   static const Duration _kCooldown = Duration(seconds: 60);
   static const int _kDailyMax = 8;
 
-  int _spinsSinceLastAd = 0;
   DateTime? _lastInterstitialShownAt;
   int _todayInterstitialCount = 0;
   String _todayDateKey = '';
@@ -112,25 +116,31 @@ class AdService {
     await _interstitialAd!.show();
   }
 
-  /// 스핀 완료 후 단일 진입점 — 쿨타임/빈도 조건 통과 시 전면 광고 표시
-  Future<void> tryShowInterstitialAfterSpin() async {
+  /// 도구 사용 기록 — 통합 카운트 방식
+  ///
+  /// [toolType]: 'roulette' | 'coin' | 'dice' | 'number' | 'ladder'
+  /// 사다리는 1회 = [ladderAdWeight]회 카운트.
+  /// [adTriggerCount]회 누적 시 전면 광고 표시 후 카운트 리셋.
+  Future<void> recordToolUse(String toolType) async {
     if (_isPremium || !_isInitialized) {
-      if (_isPremium) debugPrint('[AdService] tryShow: skipped (premium)');
+      if (_isPremium) {
+        debugPrint('[AdService] recordToolUse: skipped (premium)');
+      }
       return;
     }
 
-    _spinsSinceLastAd++;
+    final weight = toolType == 'ladder' ? ladderAdWeight : 1;
+    _useCount += weight;
+    debugPrint(
+        '[AdService] recordToolUse($toolType +$weight): $_useCount/$adTriggerCount');
 
-    if (_spinsSinceLastAd < _kSpinsPerAd) {
-      debugPrint(
-          '[AdService] tryShow: spin $_spinsSinceLastAd/$_kSpinsPerAd — skip');
-      return;
-    }
+    if (_useCount < adTriggerCount) return;
 
+    // ── 쿨타임 / 일일 상한 체크 ──
     final now = DateTime.now();
     if (_lastInterstitialShownAt != null &&
         now.difference(_lastInterstitialShownAt!) < _kCooldown) {
-      debugPrint('[AdService] tryShow: cooldown — skip');
+      debugPrint('[AdService] recordToolUse: cooldown — skip ad');
       return;
     }
 
@@ -142,17 +152,21 @@ class AdService {
     }
     if (_todayInterstitialCount >= _kDailyMax) {
       debugPrint(
-          '[AdService] tryShow: daily max ($_kDailyMax) reached — skip');
+          '[AdService] recordToolUse: daily max ($_kDailyMax) reached — skip');
       return;
     }
 
-    _spinsSinceLastAd = 0;
+    _useCount = 0;
     _lastInterstitialShownAt = now;
     _todayInterstitialCount++;
     debugPrint(
-        '[AdService] tryShow: showing (today: $_todayInterstitialCount/$_kDailyMax)');
+        '[AdService] recordToolUse: showing ad (today: $_todayInterstitialCount/$_kDailyMax)');
     await showInterstitial();
   }
+
+  /// 하위 호환: 기존 룰렛 PlayScreen 호출용
+  Future<void> tryShowInterstitialAfterSpin() =>
+      recordToolUse('roulette');
 
   // ── 배너 광고 ────────────────────────────────────────────
 

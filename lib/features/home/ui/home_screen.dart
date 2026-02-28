@@ -18,6 +18,7 @@ import '../state/home_notifier.dart';
 import '../widgets/roulette_card.dart';
 import '../../tools/tools_tab.dart';
 import '../../../core/widgets/app_background.dart';
+import '../../../core/widgets/tab_icons.dart';
 import '../../../l10n/app_localizations.dart';
 
 // ── 홈 모드 ──────────────────────────────────────────────────
@@ -165,13 +166,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: List.generate(5, (i) {
                   final selected = _mode.index == i;
-                  final icons = [
-                    [Icons.track_changes_outlined, Icons.track_changes_rounded],
-                    [Icons.monetization_on_outlined, Icons.monetization_on_rounded],
-                    [Icons.casino_outlined, Icons.casino_rounded],
-                    [Icons.shuffle_rounded, Icons.shuffle_rounded],
-                    [Icons.linear_scale_outlined, Icons.linear_scale_rounded],
-                  ];
                   final labels = [
                     l10n.tabRoulette,
                     l10n.tabCoin,
@@ -187,6 +181,26 @@ class _HomeScreenState extends State<HomeScreen> {
                     AppColors.colorLadder,
                   ];
                   final tabColor = tabColors[i];
+                  final iconColor = selected
+                      ? tabColor
+                      : Colors.white.withValues(alpha: 0.25);
+
+                  Widget icon;
+                  switch (i) {
+                    case 0:
+                      icon = RouletteIcon(size: 22, color: iconColor);
+                    case 1:
+                      icon = CoinIcon(size: 22, color: iconColor);
+                    case 2:
+                      icon = DiceIcon(size: 22, color: iconColor);
+                    case 3:
+                      icon = NumberIcon(size: 22, color: iconColor);
+                    case 4:
+                      icon = LadderIcon(size: 22, color: iconColor);
+                    default:
+                      icon = const SizedBox.shrink();
+                  }
+
                   return Expanded(
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
@@ -194,55 +208,49 @@ class _HomeScreenState extends State<HomeScreen> {
                         HapticFeedback.selectionClick();
                         setState(() => _mode = _HomeMode.values[i]);
                       },
-                      child: Center(
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeInOut,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: selected
-                                ? tabColor.withValues(alpha: 0.08)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(12),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // ── 상단 인디케이터 바 ──
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: selected ? 28 : 0,
+                            height: 2,
+                            decoration: BoxDecoration(
+                              color: selected ? tabColor : Colors.transparent,
+                              borderRadius: BorderRadius.circular(1),
+                            ),
                           ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Opacity(
-                                opacity: selected ? 1.0 : 0.22,
-                                child: Icon(
-                                  selected ? icons[i][1] : icons[i][0],
-                                  size: 22,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                labels[i],
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  fontWeight: selected
-                                      ? FontWeight.w700
-                                      : FontWeight.w600,
-                                  color: selected
-                                      ? tabColor
-                                      : const Color(0x38FFFFFF),
-                                ),
-                              ),
-                              if (selected) ...[
-                                const SizedBox(height: 2),
-                                Container(
-                                  width: 3,
-                                  height: 3,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: tabColor,
-                                  ),
-                                ),
-                              ],
-                            ],
+                          const SizedBox(height: 6),
+                          // ── 아이콘 + 배경 ──
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.easeInOut,
+                            width: 36,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: selected
+                                  ? tabColor.withValues(alpha: 0.12)
+                                  : Colors.transparent,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            alignment: Alignment.center,
+                            child: icon,
                           ),
-                        ),
+                          const SizedBox(height: 3),
+                          // ── 레이블 ──
+                          Text(
+                            labels[i],
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.2,
+                              color: selected
+                                  ? tabColor
+                                  : AppColors.textTertiary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   );
@@ -910,48 +918,58 @@ class _FirstRunState extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ── Welcome 헤더 ──
+          // ── 도구 쇼케이스 + Welcome 헤더 ──
           const SizedBox(height: 24),
-          Center(
-            child: Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF0284C7), Color(0xFF00D4FF)],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF00D4FF).withValues(alpha: 0.4),
-                    blurRadius: 20,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
+          // 도구 오브 Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _ToolOrb(
+                icon: CoinIcon(size: 24, color: AppColors.colorCoin),
+                color: AppColors.colorCoin,
+                label: l10n.tabCoin,
               ),
-              child: const Icon(
-                Icons.track_changes_rounded,
-                size: 36,
-                color: Colors.white,
+              const SizedBox(width: 10),
+              _ToolOrb(
+                icon: DiceIcon(size: 24, color: AppColors.colorDice),
+                color: AppColors.colorDice,
+                label: l10n.tabDice,
               ),
-            ),
+              const SizedBox(width: 10),
+              _ToolOrb(
+                icon: RouletteIcon(size: 32, color: AppColors.colorRoulette),
+                color: AppColors.colorRoulette,
+                label: l10n.tabRoulette,
+                isCenter: true,
+              ),
+              const SizedBox(width: 10),
+              _ToolOrb(
+                icon: NumberIcon(size: 24, color: AppColors.colorNumber),
+                color: AppColors.colorNumber,
+                label: l10n.tabNumber,
+              ),
+              const SizedBox(width: 10),
+              _ToolOrb(
+                icon: LadderIcon(size: 24, color: AppColors.colorLadder),
+                color: AppColors.colorLadder,
+                label: l10n.tabLadder,
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           Text(
-            l10n.firstRunWelcomeTitle,
+            '${l10n.firstRunWelcomeTitle} 👋',
             style: const TextStyle(
+              fontFamily: 'Syne',
               fontSize: 26,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.5,
+              fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           Text(
-            l10n.firstRunWelcomeSubtitle,
+            l10n.firstRunSubtitle,
             style: TextStyle(
               fontSize: 15,
               color: AppColors.textSecondary,
@@ -1010,6 +1028,68 @@ class _FirstRunState extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── 도구 쇼케이스 오브 ──────────────────────────────────────────
+
+class _ToolOrb extends StatelessWidget {
+  final Widget icon;
+  final Color color;
+  final String label;
+  final bool isCenter;
+
+  const _ToolOrb({
+    required this.icon,
+    required this.color,
+    required this.label,
+    this.isCenter = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final size = isCenter ? 68.0 : 52.0;
+    final radius = isCenter ? 20.0 : 16.0;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(radius),
+            border: Border.all(
+              color: color.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
+            boxShadow: isCenter
+                ? [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.4),
+                      blurRadius: 24,
+                    ),
+                  ]
+                : null,
+          ),
+          child: Center(child: icon),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: size,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: color.withValues(alpha: 0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
     );
   }
 }
