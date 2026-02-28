@@ -1515,32 +1515,68 @@ class _RecommendCard extends StatelessWidget {
 
   const _RecommendCard({required this.set, required this.onTap});
 
+  static const _categoryColors = <String, Color>{
+    'starterCatDecision': AppColors.colorNumber,
+    'starterCatFun': AppColors.colorDice,
+    'starterCatTeam': AppColors.colorRoulette,
+    'starterCatNumbers': AppColors.colorCoin,
+    'starterCatFood': AppColors.colorLadder,
+    'starterCatGame': AppColors.colorDice,
+  };
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final emoji = set['emoji'] as String;
+    final categoryKey = set['categoryKey'] as String;
     final category = _HomeScreenState._resolveStarterCategory(
-        l10n, set['categoryKey'] as String);
+        l10n, categoryKey);
+    final dotColor = _categoryColors[categoryKey] ?? AppColors.accent;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         decoration: BoxDecoration(
-          color: const Color(0x0AFFFFFF),
+          color: dotColor.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(100),
-          border: Border.all(color: const Color(0x0FFFFFFF), width: 1),
-        ),
-        child: Text(
-          '$emoji $category',
-          style: const TextStyle(
-            fontSize: 9.5,
-            fontWeight: FontWeight.w500,
-            color: Color(0x8CFFFFFF),
+          border: Border.all(
+            color: dotColor.withValues(alpha: 0.18),
+            width: 1,
           ),
-          textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 컬러 도트
+            Container(
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(
+                color: dotColor,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: dotColor.withValues(alpha: 0.5),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 5),
+            Flexible(
+              child: Text(
+                '$emoji $category',
+                style: TextStyle(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white.withValues(alpha: 0.65),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
       ),
     );
