@@ -144,13 +144,10 @@ class _PremiumDemoWidgetState extends State<PremiumDemoWidget> {
               if (isPremium) ...[
                 _FeatureRow(text: l10n.premiumFeatureAds),
                 _FeatureRow(text: l10n.premiumFeatureSets),
-                _FeatureRow(text: l10n.premiumFeaturePalettes),
               ] else ...[
                 _FeatureRow(text: l10n.paywallAds, locked: true),
                 _FeatureRow(
                     text: '${l10n.paywallRouletteSets} 3', locked: true),
-                _FeatureRow(
-                    text: '${l10n.paywallColorPalettes} 2', locked: true),
               ],
 
               const SizedBox(height: 16),

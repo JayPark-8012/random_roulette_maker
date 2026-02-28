@@ -19,8 +19,8 @@ class SmoothPageRoute<T> extends PageRoute<T> {
   SmoothPageRoute({
     required this.builder,
     this.title,
-    RouteSettings? settings,
-  }) : super(settings: settings);
+    super.settings,
+  });
 
   @override
   Color? get barrierColor => null;

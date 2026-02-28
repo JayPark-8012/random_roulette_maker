@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../../../core/app_themes.dart';
 import '../../../core/atmosphere_presets.dart';
 import '../../../core/constants.dart';
 import '../../../core/design_tokens.dart';
@@ -41,18 +40,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _rebuild() => setState(() {});
 
-  void _selectTheme(BuildContext context, AppThemeData theme) {
-    final l10n = AppLocalizations.of(context)!;
-
-    // 팔레트 사용 가능 여부: PremiumService 단일 판단
-    if (!PremiumService.instance.canUsePalette(theme.id)) {
-      _showPaletteLockDialog(context, theme, l10n);
-      return;
-    }
-
-    _notifier.setThemeId(theme.id);
-  }
-
   void _selectAtmosphere(BuildContext context, AtmospherePreset atm) {
     if (!PremiumService.instance.canUseAtmosphere(atm.id)) {
       _showAtmosphereLockDialog(context, atm);
@@ -84,58 +71,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               decoration: BoxDecoration(
                 gradient: atm.gradient,
                 color: atm.gradient == null ? atm.solidColor : null,
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(l10n.actionCancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              Navigator.of(context).pushNamed(AppRoutes.paywall);
-            },
-            child: Text(l10n.paywallUnlockButton),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 팔레트 잠금 다이얼로그
-  void _showPaletteLockDialog(
-    BuildContext context,
-    AppThemeData theme,
-    AppLocalizations l10n,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        icon: Icon(Icons.lock_rounded, size: 40, color: colorScheme.primary),
-        title: Text(l10n.paywallPaletteLockTitle),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              l10n.paywallPaletteLockContent(theme.name),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            // 팔레트 미리보기
-            Container(
-              height: 40,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: theme.palette.take(3).toList(),
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
@@ -312,44 +247,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Divider(height: 1, color: Colors.white.withValues(alpha: 0.06)),
             ),
           ],
-          // ── 색상 팔레트 ──────────────────────────────
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: SectionLabel(text: l10n.colorPaletteLabel),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: ValueListenableBuilder<PremiumState>(
-              valueListenable: PremiumService.instance.stateNotifier,
-              builder: (ctx, ps, child) => GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  childAspectRatio: 2.1,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                ),
-                itemCount: AppThemes.all.length,
-                itemBuilder: (ctx, i) {
-                  final theme = AppThemes.all[i];
-                  return _ThemePreviewCard(
-                    themeData: theme,
-                    isSelected: theme.id == _notifier.themeId,
-                    isLocked: !ps.isPremium && theme.isLocked,
-                    onTap: () => _selectTheme(context, theme),
-                  );
-                },
-              ),
-            ),
-          ),
-
-          // ── 섹션 구분선 ──
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: Divider(height: 1, color: Colors.white.withValues(alpha: 0.06)),
-          ),
           // ── 언어 ──────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
@@ -681,111 +578,5 @@ class _AtmospherePreviewCard extends StatelessWidget {
   }
 }
 
-// ── 테마 프리뷰 카드 ─────────────────────────────────────
-class _ThemePreviewCard extends StatelessWidget {
-  final AppThemeData themeData;
-  final bool isSelected;
-  final bool isLocked;
-  final VoidCallback onTap;
-
-  const _ThemePreviewCard({
-    required this.themeData,
-    required this.isSelected,
-    required this.isLocked,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          // ── Card ──
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isSelected
-                      ? const Color(0xFF00D4FF).withValues(alpha: 0.5)
-                      : Colors.white.withValues(alpha: 0.07),
-                  width: isSelected ? 2 : 1,
-                ),
-                color: Colors.white.withValues(alpha: 0.055),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(11),
-                child: Stack(
-                  children: [
-                    // 색상 스와치 (팔레트 앞 5개)
-                    Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: themeData.palette.take(5).map((c) {
-                          return Container(
-                            width: 14,
-                            height: 14,
-                            margin:
-                                const EdgeInsets.symmetric(horizontal: 1.5),
-                            decoration: BoxDecoration(
-                                color: c, shape: BoxShape.circle),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                    // ── Locked overlay ──
-                    if (isLocked) ...[
-                      Positioned.fill(
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
-                          child: Container(
-                            color: Colors.black.withValues(alpha: 0.50),
-                          ),
-                        ),
-                      ),
-                      const Center(
-                        child: Icon(Icons.lock_rounded,
-                            size: 18, color: Colors.white70),
-                      ),
-                    ],
-                    // ── Selected check badge ──
-                    if (isSelected)
-                      Positioned(
-                        right: 4,
-                        top: 4,
-                        child: Container(
-                          width: 20,
-                          height: 20,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF00D4FF),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.check_rounded,
-                              size: 13, color: Colors.white),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          // ── Label below card ──
-          const SizedBox(height: 4),
-          Text(
-            themeData.name,
-            style: TextStyle(
-              fontSize: 11,
-              color: AppColors.textSecondary,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 

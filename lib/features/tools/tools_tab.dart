@@ -865,7 +865,7 @@ class _DiceCardState extends State<_DiceCard> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    const accentColor = Color(0xFF00D4FF);
+    const accentColor = Color(0xFF7B61FF);
 
     final shownResult = _isRolling ? _displayResult : widget.result;
 
@@ -878,12 +878,12 @@ class _DiceCardState extends State<_DiceCard> {
         color: const Color(0xFF0F1C30),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFF00D4FF).withValues(alpha: 0.3),
+          color: const Color(0xFF7B61FF).withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF00D4FF).withValues(alpha: 0.15),
+            color: const Color(0xFF7B61FF).withValues(alpha: 0.15),
             blurRadius: 20,
           ),
         ],
@@ -918,7 +918,7 @@ class _DiceCardState extends State<_DiceCard> {
                         height: 44,
                         decoration: BoxDecoration(
                           color: selected
-                              ? const Color(0xFF00D4FF)
+                              ? const Color(0xFF7B61FF)
                               : const Color(0xFF0E1628),
                           borderRadius: BorderRadius.circular(10),
                           border: selected
@@ -971,7 +971,7 @@ class _DiceCardState extends State<_DiceCard> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF00D4FF)
+                                color: const Color(0xFF7B61FF)
                                     .withValues(alpha: _isRolling ? 0.35 : 0.2),
                                 blurRadius: 40,
                                 spreadRadius: 8,
@@ -985,7 +985,7 @@ class _DiceCardState extends State<_DiceCard> {
                           painter: _DiceShapePainter(
                             sides: widget.selectedType,
                             fillColor: const Color(0xFF0F1C30),
-                            borderColor: const Color(0xFF00D4FF)
+                            borderColor: const Color(0xFF7B61FF)
                                 .withValues(alpha: 0.6),
                           ),
                         ),
@@ -999,7 +999,7 @@ class _DiceCardState extends State<_DiceCard> {
                                 fontSize: 52,
                                 fontWeight: FontWeight.w900,
                                 color: shownResult != null
-                                    ? const Color(0xFF00D4FF).withValues(
+                                    ? const Color(0xFF7B61FF).withValues(
                                         alpha: _isRolling ? 0.5 : 1.0)
                                     : const Color(0xFFFFFFFF)
                                         .withValues(alpha: 0.3),
@@ -1012,7 +1012,7 @@ class _DiceCardState extends State<_DiceCard> {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF00D4FF)
+                                color: const Color(0xFF7B61FF)
                                     .withValues(alpha: 0.45),
                                 letterSpacing: 1.5,
                               ),
@@ -1099,13 +1099,13 @@ class _DiceCardState extends State<_DiceCard> {
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [Color(0xFF0284C7), Color(0xFF00D4FF)],
+                      colors: [Color(0xFF5B41CC), Color(0xFF7B61FF)],
                     ),
                     boxShadow: _isRolling
                         ? []
                         : [
                             BoxShadow(
-                              color: const Color(0xFF00D4FF)
+                              color: const Color(0xFF7B61FF)
                                   .withValues(alpha: 0.4),
                               blurRadius: 16,
                               offset: const Offset(0, 6),
@@ -1285,7 +1285,7 @@ class _NumberCardState extends State<_NumberCard> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    const accent = Color(0xFF00D4FF);
+    const accent = Color(0xFF00D68F);
 
     final shownResult = _isGenerating ? _displayResult : widget.result;
     final minText = widget.minCtrl.text.trim().isEmpty ? '1' : widget.minCtrl.text.trim();
@@ -1305,7 +1305,7 @@ class _NumberCardState extends State<_NumberCard> {
               color: const Color(0xFF0E1628),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: const Color(0xFF00D4FF).withValues(alpha: 0.4),
+                color: const Color(0xFF00D68F).withValues(alpha: 0.4),
                 width: 1.5,
               ),
             ),
@@ -1319,7 +1319,7 @@ class _NumberCardState extends State<_NumberCard> {
                       height: 28,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF0284C7), Color(0xFF00D4FF)],
+                          colors: [Color(0xFF00A86B), Color(0xFF00D68F)],
                         ),
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -1552,7 +1552,7 @@ class _NumberCardState extends State<_NumberCard> {
                     child: Container(
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF0284C7), Color(0xFF00D4FF)],
+                          colors: [Color(0xFF00A86B), Color(0xFF00D68F)],
                         ),
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: !_isGenerating

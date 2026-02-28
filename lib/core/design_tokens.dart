@@ -17,6 +17,12 @@ class AppColors {
   static const accentSoft   = Color(0x1400D4FF); // 소프트 8%
   static const accentBorder = Color(0x4000D4FF); // 테두리 25%
 
+  // ── 탭별 포인트 컬러 ──
+  static const colorRoulette = Color(0xFF00D4FF);
+  static const colorCoin     = Color(0xFFFFB800);
+  static const colorDice     = Color(0xFF7B61FF);
+  static const colorNumber   = Color(0xFF00D68F);
+
   // ── 서브 액센트 — 퍼플 (스핀 결과/강조용) ──
   static const spark     = Color(0xFF7B61FF);
   static const sparkGlow = Color(0x1F7B61FF);
