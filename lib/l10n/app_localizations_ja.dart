@@ -953,4 +953,107 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get ladderMinParticipants => 'At least 2 participants required';
+
+  @override
+  String get dateToday => 'Today';
+
+  @override
+  String get dateYesterday => 'Yesterday';
+
+  @override
+  String dateDaysAgo(int days) {
+    return '$days days ago';
+  }
+
+  @override
+  String shareResultText(String name, String result) {
+    return '[$name] Result: $result\nDecided with Spin Wheel 🎡';
+  }
+
+  @override
+  String errorRouletteMaxLimit(int max) {
+    return 'You can create up to $max roulettes.';
+  }
+
+  @override
+  String errorRouletteNotFound(String id) {
+    return 'Roulette not found: $id';
+  }
+
+  @override
+  String editorErrorMinItems(int min) {
+    return 'At least $min items required.';
+  }
+
+  @override
+  String get editorErrorNoName => 'Please enter a roulette name.';
+
+  @override
+  String editorErrorItemsRequired(int min) {
+    return 'Please enter at least $min items.';
+  }
+
+  @override
+  String get editorErrorEmptyItems => 'Please fill in empty items.';
+
+  @override
+  String get editorErrorNotFound => 'Roulette not found.';
+
+  @override
+  String get itemNameHint => 'Item name';
+
+  @override
+  String get itemNameRequired => 'Required';
+
+  @override
+  String get itemDeleteTooltip => 'Delete item';
+
+  @override
+  String get itemColorPickerTitle => 'Choose Color';
+
+  @override
+  String rouletteCopyPrefix(String name) {
+    return '[Copy] $name';
+  }
+
+  @override
+  String get homeNewSetButton => '+ New Set';
+
+  @override
+  String homeItemCount(String category, int count) {
+    return '$category · $count items';
+  }
+
+  @override
+  String get coinFront => 'H';
+
+  @override
+  String get coinBack => 'T';
+
+  @override
+  String get coinFlipButton => '🪙 Flip';
+
+  @override
+  String get toolsStatTotal => 'Total';
+
+  @override
+  String get numberProSnackbar => 'Larger ranges available with PRO';
+
+  @override
+  String get numberProSnackbarAction => 'View PRO';
+
+  @override
+  String get numberCardTitle => 'Random Number';
+
+  @override
+  String get numberRangeHintPro => 'Max 999,999,999';
+
+  @override
+  String get numberRangeHintFree => 'Max 9,999 · PRO for bigger';
+
+  @override
+  String get diceGenerateButton => '🎲 Generate';
+
+  @override
+  String get ladderMaxParticipantsPro => '🔒 Max 12 (PRO)';
 }

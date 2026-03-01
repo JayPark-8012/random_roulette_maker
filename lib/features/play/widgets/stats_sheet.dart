@@ -102,7 +102,12 @@ class StatsSheet extends StatelessWidget {
                       ),
                       title: Text(h.resultLabel),
                       trailing: Text(
-                        AppUtils.formatRelativeDate(h.playedAt),
+                        AppUtils.formatRelativeDate(
+                          h.playedAt,
+                          today: l10n.dateToday,
+                          yesterday: l10n.dateYesterday,
+                          daysAgo: l10n.dateDaysAgo,
+                        ),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),

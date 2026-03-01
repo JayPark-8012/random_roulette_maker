@@ -952,4 +952,107 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get ladderMinParticipants => '최소 2명 이상 필요합니다';
+
+  @override
+  String get dateToday => '오늘';
+
+  @override
+  String get dateYesterday => '어제';
+
+  @override
+  String dateDaysAgo(int days) {
+    return '$days일 전';
+  }
+
+  @override
+  String shareResultText(String name, String result) {
+    return '[$name]의 결과: $result\nSpin Wheel 앱으로 결정했어요 🎡';
+  }
+
+  @override
+  String errorRouletteMaxLimit(int max) {
+    return '룰렛은 최대 $max개까지 생성할 수 있습니다.';
+  }
+
+  @override
+  String errorRouletteNotFound(String id) {
+    return '룰렛을 찾을 수 없습니다: $id';
+  }
+
+  @override
+  String editorErrorMinItems(int min) {
+    return '최소 $min개 항목이 필요합니다.';
+  }
+
+  @override
+  String get editorErrorNoName => '룰렛 이름을 입력해 주세요.';
+
+  @override
+  String editorErrorItemsRequired(int min) {
+    return '항목을 최소 $min개 입력해 주세요.';
+  }
+
+  @override
+  String get editorErrorEmptyItems => '비어있는 항목을 채워 주세요.';
+
+  @override
+  String get editorErrorNotFound => '룰렛을 찾을 수 없습니다.';
+
+  @override
+  String get itemNameHint => '항목 이름';
+
+  @override
+  String get itemNameRequired => '필수 입력';
+
+  @override
+  String get itemDeleteTooltip => '항목 삭제';
+
+  @override
+  String get itemColorPickerTitle => '색상 선택';
+
+  @override
+  String rouletteCopyPrefix(String name) {
+    return '[복사] $name';
+  }
+
+  @override
+  String get homeNewSetButton => '+ 새 세트';
+
+  @override
+  String homeItemCount(String category, int count) {
+    return '$category · $count items';
+  }
+
+  @override
+  String get coinFront => '앞';
+
+  @override
+  String get coinBack => '뒤';
+
+  @override
+  String get coinFlipButton => '🪙 뒤집기';
+
+  @override
+  String get toolsStatTotal => '총';
+
+  @override
+  String get numberProSnackbar => '더 큰 범위는 PRO에서 사용 가능해요';
+
+  @override
+  String get numberProSnackbarAction => 'PRO 보기';
+
+  @override
+  String get numberCardTitle => '랜덤 숫자';
+
+  @override
+  String get numberRangeHintPro => '최대 999,999,999';
+
+  @override
+  String get numberRangeHintFree => '최대 9,999 · 더 큰 범위는 PRO';
+
+  @override
+  String get diceGenerateButton => '🎲 생성';
+
+  @override
+  String get ladderMaxParticipantsPro => '🔒 최대 12명 (PRO)';
 }

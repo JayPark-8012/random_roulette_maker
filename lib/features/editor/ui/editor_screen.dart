@@ -188,7 +188,11 @@ class _EditorScreenState extends State<EditorScreen> {
                             _notifier.updateItemLabel(item.id, v),
                         onColorChanged: (colorValue) =>
                             _notifier.updateItemColor(item.id, colorValue),
-                        onDelete: () => _notifier.removeItem(item.id),
+                        onDelete: () => _notifier.removeItem(
+                          item.id,
+                          errorMinItems: AppLocalizations.of(context)!
+                              .editorErrorMinItems(AppLimits.minItemCount),
+                        ),
                         showWeight: true,
                         onWeightChanged: (w) =>
                             _notifier.updateItemWeight(item.id, w),
@@ -213,7 +217,13 @@ class _EditorScreenState extends State<EditorScreen> {
 
   Future<void> _save(BuildContext context) async {
     final navigator = Navigator.of(context);
-    final success = await _notifier.save();
+    final l10n = AppLocalizations.of(context)!;
+    final success = await _notifier.save(
+      errorNoName: l10n.editorErrorNoName,
+      errorItemsRequired: l10n.editorErrorItemsRequired(AppLimits.minItemCount),
+      errorEmptyItems: l10n.editorErrorEmptyItems,
+      errorNotFound: l10n.editorErrorNotFound,
+    );
     if (success && mounted) {
       navigator.pop();
     }

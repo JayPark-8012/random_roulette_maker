@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants.dart';
 import '../../../domain/item.dart';
+import '../../../l10n/app_localizations.dart';
 
 class ItemListTile extends StatefulWidget {
   final Item item;
@@ -68,6 +69,7 @@ class _ItemListTileState extends State<ItemListTile> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     final isError = widget.hasError && widget.item.label.trim().isEmpty;
 
     return Padding(
@@ -104,13 +106,13 @@ class _ItemListTileState extends State<ItemListTile> {
               controller: _ctrl,
               maxLength: AppLimits.maxLabelLength,
               decoration: InputDecoration(
-                hintText: '항목 이름',
+                hintText: l10n.itemNameHint,
                 counterText: '',
                 isDense: true,
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 border: const OutlineInputBorder(),
-                errorText: isError ? '필수 입력' : null,
+                errorText: isError ? l10n.itemNameRequired : null,
                 errorBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: colorScheme.error, width: 2),
                 ),
@@ -139,7 +141,7 @@ class _ItemListTileState extends State<ItemListTile> {
                   : colorScheme.outlineVariant,
             ),
             onPressed: widget.canDelete ? widget.onDelete : null,
-            tooltip: '항목 삭제',
+            tooltip: l10n.itemDeleteTooltip,
           ),
         ],
       ),
@@ -239,7 +241,7 @@ class _ColorPickerSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '색상 선택',
+            AppLocalizations.of(context)!.itemColorPickerTitle,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),

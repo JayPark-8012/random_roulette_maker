@@ -50,14 +50,14 @@ class HomeNotifier extends ChangeNotifier {
 
   // ── 복제 ──────────────────────────────────────────────
 
-  /// 룰렛을 복사한 뒤 "[복사] 이름"으로 저장.
+  /// 룰렛을 복사한 뒤 "[Copy] 이름"으로 저장.
   /// 3개 제한 초과 시 Exception → error 세팅 후 null 반환.
-  Future<String?> duplicate(String id) async {
+  Future<String?> duplicate(String id, {required String Function(String) formatCopyName}) async {
     try {
       final original = await _repo.getById(id);
       if (original == null) return null;
 
-      final copyName = '[복사] ${original.name}';
+      final copyName = formatCopyName(original.name);
       final newName = copyName.length > 30 ? copyName.substring(0, 30) : copyName;
 
       final newItems = original.items

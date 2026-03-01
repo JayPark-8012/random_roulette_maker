@@ -497,23 +497,26 @@ class _CoinCardState extends State<_CoinCard>
           ),
           // 레이어4 — 앞/뒤 텍스트
           Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  isH ? '👑' : '✦',
-                  style: const TextStyle(fontSize: 32),
-                ),
-                Text(
-                  isH ? '앞' : '뒤',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    color: isH ? textColor : silverTextColor,
+            child: Builder(builder: (ctx) {
+              final l10n = AppLocalizations.of(ctx)!;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    isH ? '👑' : '✦',
+                    style: const TextStyle(fontSize: 32),
                   ),
-                ),
-              ],
-            ),
+                  Text(
+                    isH ? l10n.coinFront : l10n.coinBack,
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w900,
+                      color: isH ? textColor : silverTextColor,
+                    ),
+                  ),
+                ],
+              );
+            }),
           ),
           // 레이어5 — 코인 테두리 링
           Container(
@@ -566,7 +569,7 @@ class _CoinCardState extends State<_CoinCard>
             highlightColor: Colors.white.withValues(alpha: 0.05),
             child: Center(
               child: Text(
-                '🪙 뒤집기',
+                l10n.coinFlipButton,
                 style: const TextStyle(
                   color: textColor,
                   fontSize: 16,
@@ -779,7 +782,7 @@ class _CoinCardState extends State<_CoinCard>
                         child: Column(
                           children: [
                             Text(
-                              '총',
+                              l10n.toolsStatTotal,
                               style: TextStyle(
                                 fontSize: 8,
                                 fontWeight: FontWeight.w700,
@@ -1480,12 +1483,13 @@ class _NumberCardState extends State<_NumberCard> {
   bool _isSpinning = false;
 
   void _showProSnackBar() {
+    final l10n = AppLocalizations.of(context)!;
     final nav = Navigator.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('더 큰 범위는 PRO에서 사용 가능해요'),
+        content: Text(l10n.numberProSnackbar),
         action: SnackBarAction(
-          label: 'PRO 보기',
+          label: l10n.numberProSnackbarAction,
           onPressed: () => nav.pushNamed(AppRoutes.paywall),
         ),
         backgroundColor: AppColors.bgElevated,
@@ -1576,9 +1580,9 @@ class _NumberCardState extends State<_NumberCard> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Text(
-                      '랜덤 숫자',
-                      style: TextStyle(
+                    Text(
+                      l10n.numberCardTitle,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -1695,8 +1699,8 @@ class _NumberCardState extends State<_NumberCard> {
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     PremiumService.instance.isPremium
-                        ? '최대 999,999,999'
-                        : '최대 9,999 · 더 큰 범위는 PRO',
+                        ? l10n.numberRangeHintPro
+                        : l10n.numberRangeHintFree,
                     style: const TextStyle(
                       fontSize: 10,
                       color: AppColors.textTertiary,
@@ -1823,7 +1827,7 @@ class _NumberCardState extends State<_NumberCard> {
                               Colors.white.withValues(alpha: 0.05),
                           child: Center(
                             child: Text(
-                              _isSpinning ? '...' : '🎲 생성',
+                              _isSpinning ? '...' : l10n.diceGenerateButton,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w800,
@@ -2258,7 +2262,7 @@ class _LadderCardState extends State<_LadderCard>
                   child: Center(
                     child: Text(
                       atFreeLimit
-                          ? '🔒 최대 12명 (PRO)'
+                          ? l10n.ladderMaxParticipantsPro
                           : l10n.ladderAddParticipant,
                       style: TextStyle(
                         fontSize: 12,

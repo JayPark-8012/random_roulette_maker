@@ -52,7 +52,7 @@ class RouletteRepository {
     required List<Item> items,
   }) async {
     if (!await canCreate()) {
-      throw Exception('룰렛은 최대 ${AppLimits.maxRouletteCount}개까지 생성할 수 있습니다.');
+      throw Exception('Max roulette limit reached (${AppLimits.maxRouletteCount}).');
     }
 
     final now = DateTime.now();
@@ -75,7 +75,7 @@ class RouletteRepository {
     final updated = roulette.copyWith(updatedAt: DateTime.now());
     final all = await getAll();
     final idx = all.indexWhere((r) => r.id == roulette.id);
-    if (idx < 0) throw Exception('룰렛을 찾을 수 없습니다: ${roulette.id}');
+    if (idx < 0) throw Exception('Roulette not found: ${roulette.id}');
     all[idx] = updated;
     await _saveAll(all);
     return updated;

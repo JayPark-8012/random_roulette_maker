@@ -140,9 +140,9 @@ class EditorNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  void removeItem(String itemId) {
+  void removeItem(String itemId, {required String errorMinItems}) {
     if (_items.length <= AppLimits.minItemCount) {
-      _error = '최소 ${AppLimits.minItemCount}개 항목이 필요합니다.';
+      _error = errorMinItems;
       notifyListeners();
       return;
     }
@@ -169,22 +169,27 @@ class EditorNotifier extends ChangeNotifier {
 
   // ── 저장 ─────────────────────────────────────────────
 
-  Future<bool> save() async {
+  Future<bool> save({
+    required String errorNoName,
+    required String errorItemsRequired,
+    required String errorEmptyItems,
+    required String errorNotFound,
+  }) async {
     // 유효성 검사 → 실패 시 에러 표시 ON
     if (!isNameValid) {
-      _error = '룰렛 이름을 입력해 주세요.';
+      _error = errorNoName;
       _showErrors = true;
       notifyListeners();
       return false;
     }
     if (!hasEnoughItems) {
-      _error = '항목을 최소 ${AppLimits.minItemCount}개 입력해 주세요.';
+      _error = errorItemsRequired;
       _showErrors = true;
       notifyListeners();
       return false;
     }
     if (hasEmptyItems) {
-      _error = '비어있는 항목을 채워 주세요.';
+      _error = errorEmptyItems;
       _showErrors = true;
       notifyListeners();
       return false;
@@ -203,7 +208,7 @@ class EditorNotifier extends ChangeNotifier {
         await _repo.create(name: _name.trim(), items: validItems);
       } else {
         final existing = await _repo.getById(_editingId!);
-        if (existing == null) throw Exception('룰렛을 찾을 수 없습니다.');
+        if (existing == null) throw Exception(errorNotFound);
         await _repo.update(
           existing.copyWith(name: _name.trim(), items: validItems),
         );

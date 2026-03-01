@@ -322,8 +322,9 @@ class _PlayScreenState extends State<PlayScreen>
   }
 
   Future<void> _shareText(Item winner) async {
+    final l10n = AppLocalizations.of(context)!;
     await Share.share(
-      AppUtils.buildShareText(_notifier.roulette?.name ?? '', winner.label),
+      l10n.shareResultText(_notifier.roulette?.name ?? '', winner.label),
     );
   }
 
@@ -341,7 +342,7 @@ class _PlayScreenState extends State<PlayScreen>
       final bytes = byteData.buffer.asUint8List();
       await Share.shareXFiles(
         [XFile.fromData(bytes, mimeType: 'image/png', name: 'roulette_result.png')],
-        text: AppUtils.buildShareText(_notifier.roulette?.name ?? '', winner.label),
+        text: l10n.shareResultText(_notifier.roulette?.name ?? '', winner.label),
       );
     } catch (_) {
       messenger.showSnackBar(
@@ -376,12 +377,12 @@ class _PlayScreenState extends State<PlayScreen>
 
   Future<void> _onResultCopy() async {
     if (_resultWinner == null) return;
-    final text = AppUtils.buildShareText(
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+    final text = l10n.shareResultText(
       _notifier.roulette?.name ?? '',
       _resultWinner!.label,
     );
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = AppLocalizations.of(context)!;
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
     messenger.showSnackBar(SnackBar(content: Text(l10n.copiedMessage)));
@@ -438,7 +439,12 @@ class _PlayScreenState extends State<PlayScreen>
                         ),
                         title: Text(h.resultLabel),
                         subtitle: Text(
-                          AppUtils.formatRelativeDate(h.playedAt),
+                          AppUtils.formatRelativeDate(
+                            h.playedAt,
+                            today: l10n.dateToday,
+                            yesterday: l10n.dateYesterday,
+                            daysAgo: l10n.dateDaysAgo,
+                          ),
                         ),
                       )
                           .animate()

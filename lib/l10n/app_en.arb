@@ -895,5 +895,97 @@
     }
   },
   "ladderMinParticipants": "At least 2 participants required",
-  "@ladderMinParticipants": {}
+  "@ladderMinParticipants": {},
+  "dateToday": "Today",
+  "@dateToday": {},
+  "dateYesterday": "Yesterday",
+  "@dateYesterday": {},
+  "dateDaysAgo": "{days} days ago",
+  "@dateDaysAgo": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "shareResultText": "[{name}] Result: {result}\nDecided with Spin Wheel 🎡",
+  "@shareResultText": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "result": {"type": "String"}
+    }
+  },
+  "errorRouletteMaxLimit": "You can create up to {max} roulettes.",
+  "@errorRouletteMaxLimit": {
+    "placeholders": {
+      "max": {"type": "int"}
+    }
+  },
+  "errorRouletteNotFound": "Roulette not found: {id}",
+  "@errorRouletteNotFound": {
+    "placeholders": {
+      "id": {"type": "String"}
+    }
+  },
+  "editorErrorMinItems": "At least {min} items required.",
+  "@editorErrorMinItems": {
+    "placeholders": {
+      "min": {"type": "int"}
+    }
+  },
+  "editorErrorNoName": "Please enter a roulette name.",
+  "@editorErrorNoName": {},
+  "editorErrorItemsRequired": "Please enter at least {min} items.",
+  "@editorErrorItemsRequired": {
+    "placeholders": {
+      "min": {"type": "int"}
+    }
+  },
+  "editorErrorEmptyItems": "Please fill in empty items.",
+  "@editorErrorEmptyItems": {},
+  "editorErrorNotFound": "Roulette not found.",
+  "@editorErrorNotFound": {},
+  "itemNameHint": "Item name",
+  "@itemNameHint": {},
+  "itemNameRequired": "Required",
+  "@itemNameRequired": {},
+  "itemDeleteTooltip": "Delete item",
+  "@itemDeleteTooltip": {},
+  "itemColorPickerTitle": "Choose Color",
+  "@itemColorPickerTitle": {},
+  "rouletteCopyPrefix": "[Copy] {name}",
+  "@rouletteCopyPrefix": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "homeNewSetButton": "+ New Set",
+  "@homeNewSetButton": {},
+  "homeItemCount": "{category} · {count} items",
+  "@homeItemCount": {
+    "placeholders": {
+      "category": {"type": "String"},
+      "count": {"type": "int"}
+    }
+  },
+  "coinFront": "H",
+  "@coinFront": {},
+  "coinBack": "T",
+  "@coinBack": {},
+  "coinFlipButton": "🪙 Flip",
+  "@coinFlipButton": {},
+  "toolsStatTotal": "Total",
+  "@toolsStatTotal": {},
+  "numberProSnackbar": "Larger ranges available with PRO",
+  "@numberProSnackbar": {},
+  "numberProSnackbarAction": "View PRO",
+  "@numberProSnackbarAction": {},
+  "numberCardTitle": "Random Number",
+  "@numberCardTitle": {},
+  "numberRangeHintPro": "Max 999,999,999",
+  "@numberRangeHintPro": {},
+  "numberRangeHintFree": "Max 9,999 · PRO for bigger",
+  "@numberRangeHintFree": {},
+  "diceGenerateButton": "🎲 Generate",
+  "@diceGenerateButton": {},
+  "ladderMaxParticipantsPro": "🔒 Max 12 (PRO)",
+  "@ladderMaxParticipantsPro": {}
 }

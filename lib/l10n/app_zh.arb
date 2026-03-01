@@ -1,6 +1,5 @@
 {
   "@@locale": "zh",
-
   "appTitle": "Spin Wheel – Random Roulette",
   "homeTitle": "Spin Wheel – Random Roulette",
   "settingsTooltip": "设置",
@@ -208,9 +207,7 @@
   "createManualTitle": "空白开始",
   "createManualSubtitle": "手动输入选项",
   "createTemplateSubtitleNew": "从模板开始",
-
   "atmosphereLabel": "背景",
-
   "paywallRouletteRow": "Roulette Sets",
   "paywallLadderRow": "Ladder Participants",
   "paywallDiceRow": "Dice Types",
@@ -230,7 +227,6 @@
   "paywallLadderLimitContent": "Free users can add up to 6 participants. Upgrade to add up to 12.",
   "paywallNumberLimitTitle": "Range Limit Reached",
   "paywallNumberLimitContent": "Free users can set a max of 9,999. Upgrade for up to 999,999,999.",
-
   "firstRunWelcomeTitle": "歡迎！",
   "firstRunWelcomeSubtitle": "現在就試試轉動入門套裝",
   "firstRunSubtitle": "From Roulette to Ladder\nWe help you decide.",
@@ -240,7 +236,6 @@
   "firstRunSaveMessage": "儲存到我的套裝後，可以隨時使用。",
   "firstRunSaveButton": "儲存",
   "firstRunSkipButton": "略過",
-
   "onboardingSkip": "Skip",
   "onboardingNext": "Next",
   "onboardingStart": "Get Started",
@@ -250,12 +245,162 @@
   "onboardingSlide2Desc": "Enter participants and start right away.",
   "onboardingSlide3Title": "Start for Free",
   "onboardingSlide3Desc": "Core features are completely free.",
-
   "sectionQuickLaunch": "快速啟動",
   "quickLaunchSpin": "轉動",
   "lastResultWithDate": "上次: {result} · {date}",
   "recentResult": "上次: {result}",
   "sectionRecommend": "試試這些輪盤",
   "showMore": "展開更多",
-  "showLess": "收起"
+  "showLess": "收起",
+  "diceD4Name": "Tetrahedron",
+  "@diceD4Name": {},
+  "diceD6Name": "Cube",
+  "@diceD6Name": {},
+  "diceD8Name": "Octahedron",
+  "@diceD8Name": {},
+  "diceD10Name": "Decahedron",
+  "@diceD10Name": {},
+  "diceD12Name": "Dodecahedron",
+  "@diceD12Name": {},
+  "diceD20Name": "Icosahedron",
+  "@diceD20Name": {},
+  "diceRange": "1 ~ {max}",
+  "@diceRange": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "tabLadder": "Ladder",
+  "@tabLadder": {},
+  "ladderTitle": "Ladder",
+  "@ladderTitle": {},
+  "ladderParticipants": "Participants",
+  "@ladderParticipants": {},
+  "ladderPerson": "Person {index}",
+  "@ladderPerson": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "ladderAddParticipant": "+ Add Participant",
+  "@ladderAddParticipant": {},
+  "ladderMinParticipants": "At least 2 participants required",
+  "@ladderMinParticipants": {},
+  "ladderCountBadge": "{current} / {max}",
+  "@ladderCountBadge": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "ladderResults": "Results (optional)",
+  "@ladderResults": {},
+  "ladderResult": "Result {index}",
+  "@ladderResult": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "ladderResultHint": "Leave blank for auto 1st, 2nd...",
+  "@ladderResultHint": {},
+  "ladderResultDefault1st": "1st",
+  "@ladderResultDefault1st": {},
+  "ladderResultDefault2nd": "2nd",
+  "@ladderResultDefault2nd": {},
+  "ladderResultDefault3rd": "3rd",
+  "@ladderResultDefault3rd": {},
+  "ladderResultDefaultNth": "{n}th",
+  "@ladderResultDefaultNth": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "ladderStart": "Start Ladder",
+  "@ladderStart": {},
+  "ladderRetry": "Retry",
+  "@ladderRetry": {},
+  "ladderShare": "Share Results",
+  "@ladderShare": {},
+  "paywallTitle": "Upgrade to Premium",
+  "@paywallTitle": {},
+  "paywallSubtitle": "Unlock all tools and features forever.",
+  "@paywallSubtitle": {},
+  "paywallOneTimePrice": "One-time purchase",
+  "@paywallOneTimePrice": {},
+  "paywallPurchaseButton": "Purchase Premium",
+  "@paywallPurchaseButton": {},
+  "paywallRestoreButton": "Restore Purchase",
+  "@paywallRestoreButton": {},
+  "paywallMockNotice": "(Mock implementation: Not real purchase)",
+  "paywallPurchaseSuccess": "✅ Premium purchase successful!",
+  "@paywallPurchaseSuccess": {},
+  "paywallPurchaseFailed": "❌ Purchase failed",
+  "@paywallPurchaseFailed": {},
+  "paywallRestoreSuccess": "✅ Purchase restored successfully.",
+  "@paywallRestoreSuccess": {},
+  "paywallNoPreviousPurchase": "No previous purchases found.",
+  "@paywallNoPreviousPurchase": {},
+  "paywallNoRestorableItems": "❌ No purchase history found.",
+  "@paywallNoRestorableItems": {},
+  "paywallError": "Error occurred",
+  "@paywallError": {},
+  "paywallTryAgain": "Please try again.",
+  "@paywallTryAgain": {},
+  "paywallRouletteLimitTitle": "Create Limit Reached",
+  "@paywallRouletteLimitTitle": {},
+  "paywallRouletteLimitContent": "Free users can create up to 3 roulette sets.\nUpgrade to Premium for unlimited sets.",
+  "@paywallRouletteLimitContent": {},
+  "paywallRouletteSets": "Roulette Sets",
+  "@paywallRouletteSets": {},
+  "paywallFree": "Free",
+  "@paywallFree": {},
+  "paywallPremium": "Premium",
+  "@paywallPremium": {},
+  "paywallUnlimited": "Unlimited",
+  "@paywallUnlimited": {},
+  "paywallForever": "Forever",
+  "@paywallForever": {},
+  "paywallAds": "Ads",
+  "@paywallAds": {},
+  "coinBack": "T",
+  "coinFlipButton": "🪙 Flip",
+  "coinFront": "H",
+  "dateDaysAgo": "{days} days ago",
+  "dateToday": "Today",
+  "dateYesterday": "Yesterday",
+  "diceGenerateButton": "🎲 Generate",
+  "editorErrorEmptyItems": "Please fill in empty items.",
+  "editorErrorItemsRequired": "Please enter at least {min} items.",
+  "editorErrorMinItems": "At least {min} items required.",
+  "editorErrorNoName": "Please enter a roulette name.",
+  "editorErrorNotFound": "Roulette not found.",
+  "errorRouletteMaxLimit": "You can create up to {max} roulettes.",
+  "errorRouletteNotFound": "Roulette not found: {id}",
+  "homeItemCount": "{category} · {count} items",
+  "homeNewSetButton": "+ New Set",
+  "itemColorPickerTitle": "Choose Color",
+  "itemDeleteTooltip": "Delete item",
+  "itemNameHint": "Item name",
+  "itemNameRequired": "Required",
+  "ladderMaxParticipantsPro": "🔒 Max 12 (PRO)",
+  "numberCardTitle": "Random Number",
+  "numberProSnackbar": "Larger ranges available with PRO",
+  "numberProSnackbarAction": "View PRO",
+  "numberRangeHintFree": "Max 9,999 · PRO for bigger",
+  "numberRangeHintPro": "Max 999,999,999",
+  "rouletteCopyPrefix": "[Copy] {name}",
+  "shareResultText": "[{name}] Result: {result}\nDecided with Spin Wheel 🎡",
+  "toolsStatTotal": "Total"
 }

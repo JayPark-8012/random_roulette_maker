@@ -29,18 +29,18 @@ class AppUtils {
     return activePalette[index % activePalette.length].toARGB32();
   }
 
-  // 날짜를 "오늘", "어제", "n일 전" 등 상대적 표현으로 변환
-  static String formatRelativeDate(DateTime date) {
+  // 날짜를 상대적 표현으로 변환 (l10n 문자열을 UI 레이어에서 전달)
+  static String formatRelativeDate(
+    DateTime date, {
+    required String today,
+    required String yesterday,
+    required String Function(int) daysAgo,
+  }) {
     final now = DateTime.now();
     final diff = now.difference(date);
-    if (diff.inDays == 0) return '오늘';
-    if (diff.inDays == 1) return '어제';
-    if (diff.inDays < 7) return '${diff.inDays}일 전';
+    if (diff.inDays == 0) return today;
+    if (diff.inDays == 1) return yesterday;
+    if (diff.inDays < 7) return daysAgo(diff.inDays);
     return '${date.month}/${date.day}';
-  }
-
-  // 결과 공유용 텍스트 생성
-  static String buildShareText(String rouletteName, String resultLabel) {
-    return '[$rouletteName]의 결과: $resultLabel\nSpin Wheel 앱으로 결정했어요 🎡';
   }
 }

@@ -1889,6 +1889,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'At least 2 participants required'**
   String get ladderMinParticipants;
+
+  /// No description provided for @dateToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get dateToday;
+
+  /// No description provided for @dateYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get dateYesterday;
+
+  /// No description provided for @dateDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days ago'**
+  String dateDaysAgo(int days);
+
+  /// No description provided for @shareResultText.
+  ///
+  /// In en, this message translates to:
+  /// **'[{name}] Result: {result}\nDecided with Spin Wheel 🎡'**
+  String shareResultText(String name, String result);
+
+  /// No description provided for @errorRouletteMaxLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'You can create up to {max} roulettes.'**
+  String errorRouletteMaxLimit(int max);
+
+  /// No description provided for @errorRouletteNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Roulette not found: {id}'**
+  String errorRouletteNotFound(String id);
+
+  /// No description provided for @editorErrorMinItems.
+  ///
+  /// In en, this message translates to:
+  /// **'At least {min} items required.'**
+  String editorErrorMinItems(int min);
+
+  /// No description provided for @editorErrorNoName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a roulette name.'**
+  String get editorErrorNoName;
+
+  /// No description provided for @editorErrorItemsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter at least {min} items.'**
+  String editorErrorItemsRequired(int min);
+
+  /// No description provided for @editorErrorEmptyItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill in empty items.'**
+  String get editorErrorEmptyItems;
+
+  /// No description provided for @editorErrorNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Roulette not found.'**
+  String get editorErrorNotFound;
+
+  /// No description provided for @itemNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Item name'**
+  String get itemNameHint;
+
+  /// No description provided for @itemNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get itemNameRequired;
+
+  /// No description provided for @itemDeleteTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete item'**
+  String get itemDeleteTooltip;
+
+  /// No description provided for @itemColorPickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Color'**
+  String get itemColorPickerTitle;
+
+  /// No description provided for @rouletteCopyPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'[Copy] {name}'**
+  String rouletteCopyPrefix(String name);
+
+  /// No description provided for @homeNewSetButton.
+  ///
+  /// In en, this message translates to:
+  /// **'+ New Set'**
+  String get homeNewSetButton;
+
+  /// No description provided for @homeItemCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{category} · {count} items'**
+  String homeItemCount(String category, int count);
+
+  /// No description provided for @coinFront.
+  ///
+  /// In en, this message translates to:
+  /// **'H'**
+  String get coinFront;
+
+  /// No description provided for @coinBack.
+  ///
+  /// In en, this message translates to:
+  /// **'T'**
+  String get coinBack;
+
+  /// No description provided for @coinFlipButton.
+  ///
+  /// In en, this message translates to:
+  /// **'🪙 Flip'**
+  String get coinFlipButton;
+
+  /// No description provided for @toolsStatTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get toolsStatTotal;
+
+  /// No description provided for @numberProSnackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Larger ranges available with PRO'**
+  String get numberProSnackbar;
+
+  /// No description provided for @numberProSnackbarAction.
+  ///
+  /// In en, this message translates to:
+  /// **'View PRO'**
+  String get numberProSnackbarAction;
+
+  /// No description provided for @numberCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Random Number'**
+  String get numberCardTitle;
+
+  /// No description provided for @numberRangeHintPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Max 999,999,999'**
+  String get numberRangeHintPro;
+
+  /// No description provided for @numberRangeHintFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Max 9,999 · PRO for bigger'**
+  String get numberRangeHintFree;
+
+  /// No description provided for @diceGenerateButton.
+  ///
+  /// In en, this message translates to:
+  /// **'🎲 Generate'**
+  String get diceGenerateButton;
+
+  /// No description provided for @ladderMaxParticipantsPro.
+  ///
+  /// In en, this message translates to:
+  /// **'🔒 Max 12 (PRO)'**
+  String get ladderMaxParticipantsPro;
 }
 
 class _AppLocalizationsDelegate

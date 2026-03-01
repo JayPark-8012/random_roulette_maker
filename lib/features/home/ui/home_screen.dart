@@ -276,18 +276,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       onTap: () => _onCreateTap(context),
                       borderRadius: BorderRadius.circular(100),
                       splashColor: Colors.white.withValues(alpha: 0.15),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
                             horizontal: 24, vertical: 16),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.add_rounded,
+                            const Icon(Icons.add_rounded,
                                 color: Colors.white, size: 22),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Text(
-                              '+ 새 세트',
-                              style: TextStyle(
+                              l10n.homeNewSetButton,
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -557,8 +557,12 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     final messenger = ScaffoldMessenger.of(context);
-    final dupMsg = AppLocalizations.of(context)!.duplicated(roulette.name);
-    final id = await _notifier.duplicate(roulette.id);
+    final l10n = AppLocalizations.of(context)!;
+    final dupMsg = l10n.duplicated(roulette.name);
+    final id = await _notifier.duplicate(
+      roulette.id,
+      formatCopyName: (name) => l10n.rouletteCopyPrefix(name),
+    );
     if (id != null && mounted) {
       messenger.showSnackBar(SnackBar(content: Text(dupMsg)));
     }
@@ -1155,7 +1159,7 @@ class _StarterSetCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '$category · ${items.length} items',
+                        l10n.homeItemCount(category, items.length),
                         style: TextStyle(
                           fontSize: 13,
                           color: AppColors.textSecondary,
